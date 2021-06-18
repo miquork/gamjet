@@ -16,7 +16,7 @@
 #include <fstream>
 #include <string>
 
-#define GPU
+#define LOCAL
 
 #ifdef LOCAL
 // Compile these libraries into *.so first with root -l -b -q mk_CondFormats.C
@@ -33,7 +33,8 @@ R__LOAD_LIBRARY(GamHistosFill.C+g)
 void mk_GamHistosFill(string dataset = "2018P8") {
 
   // Settings
-  bool addData = true;
+  bool addData = (dataset=="2018A" || dataset=="2018B" ||
+		  dataset=="2018C" || dataset=="2018D");
   bool addMC = (dataset=="2018P8");
 
   //cout << "Clean old shared objects and link files" << endl << flush;
@@ -72,7 +73,8 @@ void mk_GamHistosFill(string dataset = "2018P8") {
   if (!runLocal) assert(runGPU);
   
   if (addData) {
-    ifstream fin(runLocal ? "dataFiles_local.txt" : "dataFiles.txt", ios::in);
+    ifstream fin(runLocal ? "dataFiles_local.txt" : 
+		 Form("dataFiles_Run%s.txt",dataset.c_str()), ios::in);
     string filename;
     cout << "Chaining data files:" << endl << flush;
     int nFiles(0), nFilesMax(827);//9999);
@@ -82,7 +84,7 @@ void mk_GamHistosFill(string dataset = "2018P8") {
     }
     cout << "Chained " << nFiles <<  " files" << endl << flush;
     
-    GamHistosFill filler(c,0);
+    GamHistosFill filler(c,0,dataset);
     filler.Loop();
   }
   
@@ -97,7 +99,7 @@ void mk_GamHistosFill(string dataset = "2018P8") {
     }
     cout << "Chained " << nFiles <<  " files" << endl << flush;
   
-    GamHistosFill filler(c,1);
+    GamHistosFill filler(c,1,dataset);
     filler.Loop();
   }
 }
