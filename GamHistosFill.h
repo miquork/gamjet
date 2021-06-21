@@ -17,6 +17,9 @@
 #include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
 
 #include <iostream>
+#include <cstdio>
+#include <map>
+#include <string>
 using namespace std;
 
 // Header file for the classes stored in the TTree if any.
@@ -32,7 +35,7 @@ public :
    // nCorrT1MetJet, nFatJet, nJet, nSoftActivityJet, nSubJet
    static const int nJetMax = 100;
    // nPhoton, nFsrPhoton, nGenIsolatedPhoton
-   static const int nPhotonMax = 20;
+   static const int nPhotonMax = 200;//100;//20;
    // nElectron, nGenDressedLepton
    static const int nElectronMax = 10;
    static const int nTauMax = 10;
@@ -3228,6 +3231,12 @@ public :
    virtual void     Loop();
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);
+
+   // Code originally from jetphys/HistosFill.C
+   void PrintInfo(string info, bool printcout);
+   bool LoadJSON(string json);
+   std::map<int, std::map<int, int> > _json;
+
 };
 
 #endif

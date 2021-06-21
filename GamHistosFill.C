@@ -13,6 +13,10 @@
 using namespace std;
 //using namespace GamHistosFill;
 
+#include "parsePileUpJSON.C"
+
+bool _gh_debug = false;
+
 // Classes to structure sets of histograms and profiles
 struct BasicHistos {
   TH1D *hn;
@@ -99,6 +103,8 @@ void GamHistosFill::Loop()
   fulltime.Start();
   TDatime bgn;
   int nlap(0);
+
+  int _nevents(0), _nbadevents_json(0), _nbadevents_trigger(0);
   
   if (true) { // ProcessFast
     fChain->SetBranchStatus("*",0);  // disable all branches
@@ -135,10 +141,11 @@ void GamHistosFill::Loop()
     fChain->SetBranchStatus("HLT_Photon20_HoverELoose",1);
     fChain->SetBranchStatus("HLT_Photon30_HoverELoose",1);
     
-    // JSON filtering
+    // JSON filtering, PU reweighing
+    if (isMC) fChain->SetBranchStatus("Pileup_nTrueInt");
     fChain->SetBranchStatus("run",1);
     if (!isMC) fChain->SetBranchStatus("luminosityBlock",1);
-    if (!isMC) fChain->SetBranchStatus("event",1);
+    //if (!isMC) fChain->SetBranchStatus("event",1);
     
     // Event filters listing from Sami:
     // twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2
@@ -216,6 +223,10 @@ void GamHistosFill::Loop()
   if (dataset=="2018P8") jecl1rc = getFJC("Summer19UL18_V5_MC_L1RC");
   assert(jecl1rc);
   
+  // Load JSON and pileup JSON files
+  LoadJSON("files/Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt");
+  parsePileUpJSON("files/pileup_ASCII_2016-2018.txt");
+
   // Create histograms. Copy format from existing files from Lyon
   // Keep only histograms actually used by global fit (reprocess.C)
   TDirectory *curdir = gDirectory;
@@ -246,6 +257,10 @@ void GamHistosFill::Loop()
   fout->mkdir("control");
   fout->cd("control");
   
+  // 2D plots for mu vs photon pT
+  TH1D *hmus = new TH1D("hmus","",100,0,100);
+  TH2D *h2mus = new TH2D("h2mus","",nx,vx,100,0,100);
+
   // 2D plots for jet response
   TH2D *h2bal = new TH2D("h2bal","",nx,vx,200,0,4);
   TH2D *h2mpf = new TH2D("h2mpf","",nx,vx,300,-2,4);
@@ -350,9 +365,18 @@ void GamHistosFill::Loop()
   Long64_t nentries = fChain->GetEntries();
   cout << "\nStarting loop over " << dataset << " with "
        << nentries << " entries" << endl;
+
+  //int skip = 21700000; // 2018A first events without 110EB
+  //int skip = 55342793; // 2018A first events with 92 photon
+  //int skip = 265126992; // 2018A first events with 191 photons, 23 jets
   
   Long64_t nbytes = 0, nb = 0;
   for (Long64_t jentry=0; jentry<nentries;jentry++) {
+
+    // Skip events, typically for debugging purposes
+    //if (jentry<skip) continue;
+    //if (_gh_debug && jentry%10000==0) cout << "," << endl << flush;
+    
     Long64_t ientry = LoadTree(jentry);
     if (ientry < 0) break;
     
@@ -388,8 +412,10 @@ void GamHistosFill::Loop()
     
     if (true) { // Fast trigger filtering (useful for data)
       b_HLT_Photon200->GetEntry(ientry);
-      b_HLT_Photon110EB_TightID_TightIso->GetEntry(ientry);
-      b_HLT_Photon100EB_TightID_TightIso->GetEntry(ientry);
+      if (b_HLT_Photon110EB_TightID_TightIso)
+	b_HLT_Photon110EB_TightID_TightIso->GetEntry(ientry);
+      if (b_HLT_Photon100EB_TightID_TightIso)
+	b_HLT_Photon100EB_TightID_TightIso->GetEntry(ientry);
       b_HLT_Photon75_R9Id90_HE10_IsoM->GetEntry(ientry);
       b_HLT_Photon50_R9Id90_HE10_IsoM->GetEntry(ientry);
       b_HLT_Photon30_HoverELoose->GetEntry(ientry);
@@ -401,12 +427,24 @@ void GamHistosFill::Loop()
 	    HLT_Photon75_R9Id90_HE10_IsoM ||
 	    HLT_Photon50_R9Id90_HE10_IsoM ||
 	    HLT_Photon30_HoverELoose ||
-	    HLT_Photon20_HoverELoose))
+	    HLT_Photon20_HoverELoose)) {
+	++_nbadevents_trigger;
 	continue;
+      }
     }
 
     nb = fChain->GetEntry(jentry);   nbytes += nb;
     // if (Cut(ientry) < 0) continue;
+
+    // Does the run/LS pass the latest JSON selection?
+    if (!isMC && _json[run][luminosityBlock]==0) {
+      //_badjson.insert(pair<int, int>(run, lbn));
+      ++_nbadevents_json;
+      continue;
+    }
+    else 
+      ++_nevents;
+
 
     // Safety checks for array sizes (segfault in 2018A)
     if (nJet > nJetMax || nPhoton > nPhotonMax) {
@@ -467,12 +505,30 @@ void GamHistosFill::Loop()
       double corrl1rc = jecl1rc->getCorrection();
       phoj *= corrl1rc;
     }
+
   
     // Event weights (1 for MadGraph)
     //bool isMC = (run==1);
     assert((isMC && run==1) || (!isMC && run!=1));
     double w = (isMC ? genWeight : 1);
     
+    // Pileup
+    double TruePUrms(0);
+    if (!isMC) Pileup_nTrueInt = getTruePU(run,luminosityBlock,&TruePUrms);
+    double ptgam = gam.Pt();
+
+    if (isMC) {
+      hmus->Fill(Pileup_nTrueInt, w);
+      h2mus->Fill(ptgam, Pileup_nTrueInt, w);
+    }
+    else {
+      for (int i=0; i!=100; ++i) {
+	double mu = gRandom->Gaus(Pileup_nTrueInt,TruePUrms);
+	hmus->Fill(mu, 0.01*w);
+	h2mus->Fill(ptgam, mu, 0.01*w);
+      } // for i in 100
+    }
+
     // Select leading jets. Just exclude photon, don't apply JetID yet
     int iJet(-1), iJet2(-1), nJets(0);
     jet.SetPtEtaPhiM(0,0,0,0);
@@ -541,7 +597,6 @@ void GamHistosFill::Loop()
     metu.SetPz(0);
     
     // Calculate basic variables
-    double ptgam = gam.Pt();
     double ptjet = jet.Pt();
     double abseta = fabs(jet.Eta());
     double pt2 = jet2.Pt();
@@ -662,15 +717,14 @@ void GamHistosFill::Loop()
 	 (isMC || Flag_eeBadScFilter) // data only
 	 );
       
-      bool pass_json = true;
       bool pass_ngam = (nGam>=1);
       bool pass_njet = (nJets>=1);
       bool pass_gameta = (fabs(gam.Eta()) < 1.3);
       bool pass_dphi = (gam.DeltaPhi(jet) > 2.7);
       bool pass_jetid = (iJet!=-1 && Jet_jetId[iJet]>=4); // tightLepVeto
       bool pass_veto = true;
-      bool pass_basic = (pass_trig && pass_filt && pass_json && pass_ngam &&
-			 pass_njet && pass_dphi && pass_jetid && pass_veto);
+      bool pass_basic = (pass_trig && pass_filt && pass_ngam && pass_njet &&
+			 pass_dphi && pass_jetid && pass_veto);
       
       // Control plots for jet response
       bool pass_bal = (fabs(1-bal)<0.7);
@@ -730,7 +784,10 @@ void GamHistosFill::Loop()
       
     } // for jentry in nentries
     cout << endl << "Finished loop, writing file." << endl << flush;
-    
+    cout << "Processed " << _nevents << " events\n";
+    cout << "Skipped " << _nbadevents_json << " events due to JSON\n";
+    cout << "Skipped " << _nbadevents_trigger << " events due to trigger\n";
+
     fout->Write();
     cout << "File written." << endl << flush;
     
@@ -738,3 +795,58 @@ void GamHistosFill::Loop()
     cout << "File closed." << endl << flush;
 
 } // GamHistosFill::Loop()
+
+
+// Code originally from jetphys/HistosFill.C
+void GamHistosFill::PrintInfo(string info, bool printcout)
+{
+  //*ferr << info << endl << flush;
+  if (printcout) cout << info << endl << flush;
+}
+
+// Code originally from jetphys/HistosFill.C
+bool GamHistosFill::LoadJSON(string json)
+{
+  PrintInfo(string("Processing LoadJSON() with ") + json + " ...",true);
+  ifstream file(json, ios::in);
+  if (!file.is_open()) return false;
+  char c;
+  string s, s2, s3;
+  char s1[256];
+  int rn(0), ls1(0), ls2(0), nrun(0), nls(0);
+  file.get(c);
+  if (c!='{') return false;
+  while (file >> s and sscanf(s.c_str(),"\"%d\":",&rn)==1) {
+    if (_gh_debug) PrintInfo(Form("\"%d\": ",rn),true);
+
+    while (file.get(c) and c==' ') {};
+    if (_gh_debug) { PrintInfo(Form("%c",c),true); assert(c=='['); }
+    ++nrun;
+
+    bool endrun = false;
+    while (!endrun and file >> s >> s2 and (sscanf((s+s2).c_str(),"[%d,%d]%s",&ls1,&ls2,s1)==3 or (file >> s3 and sscanf((s+s2+s3).c_str(),"[%d,%d]%s",&ls1,&ls2,s1)==3))) {
+
+      s2 = s1;
+      if (s2=="]") { file >> s3; s2 += s3; }
+
+      if (_gh_debug) PrintInfo(Form("[%d,%d,'%s']",ls1,ls2,s1),true);
+
+      for (int ls = ls1; ls != ls2+1; ++ls) {
+        _json[rn][ls] = 1;
+        ++nls;
+      }
+
+      endrun = (s2=="]," || s2=="]}");
+      if (_gh_debug and !endrun and s2!=",") { PrintInfo(string("s1: ")+s2,true); assert(s2==","); }
+    } // while ls
+    if (_gh_debug) PrintInfo("",true);
+
+    if (s2=="]}") continue;
+    else if (_gh_debug and s2!="],") PrintInfo(string("s2: ")+s2,true); assert(s2=="],");
+  } // while run
+  if (s2!="]}") { PrintInfo(string("s3: ")+s2,true); return false; }
+
+  PrintInfo(string("Called LoadJSON() with ") + json + ":",true);
+  PrintInfo(Form("Loaded %d good runs and %d good lumi sections",nrun,nls),true);
+  return true;
+} // LoadJSON
