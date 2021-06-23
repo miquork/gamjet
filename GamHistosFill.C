@@ -104,7 +104,8 @@ void GamHistosFill::Loop()
   TDatime bgn;
   int nlap(0);
 
-  int _nevents(0), _nbadevents_json(0), _nbadevents_trigger(0);
+  int _ntot(0), _nevents(0), _nbadevents_json(0), _nbadevents_trigger(0);
+  int _nbadevents_veto(0);
   
   if (true) { // ProcessFast
     fChain->SetBranchStatus("*",0);  // disable all branches
@@ -220,12 +221,28 @@ void GamHistosFill::Loop()
   if (dataset=="2018B")  jecl1rc = getFJC("Summer19UL18_RunB_V5_DATA_L1RC");
   if (dataset=="2018C")  jecl1rc = getFJC("Summer19UL18_RunC_V5_DATA_L1RC");
   if (dataset=="2018D")  jecl1rc = getFJC("Summer19UL18_RunD_V5_DATA_L1RC");
+  if (dataset=="2018D1") jecl1rc = getFJC("Summer19UL18_RunD_V5_DATA_L1RC");
+  if (dataset=="2018D2") jecl1rc = getFJC("Summer19UL18_RunD_V5_DATA_L1RC");
   if (dataset=="2018P8") jecl1rc = getFJC("Summer19UL18_V5_MC_L1RC");
   assert(jecl1rc);
   
   // Load JSON and pileup JSON files
   LoadJSON("files/Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt");
   parsePileUpJSON("files/pileup_ASCII_2016-2018.txt");
+  
+  // Load veto maps
+  // JECDatabase/jet_veto_maps/Summer19UL18_V1/hotjets-UL18.root
+  // JECDatabase/jet_veto_maps/Summer19UL17_V2/hotjets-UL17_v2.root
+  // JECDatabase/jet_veto_maps/Summer19UL16_V0/hotjets-UL16.root
+  TFile *fjv = new TFile("files/hotjets-UL18.root","READ");
+  assert(fjv);
+  // One year needs MC added. Was it UL17?
+  // h2hot_ul18_plus_hem1516_and_hbp2m1
+  // h2hot_ul17_plus_hep17_plus_hbpw89
+  // h2hot_ul16_plus_hbm2_hbp12_qie11
+  // + h2hot_mc (for UL16)
+  TH2D *h2jv = (TH2D*)fjv->Get("h2hot_ul18_plus_hem1516_and_hbp2m1");
+  assert(h2jv);
 
   // Create histograms. Copy format from existing files from Lyon
   // Keep only histograms actually used by global fit (reprocess.C)
@@ -274,6 +291,8 @@ void GamHistosFill::Loop()
   TProfile *pphoj = new TProfile("pphoj","",nx,vx);
 
   // Plots for photon properties
+  TH2D *h2gametaphi = new TH2D("h2gametaphi","",30,-1.305,+1.305,
+			       72,0,TMath::TwoPi());
   TH2D *h2ngam = new TH2D("h2ngam","",nx,vx,5,0,5);
   TH1D *hgen = new TH1D("hgen","",nx,vx);
   TH1D *hgam = new TH1D("hgam","",nx,vx);
@@ -380,6 +399,7 @@ void GamHistosFill::Loop()
     Long64_t ientry = LoadTree(jentry);
     if (ientry < 0) break;
     
+    ++_ntot;
     if (jentry==100000 || jentry==1000000 || jentry==1000000 ||
 	(jentry%1000000==0 && jentry<10000000) ||
 	(jentry%10000000==0 && jentry!=0) ||
@@ -410,7 +430,7 @@ void GamHistosFill::Loop()
     HLT_Photon100EB_TightID_TightIso =  HLT_Photon110EB_TightID_TightIso =
       HLT_Photon120EB_TightID_TightIso = kFALSE;
     
-    if (true) { // Fast trigger filtering (useful for data)
+    if (!isMC) { // Fast trigger filtering (useful for data)
       b_HLT_Photon200->GetEntry(ientry);
       if (b_HLT_Photon110EB_TightID_TightIso)
 	b_HLT_Photon110EB_TightID_TightIso->GetEntry(ientry);
@@ -701,6 +721,10 @@ void GamHistosFill::Loop()
 	if (!isMC) hgamtrig_data->Fill(ptgam, w);
 	hgamtrig->Fill(ptgam, w);
       }
+      if (ptgam>=120 && fabs(gam.Eta())<1.3 &&
+	  HLT_Photon110EB_TightID_TightIso) {
+	h2gametaphi->Fill(gam.Eta(), gam.Phi());
+      }
       
       // Event filters
       bool pass_filt = 
@@ -723,6 +747,14 @@ void GamHistosFill::Loop()
       bool pass_dphi = (gam.DeltaPhi(jet) > 2.7);
       bool pass_jetid = (iJet!=-1 && Jet_jetId[iJet]>=4); // tightLepVeto
       bool pass_veto = true;
+      if (true) { // jet veto
+        int i1 = h2jv->GetXaxis()->FindBin(jet.Eta());
+        int j1 = h2jv->GetYaxis()->FindBin(jet.Phi());
+        if (h2jv->GetBinContent(i1,j1)>0) {
+          ++_nbadevents_veto;
+	  pass_veto = false;
+	}
+      } // jet veto
       bool pass_basic = (pass_trig && pass_filt && pass_ngam && pass_njet &&
 			 pass_dphi && pass_jetid && pass_veto);
       
@@ -785,8 +817,12 @@ void GamHistosFill::Loop()
     } // for jentry in nentries
     cout << endl << "Finished loop, writing file." << endl << flush;
     cout << "Processed " << _nevents << " events\n";
-    cout << "Skipped " << _nbadevents_json << " events due to JSON\n";
-    cout << "Skipped " << _nbadevents_trigger << " events due to trigger\n";
+    cout << "Skipped " << _nbadevents_json << " events due to JSON ("
+	 << (100.*_nbadevents_json/_nevents) << "%) \n";
+    cout << "Skipped " << _nbadevents_trigger << " events due to trigger ("
+      	 << (100.*_nbadevents_trigger/_ntot) << "%) \n";
+    cout << "Skipped " << _nbadevents_veto << " events due to veto ("
+      	 << (100.*_nbadevents_veto/_nevents) << "%) \n";
 
     fout->Write();
     cout << "File written." << endl << flush;
@@ -809,7 +845,7 @@ bool GamHistosFill::LoadJSON(string json)
 {
   PrintInfo(string("Processing LoadJSON() with ") + json + " ...",true);
   ifstream file(json, ios::in);
-  if (!file.is_open()) return false;
+  if (!file.is_open()) { assert(false); return false; }
   char c;
   string s, s2, s3;
   char s1[256];
