@@ -34,7 +34,8 @@ void mk_GamHistosFill(string dataset = "2018P8") {
 
   // Settings
   bool addData = (dataset=="2018A" || dataset=="2018B" ||
-		  dataset=="2018C" || dataset=="2018D");
+		  dataset=="2018C" || dataset=="2018D" ||
+		  dataset=="2018D1" || dataset=="2018D2");
   bool addMC = (dataset=="2018P8");
 
   //cout << "Clean old shared objects and link files" << endl << flush;
