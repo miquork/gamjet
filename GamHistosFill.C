@@ -161,6 +161,7 @@ void GamHistosFill::Loop()
     //inputList.("Flag_BadChargedCandidateFilter",0); // not recommended
     //inputList.("Flag_globalTightHalo2016Filter",0); // obsolete?
     //inputList.("Flag_CSCTightHaloFilter",0); // obsolete?
+    fChain->SetBranchStatus("Flag_ecalBadCalibFilter",1);//new, not used by Sami
     //if dataset.isData:
     if (!isMC) {
       fChain->SetBranchStatus("Flag_eeBadScFilter",1); // data only
@@ -171,7 +172,9 @@ void GamHistosFill::Loop()
     if (isMC)  fChain->SetBranchStatus("genWeight",1);
     
     fChain->SetBranchStatus("fixedGridRhoFastjetAll",1);
-    
+    fChain->SetBranchStatus("PV_npvs",1);
+    fChain->SetBranchStatus("PV_npvsGood",1);
+
     fChain->SetBranchStatus("ChsMET_pt",1);
     fChain->SetBranchStatus("ChsMET_phi",1);
     
@@ -180,9 +183,14 @@ void GamHistosFill::Loop()
     fChain->SetBranchStatus("Photon_eta",1);
     fChain->SetBranchStatus("Photon_phi",1);
     fChain->SetBranchStatus("Photon_mass",1);
-    fChain->SetBranchStatus("Photon_cutBased",1);
     fChain->SetBranchStatus("Photon_hoe",1);
+    fChain->SetBranchStatus("Photon_cutBased",1);
     fChain->SetBranchStatus("Photon_jetIdx",1);
+
+    fChain->SetBranchStatus("Photon_seedGain",1);
+    fChain->SetBranchStatus("Photon_eCorr",1);
+    fChain->SetBranchStatus("Photon_energyErr",1);
+    fChain->SetBranchStatus("Photon_r9",1);
     
     fChain->SetBranchStatus("nJet",1);
     fChain->SetBranchStatus("Jet_pt",1);
@@ -252,8 +260,14 @@ void GamHistosFill::Loop()
 			  "RECREATE");
   assert(fout && !fout->IsZombie());
   
-  double vx[] = {15, 20, 25, 30, 35, 40, 50, 60, 70, 85, 105, 130, 175, 230,
-		 300, 400, 500, 600, 700, 850, 1000, 1200, 1450, 1750};
+  // Original gamma+jet binning
+  // double vx[] = {15, 20, 25, 30, 35, 40, 50, 60, 70, 85, 105, 130, 175, 230,
+  //		 300, 400, 500, 600, 700, 850, 1000, 1200, 1450, 1750};
+  // Re-optimized binning to increase density in 105-230 GeV range
+  double vx[] = {15, 20, 25, 30, 35, 40, 50, 60, 70, 85, 105,
+		 110, 115, 120, 125, 130, 135, 140, 145, 150, 155, 165,
+		 175, 185, 195, 210, 230,
+  		 300, 400, 500, 600, 700, 850, 1000, 1200, 1450, 1750};
   const int nx = sizeof(vx)/sizeof(vx[0])-1;
   
   string dir = (isMC ? "MC" : "DATA");
@@ -278,6 +292,29 @@ void GamHistosFill::Loop()
   TH1D *hmus = new TH1D("hmus","",100,0,100);
   TH2D *h2mus = new TH2D("h2mus","",nx,vx,100,0,100);
 
+  // Plots of npvgood, npgall vs mu
+  TProfile *pmuvsmu = new TProfile("pmuvsmu","",100,0,100);
+  TProfile *prhovsmu = new TProfile("prhovsmu","",100,0,100);
+  TProfile *pnpvgoodvsmu = new TProfile("pnpvgoodvsmu","",100,0,100);
+  TProfile *pnpvallvsmu = new TProfile("pnpgallvsmu","",100,0,100);
+  // Plots of photon corr, err, hoe, r9, vs mu 
+  TProfile *pgainvsmu = new TProfile("pgainvsmu","",100,0,100);
+  TProfile *pcorrvsmu = new TProfile("pcorrvsmu","",100,0,100);
+  TProfile *perrvsmu = new TProfile("perrvsmu","",100,0,100);
+  TProfile *phoevsmu = new TProfile("phoevsmu","",100,0,100);
+  TProfile *pr9vsmu = new TProfile("pr9vsmu","",100,0,100);
+  // ...and vs pT
+  TProfile *pmuvspt = new TProfile("pmuvspt","",nx,vx);
+  TProfile *prhovspt = new TProfile("prhovspt","",nx,vx);
+  TProfile *pnpvgoodvspt = new TProfile("pnpvgoodvspt","",nx,vx);
+  TProfile *pnpvallvspt = new TProfile("pnpgallvspt","",nx,vx);
+  // ..and vs pT
+  TProfile *pgainvspt = new TProfile("pgainvspt","",nx,vx);
+  TProfile *pcorrvspt = new TProfile("pcorrvspt","",nx,vx);
+  TProfile *perrvspt = new TProfile("perrvspt","",nx,vx);
+  TProfile *phoevspt = new TProfile("phoevspt","",nx,vx);
+  TProfile *pr9vspt = new TProfile("pr9vspt","",nx,vx);
+
   // 2D plots for jet response
   TH2D *h2bal = new TH2D("h2bal","",nx,vx,200,0,4);
   TH2D *h2mpf = new TH2D("h2mpf","",nx,vx,300,-2,4);
@@ -292,7 +329,9 @@ void GamHistosFill::Loop()
 
   // Plots for photon properties
   TH2D *h2gametaphi = new TH2D("h2gametaphi","",30,-1.305,+1.305,
-			       72,0,TMath::TwoPi());
+			       72,-TMath::Pi(),TMath::Pi());
+  TH2D *h2gametaphi2 = new TH2D("h2gametaphi2","",150,-1.305,+1.305,
+				360,-TMath::Pi(),TMath::Pi());
   TH2D *h2ngam = new TH2D("h2ngam","",nx,vx,5,0,5);
   TH1D *hgen = new TH1D("hgen","",nx,vx);
   TH1D *hgam = new TH1D("hgam","",nx,vx);
@@ -300,6 +339,10 @@ void GamHistosFill::Loop()
   TProfile *peffid = new TProfile("peffid","",nx,vx);
   TProfile *pfake = new TProfile("pfake","",nx,vx);
   TProfile *prgam = new TProfile("prgam","",nx,vx);
+  TProfile *prbal = new TProfile("prbal","",nx,vx);
+  TProfile *prmpf = new TProfile("prmpf","",nx,vx);
+  TProfile *prbal0 = new TProfile("prbal0","",980,20,1000);
+  TProfile *prmpf0 = new TProfile("prmpf0","",980,20,1000);
   
   // Plots for photon trigger efficiencies
   // TBD: need to create these more systematically with a loop
@@ -359,7 +402,7 @@ void GamHistosFill::Loop()
       TProfile *prmpf1 = new TProfile(Form(cname,"MPFR1chs"),"",nx,vx);
       TProfile *prmpfn = new TProfile(Form(cname,"MPFRnchs"),"",nx,vx);
       TProfile *prmpfu = new TProfile(Form(cname,"MpfRuchs"),"",nx,vx);
-      
+
       // Store links to histograms and profiles into maps
       BasicHistos *pmh = new BasicHistos();
       BasicHistos& mh = (*pmh);
@@ -537,18 +580,6 @@ void GamHistosFill::Loop()
     if (!isMC) Pileup_nTrueInt = getTruePU(run,luminosityBlock,&TruePUrms);
     double ptgam = gam.Pt();
 
-    if (isMC) {
-      hmus->Fill(Pileup_nTrueInt, w);
-      h2mus->Fill(ptgam, Pileup_nTrueInt, w);
-    }
-    else {
-      for (int i=0; i!=100; ++i) {
-	double mu = gRandom->Gaus(Pileup_nTrueInt,TruePUrms);
-	hmus->Fill(mu, 0.01*w);
-	h2mus->Fill(ptgam, mu, 0.01*w);
-      } // for i in 100
-    }
-
     // Select leading jets. Just exclude photon, don't apply JetID yet
     int iJet(-1), iJet2(-1), nJets(0);
     jet.SetPtEtaPhiM(0,0,0,0);
@@ -687,6 +718,8 @@ void GamHistosFill::Loop()
     // Basic event selection. Take care to match pT bin edges
     // vx: {15, 20, 25, 30, 35, 40, 50, 60, 85, 105, 130, 175, 230, 300,
     double pt = ptgam; // shorthand to make trigger selection more readable
+    // First version of trigger for old pT binning
+    /*
     bool pass_trig = 
       (//isMC ||
        // Unprescaled trigger for pT>230
@@ -714,6 +747,20 @@ void GamHistosFill::Loop()
        (HLT_Photon30_HoverELoose         && pt>=35  && pt<60) ||
        (HLT_Photon20_HoverELoose         && pt>=20  && pt<35)
        );
+    */
+    // Second version of trigger to maximize statistics
+    bool pass_trig = 
+      ((HLT_Photon200 && pt>=210) ||
+       (HLT_Photon110EB_TightID_TightIso && pt>=115 && pt<210) ||
+       (HLT_Photon100EB_TightID_TightIso && pt>=105 && pt<115) ||
+       (HLT_Photon90_R9Id90_HE10_IsoM    && pt>=95  && pt<105) ||
+       (HLT_Photon75_R9Id90_HE10_IsoM    && pt>=80  && pt<95) ||
+       (HLT_Photon50_R9Id90_HE10_IsoM    && pt>=55  && pt<80) ||
+       (HLT_Photon33                     && pt>=35  && pt<55) ||
+       (HLT_Photon30_HoverELoose         && pt>=30  && pt<55) ||
+       (HLT_Photon20_HoverELoose         && pt>=20  && pt<55) ||
+       (HLT_Photon20                     && pt>=20  && pt<55)
+       );
 
       // Summary of combined trigger efficiencies
       if (ptgam>0 && fabs(gam.Eta())<1.3 && pass_trig) {
@@ -721,12 +768,13 @@ void GamHistosFill::Loop()
 	if (!isMC) hgamtrig_data->Fill(ptgam, w);
 	hgamtrig->Fill(ptgam, w);
       }
-      if (ptgam>=120 && fabs(gam.Eta())<1.3 &&
+      if (ptgam>=115 && fabs(gam.Eta())<1.3 &&
 	  HLT_Photon110EB_TightID_TightIso) {
-	h2gametaphi->Fill(gam.Eta(), gam.Phi());
+	h2gametaphi->Fill(gam.Eta(), gam.Phi(), w);
+	h2gametaphi2->Fill(gam.Eta(), gam.Phi(), w);
       }
       
-      // Event filters
+      // Event filters for 2017 and 02018 data and MC
       bool pass_filt = 
 	(Flag_goodVertices &&
 	 Flag_globalSuperTightHalo2016Filter &&
@@ -738,6 +786,7 @@ void GamHistosFill::Loop()
 	 //Flag_BadChargedCandidateFilter && // not recommended
 	 //Flag_globalTightHalo2016Filter && // obsolete?
 	 //Flag_CSCTightHaloFilter // obsolete?
+	 Flag_ecalBadCalibFilter && //new, not used by Sami, only EOY
 	 (isMC || Flag_eeBadScFilter) // data only
 	 );
       
@@ -775,9 +824,54 @@ void GamHistosFill::Loop()
 
       // Control plots for photon-jet 
       if (phoj.Pt()>0 && pass_basic_ext) {
+
 	h2phoj->Fill(ptgam, phoj.Pt()/ptgam, w);
 	pphoj->Fill(ptgam, phoj.Pt()/ptgam, w);
-      }
+
+	if (pass_jeteta && pass_alpha100) {
+	  prbal->Fill(ptgam, bal, w);
+	  prmpf->Fill(ptgam, mpf, w);
+	  prbal0->Fill(ptgam, bal, w);
+	  prmpf0->Fill(ptgam, mpf, w);
+	  
+	  if (isMC) {
+	    if (ptgam>=115 && ptgam<210)
+	      hmus->Fill(Pileup_nTrueInt, w);
+	    h2mus->Fill(ptgam, Pileup_nTrueInt, w);
+	  }
+	  else {
+	    for (int i=0; i!=100; ++i) {
+	      double mu = gRandom->Gaus(Pileup_nTrueInt,TruePUrms);
+	      if (ptgam>=115 && ptgam<210)
+		hmus->Fill(mu, 0.01*w);
+	      h2mus->Fill(ptgam, mu, 0.01*w);
+	    } // for i in 100
+	  } // is MC
+	  if (ptgam>=115 && ptgam<210) {
+	    pgainvsmu->Fill(Pileup_nTrueInt, Photon_seedGain[iGam], w);
+	    pcorrvsmu->Fill(Pileup_nTrueInt, Photon_eCorr[iGam], w);
+	    perrvsmu->Fill(Pileup_nTrueInt, Photon_energyErr[iGam], w);
+	    phoevsmu->Fill(Pileup_nTrueInt, Photon_hoe[iGam], w);
+	    pr9vsmu->Fill(Pileup_nTrueInt, Photon_r9[iGam], w);
+	    //
+	    pmuvsmu->Fill(Pileup_nTrueInt, Pileup_nTrueInt, w);
+	    prhovsmu->Fill(Pileup_nTrueInt, fixedGridRhoFastjetAll, w);
+	    pnpvgoodvsmu->Fill(Pileup_nTrueInt, PV_npvsGood, w);
+	    pnpvallvsmu->Fill(Pileup_nTrueInt, PV_npvs, w);
+	  } // medium pt range
+	  
+	  pgainvspt->Fill(ptgam, Photon_seedGain[iGam], w);
+	  pcorrvspt->Fill(ptgam, Photon_eCorr[iGam], w);
+	  perrvspt->Fill(ptgam, Photon_energyErr[iGam], w);
+	  phoevspt->Fill(ptgam, Photon_hoe[iGam], w);
+	  pr9vspt->Fill(ptgam, Photon_r9[iGam], w);
+	  //
+	  pmuvspt->Fill(ptgam, Pileup_nTrueInt, w);
+	  prhovspt->Fill(ptgam, fixedGridRhoFastjetAll, w);
+	  pnpvgoodvspt->Fill(ptgam, PV_npvsGood, w);
+	  pnpvallvspt->Fill(ptgam, PV_npvs, w);
+	} // barrel
+      } // basic_ext cuts
       
       // Specific event selection for alpha and eta bins
       for (unsigned int ialpha = 0; ialpha != alphas.size(); ++ialpha) {

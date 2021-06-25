@@ -39,21 +39,26 @@ void replacePt(TGraphErrors *g, TH1 *h) {
 void GamHistosRatio() {
 
   // Merge files, if not already done (delete combination file to redo)
-  gSystem->Exec("hadd files/GamHistosFill_data_2018ABCD_v3.root "
-		"files/GamHistosFill_data_2018A_v3.root "
-		"files/GamHistosFill_data_2018B_v3.root "
-		"files/GamHistosFill_data_2018C_v3.root "
-		"files/GamHistosFill_data_2018D_v3.root");
+  gSystem->Exec("hadd files/GamHistosFill_data_2018ABCD_v5.root "
+		"files/GamHistosFill_data_2018A_v5.root "
+		"files/GamHistosFill_data_2018B_v5.root "
+		"files/GamHistosFill_data_2018C_v5.root "
+		"files/GamHistosFill_data_2018D1_v5.root "
+		"files/GamHistosFill_data_2018D2_v5.root");
 
-  TFile *fd = new TFile("files/GamHistosFill_data_2018ABCD_v3.root","READ");
+  TFile *fd = new TFile("files/GamHistosFill_data_2018ABCD_v5.root","READ");
   assert(fd && !fd->IsZombie());
 
-  TFile *fm = new TFile("files/GamHistosFill_mc_2018P8_v3.root","READ");
+  TFile *fm = new TFile("files/GamHistosFill_mc_2018P8_v5.root","READ");
   assert(fm && !fm->IsZombie());
+
+  cout << "Merging files " << fd->GetName() << " and " << fm->GetName() << endl;
   
-  TFile *fr = new TFile("files/GamHistosRatio_2018ABCD_P8_v3.root","RECREATE");
+  TFile *fr = new TFile("files/GamHistosRatio_2018ABCD_P8_v5.root","RECREATE");
   assert(fr && !fr->IsZombie());
   fr->mkdir("orig");
+  
+  cout << "Output file " << fr->GetName() << endl << flush;
   
   // Automatically go through the list of keys (profiles, histograms)
   TList *keys = fm->GetListOfKeys();
@@ -66,6 +71,7 @@ void GamHistosRatio() {
     if (debug) cout << key->GetName() << endl << flush;
     obj = key->ReadObj(); assert(obj);
 
+    fm->cd();
     if (obj->InheritsFrom("TProfile")) {
 
       TProfile *pm = (TProfile*)obj;
@@ -82,6 +88,7 @@ void GamHistosRatio() {
       rationame.ReplaceAll("_MC","");
       TH1D *hr = (TH1D*)hd->Clone(Form("h_%s",rationame.Data()));
       hr->Divide(hm);
+      fm->cd();
 
       // Retrieve pT mapping
       char c[256];
@@ -136,10 +143,36 @@ void GamHistosRatio() {
       gd->Write();
       gr->Write();
     } // TProfile
+    else if (obj->InheritsFrom("TH1D")) {
+
+      TH1D *hm = (TH1D*)obj;
+      TString mcname = obj->GetName();
+      if (mcname.Contains("RawNEvents")) hm->Scale(750e3);
+
+      TString dataname = mcname;
+      dataname.ReplaceAll("MC","DATA");
+      TH1D *hd = (TProfile*)fd->Get(dataname.Data());
+      assert(hd);
+
+      TString rationame = mcname;
+      rationame.ReplaceAll("_MC","");
+      TH1D *hr = (TH1D*)hd->Clone(rationame.Data());
+      hr->Divide(hm);
+
+      fr->cd();
+      //hm->SetDirectory(gDirectory);
+      //hd->SetDirectory(gDirectory);
+      //hr->SetDirectory(gDirectory);
+      hm->Write();
+      hd->Write();
+      hr->Write();
+    } // TH1D
   } // while key in itkey
 
+  cout << "Writing file " << fr->GetName() << endl << flush;
   fr->Write();
   fr->Close();
+  cout << "File closed." << endl << flush;
 } // GamHistosRatio
 
 // J. Mnich, DG's talk on June 22, 2021
