@@ -36,25 +36,31 @@ void replacePt(TGraphErrors *g, TH1 *h) {
 }
 
 
-void GamHistosRatio() {
+void GamHistosRatio(string ver = "v6") {
+
+  const char *cv = ver.c_str();
 
   // Merge files, if not already done (delete combination file to redo)
-  gSystem->Exec("hadd files/GamHistosFill_data_2018ABCD_v5.root "
-		"files/GamHistosFill_data_2018A_v5.root "
-		"files/GamHistosFill_data_2018B_v5.root "
-		"files/GamHistosFill_data_2018C_v5.root "
-		"files/GamHistosFill_data_2018D1_v5.root "
-		"files/GamHistosFill_data_2018D2_v5.root");
+  gSystem->Exec(Form("hadd files/GamHistosFill_data_2018ABCD_%s.root "
+		     "files/GamHistosFill_data_2018A_%s.root "
+		     "files/GamHistosFill_data_2018B_%s.root "
+		     "files/GamHistosFill_data_2018C_%s.root "
+		     "files/GamHistosFill_data_2018D1_%s.root "
+		     "files/GamHistosFill_data_2018D2_%s.root",
+		     cv,cv,cv,cv,cv,cv));
 
-  TFile *fd = new TFile("files/GamHistosFill_data_2018ABCD_v5.root","READ");
+  TFile *fd = new TFile(Form("files/GamHistosFill_data_2018ABCD_%s.root",cv),
+			     "READ");
   assert(fd && !fd->IsZombie());
 
-  TFile *fm = new TFile("files/GamHistosFill_mc_2018P8_v5.root","READ");
+  TFile *fm = new TFile(Form("files/GamHistosFill_mc_2018P8_%s.root",cv),
+			"READ");
   assert(fm && !fm->IsZombie());
 
   cout << "Merging files " << fd->GetName() << " and " << fm->GetName() << endl;
   
-  TFile *fr = new TFile("files/GamHistosRatio_2018ABCD_P8_v5.root","RECREATE");
+  TFile *fr = new TFile(Form("files/GamHistosRatio_2018ABCD_P8_%s.root",cv),
+			"RECREATE");
   assert(fr && !fr->IsZombie());
   fr->mkdir("orig");
   

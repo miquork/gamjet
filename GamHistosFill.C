@@ -261,13 +261,19 @@ void GamHistosFill::Loop()
   assert(fout && !fout->IsZombie());
   
   // Original gamma+jet binning
-  // double vx[] = {15, 20, 25, 30, 35, 40, 50, 60, 70, 85, 105, 130, 175, 230,
-  //		 300, 400, 500, 600, 700, 850, 1000, 1200, 1450, 1750};
-  // Re-optimized binning to increase density in 105-230 GeV range
-  double vx[] = {15, 20, 25, 30, 35, 40, 50, 60, 70, 85, 105,
-		 110, 115, 120, 125, 130, 135, 140, 145, 150, 155, 165,
-		 175, 185, 195, 210, 230,
+  //     old bin trigger edges  (20,30,60,85,*95*,105,130,230)
+  double vx[] = {15, 20, 25, 30, 35, 40, 50, 60, 70, 85, 105, 130, 175, 230,
   		 300, 400, 500, 600, 700, 850, 1000, 1200, 1450, 1750};
+  // Re-optimized binning to increase density in 105-230 GeV range
+  //double vx[] = {15, 20, 25, 30, 35, 40, 50, 60, 70, 85, 105,
+  //		 110, 115, 120, 125, 130, 135, 140, 145, 150, 155, 165,
+  //		 175, 185, 195, 210, 230,
+  //		 300, 400, 500, 600, 700, 850, 1000, 1200, 1450, 1750};
+  // Second re-optimized wider binning (not used yet)
+  //     optimal trigger edges: (20,30,(35),55,80,95,105,115,210)
+  //double vx[] = {15, 20, 25, 30, 35, 45, 55, 65, 80, 95, 105, 115, 130,
+  //		 150, 180, 210, 250, 300, 360, 430, 520, 630, 760, 910,
+  //		 1200, 1450, 1750};
   const int nx = sizeof(vx)/sizeof(vx[0])-1;
   
   string dir = (isMC ? "MC" : "DATA");
@@ -288,15 +294,27 @@ void GamHistosFill::Loop()
   fout->mkdir("control");
   fout->cd("control");
   
+  // 1D plots for mu per trigger
+  //hmusmc,20,30,50,75,90,100,110,200
+  TH1D *hmus  = new TH1D("hmus","",100,0,100);
+  TH1D *hmusmc = new TH1D("hmusmc","",100,0,100);
+  TH1D *hmus20 = new TH1D("hmus20","",100,0,100);
+  TH1D *hmus30 = new TH1D("hmus30","",100,0,100);
+  TH1D *hmus50 = new TH1D("hmus50","",100,0,100);
+  TH1D *hmus75 = new TH1D("hmus75","",100,0,100);
+  TH1D *hmus90 = new TH1D("hmus90","",100,0,100);
+  TH1D *hmus100 = new TH1D("hmus100","",100,0,100);
+  TH1D *hmus110 = new TH1D("hmus110","",100,0,100);
+  TH1D *hmus200 = new TH1D("hmus200","",100,0,100);
+
   // 2D plots for mu vs photon pT
-  TH1D *hmus = new TH1D("hmus","",100,0,100);
   TH2D *h2mus = new TH2D("h2mus","",nx,vx,100,0,100);
 
-  // Plots of npvgood, npgall vs mu
+  // Plots of npvgood, npvall vs mu
   TProfile *pmuvsmu = new TProfile("pmuvsmu","",100,0,100);
   TProfile *prhovsmu = new TProfile("prhovsmu","",100,0,100);
   TProfile *pnpvgoodvsmu = new TProfile("pnpvgoodvsmu","",100,0,100);
-  TProfile *pnpvallvsmu = new TProfile("pnpgallvsmu","",100,0,100);
+  TProfile *pnpvallvsmu = new TProfile("pnpvallvsmu","",100,0,100);
   // Plots of photon corr, err, hoe, r9, vs mu 
   TProfile *pgainvsmu = new TProfile("pgainvsmu","",100,0,100);
   TProfile *pcorrvsmu = new TProfile("pcorrvsmu","",100,0,100);
@@ -307,8 +325,11 @@ void GamHistosFill::Loop()
   TProfile *pmuvspt = new TProfile("pmuvspt","",nx,vx);
   TProfile *prhovspt = new TProfile("prhovspt","",nx,vx);
   TProfile *pnpvgoodvspt = new TProfile("pnpvgoodvspt","",nx,vx);
-  TProfile *pnpvallvspt = new TProfile("pnpgallvspt","",nx,vx);
+  TProfile *pnpvallvspt = new TProfile("pnpvallvspt","",nx,vx);
   // ..and vs pT
+  TProfile *pgain1vspt = new TProfile("pgain1vspt","",nx,vx);
+  TProfile *pgain6vspt = new TProfile("pgain6vspt","",nx,vx);
+  TProfile *pgain12vspt = new TProfile("pgain12vspt","",nx,vx);
   TProfile *pgainvspt = new TProfile("pgainvspt","",nx,vx);
   TProfile *pcorrvspt = new TProfile("pcorrvspt","",nx,vx);
   TProfile *perrvspt = new TProfile("perrvspt","",nx,vx);
@@ -748,6 +769,7 @@ void GamHistosFill::Loop()
        (HLT_Photon20_HoverELoose         && pt>=20  && pt<35)
        );
     */
+    /*
     // Second version of trigger to maximize statistics
     bool pass_trig = 
       ((HLT_Photon200 && pt>=210) ||
@@ -760,6 +782,21 @@ void GamHistosFill::Loop()
        (HLT_Photon30_HoverELoose         && pt>=30  && pt<55) ||
        (HLT_Photon20_HoverELoose         && pt>=20  && pt<55) ||
        (HLT_Photon20                     && pt>=20  && pt<55)
+       );
+    */
+    // {15, 20, 25, 30, 35, 40, 50, 60, 70, 85, 105, 130, 175, 230,
+    //  300, 400, 500, 600, 700, 850, 1000, 1200, 1450, 1750};
+    bool pass_trig = 
+      ((HLT_Photon200 && pt>=230) ||
+       (HLT_Photon110EB_TightID_TightIso && pt>=130 && pt<230) ||
+       (HLT_Photon100EB_TightID_TightIso && pt>=105 && pt<130) ||
+       (HLT_Photon90_R9Id90_HE10_IsoM    && pt>=95  && pt<105) ||
+       (HLT_Photon75_R9Id90_HE10_IsoM    && pt>=85  && pt<95) ||
+       (HLT_Photon50_R9Id90_HE10_IsoM    && pt>=60  && pt<85) ||
+       //(HLT_Photon33                     && pt>=35  && pt<60) ||
+       (HLT_Photon30_HoverELoose         && pt>=30  && pt<60) ||
+       (HLT_Photon20_HoverELoose         && pt>=20  && pt<60)
+       //(HLT_Photon20                     && pt>=20  && pt<60)
        );
 
       // Summary of combined trigger efficiencies
@@ -822,6 +859,28 @@ void GamHistosFill::Loop()
       }
       bool pass_basic_ext = (pass_basic && pass_bal && pass_mpf);
 
+      // Control plots for trigger 
+      if (phoj.Pt()>0 && pass_basic_ext && pass_jeteta && pass_alpha100) {
+	//     optimal trigger edges: (20,30,(35),55,80,95,105,115,210)
+	//     old bin trigger edges  (20,30,60,85,*95*,105,130,230)
+	double pt = ptgam;
+	double mu = Pileup_nTrueInt;
+	if (isMC                             && pt>210)  hmusmc->Fill(mu, w);
+	int nmax = (isMC ? 1 : 100);
+	for (int i=0; i!=nmax; ++i) {
+	  mu = gRandom->Gaus(Pileup_nTrueInt,TruePUrms);
+	  double w1 = 0.01*w;
+	  if (HLT_Photon20_HoverELoose         && pt>=20)  hmus20->Fill(mu,w1);
+	  if (HLT_Photon30_HoverELoose         && pt>=30)  hmus30->Fill(mu,w1);
+	  if (HLT_Photon50_R9Id90_HE10_IsoM    && pt>=55)  hmus50->Fill(mu,w1);
+	  if (HLT_Photon75_R9Id90_HE10_IsoM    && pt>=80)  hmus75->Fill(mu,w1);
+	  if (HLT_Photon90_R9Id90_HE10_IsoM    && pt>=95)  hmus90->Fill(mu,w1);
+	  if (HLT_Photon100EB_TightID_TightIso && pt>=105) hmus100->Fill(mu,w1);
+	  if (HLT_Photon110EB_TightID_TightIso && pt>=115) hmus110->Fill(mu,w1);
+	  if (HLT_Photon200                    && pt>=210) hmus200->Fill(mu,w1);
+	} // for i in nmax
+      } // control plots for triggers
+
       // Control plots for photon-jet 
       if (phoj.Pt()>0 && pass_basic_ext) {
 
@@ -860,6 +919,9 @@ void GamHistosFill::Loop()
 	    pnpvallvsmu->Fill(Pileup_nTrueInt, PV_npvs, w);
 	  } // medium pt range
 	  
+	  pgain1vspt->Fill(ptgam, Photon_seedGain[iGam]==1 ? 1 : 0, w);
+	  pgain6vspt->Fill(ptgam, Photon_seedGain[iGam]==6 ? 1 : 0, w);
+	  pgain12vspt->Fill(ptgam, Photon_seedGain[iGam]==12 ? 1 : 0, w);
 	  pgainvspt->Fill(ptgam, Photon_seedGain[iGam], w);
 	  pcorrvspt->Fill(ptgam, Photon_eCorr[iGam], w);
 	  perrvspt->Fill(ptgam, Photon_energyErr[iGam], w);
