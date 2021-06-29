@@ -33,10 +33,19 @@ R__LOAD_LIBRARY(GamHistosFill.C+g)
 void mk_GamHistosFill(string dataset = "2018P8") {
 
   // Settings
-  bool addData = (dataset=="2018A" || dataset=="2018B" ||
-		  dataset=="2018C" || dataset=="2018D" ||
+  bool addData = (dataset=="2016B"  || dataset=="2016C" || dataset=="2016D" || 
+		  dataset=="2016E"  || dataset=="2016F" || 
+		  dataset=="2016FG" || dataset=="2016H" || 
+		  dataset=="2016BCD"|| dataset=="2016EF"|| dataset=="2016FGH" ||
+		  //dataset=="2016BCDEF" ||
+		  dataset=="2017B" || dataset=="2017C" || dataset=="2017D" || 
+		  dataset=="2017E" || dataset=="2017F" ||
+		  //dataset=="2017BCDEF" || 
+		  dataset=="2018A"  || dataset=="2018B" ||
+		  dataset=="2018C"  || dataset=="2018D" ||
 		  dataset=="2018D1" || dataset=="2018D2");
-  bool addMC = (dataset=="2018P8");
+                  //dataset=="2018ABCD");
+  bool addMC = (dataset=="2016P8" || dataset=="2017P8" || dataset=="2018P8");
 
   //cout << "Clean old shared objects and link files" << endl << flush;
   //gSystem->Exec("rm *.d");
@@ -74,7 +83,7 @@ void mk_GamHistosFill(string dataset = "2018P8") {
   if (!runLocal) assert(runGPU);
   
   if (addData) {
-    ifstream fin(runLocal ? "dataFiles_local.txt" : 
+    ifstream fin(runLocal ? Form("dataFiles_local_%s.txt",dataset.c_str()) : 
 		 Form("dataFiles_Run%s.txt",dataset.c_str()), ios::in);
     string filename;
     cout << "Chaining data files:" << endl << flush;
@@ -90,7 +99,8 @@ void mk_GamHistosFill(string dataset = "2018P8") {
   }
   
   if (addMC) {
-    ifstream fin(runLocal ? "mcFiles_local.txt" : "mcFiles.txt", ios::in);
+    ifstream fin(runLocal ? "mcFiles_local.txt" :
+		 Form("mcFiles_%s.txt",dataset.c_str()), ios::in);
     string filename;
     cout << "Chaining MC files:" << endl << flush;
     int nFiles(0), nFilesMax(8);
