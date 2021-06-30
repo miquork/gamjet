@@ -112,9 +112,9 @@ void GamHistosFill::Loop()
     
     // Baseline triggers with very high prescale except Photon200
     if (is16) {
-      fChain->SetBranchStatus("HLT_Photon22",1);
-      fChain->SetBranchStatus("HLT_Photon30",1);
-      fChain->SetBranchStatus("HLT_Photon36",1);
+      if (!isMC) fChain->SetBranchStatus("HLT_Photon22",1);
+      if (!isMC) fChain->SetBranchStatus("HLT_Photon30",1);
+      if (!isMC) fChain->SetBranchStatus("HLT_Photon36",1);
       fChain->SetBranchStatus("HLT_Photon50",1);
       fChain->SetBranchStatus("HLT_Photon75",1);
       fChain->SetBranchStatus("HLT_Photon90",1);
@@ -124,7 +124,6 @@ void GamHistosFill::Loop()
       //fChain->SetBranchStatus("HLT_Photon600",1);
     }
     if (is17 || is18) {
-      fChain->SetBranchStatus("HLT_Photon20",1);
       fChain->SetBranchStatus("HLT_Photon33",1);
       fChain->SetBranchStatus("HLT_Photon50",1);
       fChain->SetBranchStatus("HLT_Photon75",1);
@@ -134,10 +133,13 @@ void GamHistosFill::Loop()
       fChain->SetBranchStatus("HLT_Photon175",1);
       fChain->SetBranchStatus("HLT_Photon200",1);
     }
+    if (is18) {
+      fChain->SetBranchStatus("HLT_Photon20",1);
+    }
 
     // Presumably backup triggers for unprescaled Photon175 or Photon200
-    if (is16) fChain->SetBranchStatus("HLT_Photon165_HE10",1);
-    if (is16) fChain->SetBranchStatus("HLT_Photon250_NoHE",1);
+    if (is16 && !isMC) fChain->SetBranchStatus("HLT_Photon165_HE10",1);
+    if (is16 && !isMC) fChain->SetBranchStatus("HLT_Photon250_NoHE",1);
     fChain->SetBranchStatus("HLT_Photon300_NoHE",1);
     
     // Triggers to recover pT=105-230 GeV range. Efficient, low prescale
@@ -150,7 +152,7 @@ void GamHistosFill::Loop()
 
     // Triggers to recover 60-105 GeV range. However, inefficient up to high pT
     // Possibly medium HLT cuts not fully consistent with tight ID?
-    if (is16) {
+    if (is16 && !isMC) {
       fChain->SetBranchStatus("HLT_Photon22_R9Id90_HE10_IsoM",1);
       fChain->SetBranchStatus("HLT_Photon30_R9Id90_HE10_IsoM",1);
       fChain->SetBranchStatus("HLT_Photon36_R9Id90_HE10_IsoM",1);
@@ -166,7 +168,7 @@ void GamHistosFill::Loop()
       fChain->SetBranchStatus("HLT_Photon20_HoverELoose",1);
       fChain->SetBranchStatus("HLT_Photon30_HoverELoose",1);
     }
-    if (is17) {
+    if (is17 && !isMC) {
       fChain->SetBranchStatus("HLT_Photon40_HoverELoose",1);
       fChain->SetBranchStatus("HLT_Photon50_HoverELoose",1);
       fChain->SetBranchStatus("HLT_Photon60_HoverELoose",1);
@@ -283,9 +285,10 @@ void GamHistosFill::Loop()
   if (ds=="2018D2") jecl1rc = getFJC("Summer19UL18_RunD_V5_DATA_L1RC");
   //if (ds=="2018ABCD")jecl1rc=getFJC("Summer19UL18_RunABCD_V5_DATA_L1RC");
 
-  if (ds=="2016P8") jecl1rc = getFJC("Summer19UL16_V7_MC_L1RC");
-  if (ds=="2017P8") jecl1rc = getFJC("Summer19UL17_V5_MC_L1RC");
-  if (ds=="2018P8") jecl1rc = getFJC("Summer19UL18_V5_MC_L1RC");
+  if (ds=="2016P8")    jecl1rc = getFJC("Summer19UL16_V7_MC_L1RC");
+  if (ds=="2016P8APV") jecl1rc = getFJC("Summer19UL16APV_V7_MC_L1RC");
+  if (ds=="2017P8")    jecl1rc = getFJC("Summer19UL17_V5_MC_L1RC");
+  if (ds=="2018P8")    jecl1rc = getFJC("Summer19UL18_V5_MC_L1RC");
   assert(jecl1rc);
   
   // Load JSON files
@@ -523,7 +526,8 @@ void GamHistosFill::Loop()
   //int skip = 21700000; // 2018A first events without 110EB
   //int skip = 55342793; // 2018A first events with 92 photon
   //int skip = 265126992; // 2018A first events with 191 photons, 23 jets
-  
+  //int skip = 14648973; // 2017C bad HDM
+
   Long64_t nbytes = 0, nb = 0;
   for (Long64_t jentry=0; jentry<nentries;jentry++) {
 
@@ -599,9 +603,11 @@ void GamHistosFill::Loop()
 	b_HLT_Photon36->GetEntry(ientry);
       if (b_HLT_Photon30 && is16) // 2016
 	b_HLT_Photon30->GetEntry(ientry);
+      if (b_HLT_Photon33 && !is16) // 2016
+	b_HLT_Photon33->GetEntry(ientry);
       if (b_HLT_Photon22 && is16) // 2016
 	b_HLT_Photon22->GetEntry(ientry);
-      if (b_HLT_Photon20 && is17) // 2017
+      if (b_HLT_Photon20 && is18) // 2018
 	b_HLT_Photon20->GetEntry(ientry);
 
       // Only in (most of) 2018
@@ -871,10 +877,14 @@ void GamHistosFill::Loop()
     
     // Sanity checks for HDM inputs
     if (!(fabs(mpf1+mpfn+mpfu-mpf)<1e-4)) {
-      cout << "HDM input error: mpf=" << mpf << " mpf1=" << mpf1
+      cout << "\nHDM input error: mpf=" << mpf << " mpf1=" << mpf1
 	   << " mpfn=" << mpfn << " mpfu=" << mpfu << endl;
       cout << "Difference = " << mpf1+mpfn+mpfu-mpf << endl << flush;
-      assert(false);
+      //assert(false);
+      cout << "Skip entry " << jentry
+	   << " ("<<run<<","<<luminosityBlock<<","<<event<<")"
+	   << " in file " << _filename << endl << flush;
+      continue;
     }
     
     // Photon control plots
@@ -986,38 +996,42 @@ void GamHistosFill::Loop()
     bool pass_trig = 
       ((is16 && 
 	((HLT_Photon175                  && pt>=230) || // 180...
-	 (HLT_Photon165_HE10             && pt>=175 && pt<230) ||
+	 (HLT_Photon165_HE10             && pt>=175 && pt<230) || // not in MC
+	 (HLT_Photon165_R9Id90_HE10_IsoM && pt>=175 && pt<230) || // for MC
 	 (HLT_Photon120_R9Id90_HE10_IsoM && pt>=130 && pt<175) ||
 	 (HLT_Photon90_R9Id90_HE10_IsoM  && pt>=105 && pt<130) || // 95...
 	 (HLT_Photon75_R9Id90_HE10_IsoM  && pt>=85  && pt<105 ) ||
 	 (HLT_Photon50_R9Id90_HE10_IsoM  && pt>=60  && pt<85 ) ||
 	 (HLT_Photon36_R9Id90_HE10_IsoM  && pt>=40  && pt<60 ) ||
 	 (HLT_Photon30_R9Id90_HE10_IsoM  && pt>=35  && pt<40 ) ||
-	 (HLT_Photon22_R9Id90_HE10_IsoM  && pt>=20  && pt<35 )
+	 (HLT_Photon22_R9Id90_HE10_IsoM  && pt>=20  && pt<35 ) ||
+	 (isMC                           && pt<60)
 	 )) ||
        (is17 &&
 	((HLT_Photon200 && pt>=230) ||
 	 (HLT_Photon165_R9Id90_HE10_IsoM   && pt>=175 && pt<230) ||
 	 (HLT_Photon120_R9Id90_HE10_IsoM   && pt>=130 && pt<175) ||
-	 (HLT_Photon90_R9Id90_HE10_IsoM    && pt>=95  && pt<130) ||
+	 (HLT_Photon90_R9Id90_HE10_IsoM    && pt>=95  && pt<130) || // !
 	 (HLT_Photon75_R9Id90_HE10_IsoM    && pt>=85  && pt<95 ) || // !
-	 (HLT_Photon50_R9Id90_HE10_IsoM    && pt>=60  && pt<85 ) || // !
+	 (HLT_Photon50_R9Id90_HE10_IsoM    && pt>=60  && pt<85 ) ||
 	 //(HLT_Photon33                     && pt>=35  && pt<60 ) ||
 	 (HLT_Photon30_HoverELoose         && pt>=30  && pt<60 ) || // !
-	 (HLT_Photon20_HoverELoose         && pt>=20  && pt<60 )
+	 (HLT_Photon20_HoverELoose         && pt>=20  && pt<60 ) ||
 	 //(HLT_Photon20                     && pt>=20  && pt<60 )
+	 (isMC                             && pt<60)
 	 )) ||
        (is18 &&
 	((HLT_Photon200 && pt>=230) ||
 	 (HLT_Photon110EB_TightID_TightIso && pt>=130 && pt<230) ||
 	 (HLT_Photon100EB_TightID_TightIso && pt>=105 && pt<130) ||
-	 (HLT_Photon90_R9Id90_HE10_IsoM    && pt>=95  && pt<105) ||
+	 (HLT_Photon90_R9Id90_HE10_IsoM    && pt>=95  && pt<105) || // !
 	 (HLT_Photon75_R9Id90_HE10_IsoM    && pt>=85  && pt<95 ) || // !
-	 (HLT_Photon50_R9Id90_HE10_IsoM    && pt>=60  && pt<85 ) || // !
+	 (HLT_Photon50_R9Id90_HE10_IsoM    && pt>=60  && pt<85 ) ||
 	 //(HLT_Photon33                     && pt>=35  && pt<60 ) ||
 	 (HLT_Photon30_HoverELoose         && pt>=30  && pt<60 ) || // !
-	 (HLT_Photon20_HoverELoose         && pt>=20  && pt<60 )
+	 (HLT_Photon20_HoverELoose         && pt>=20  && pt<60 ) ||
 	 //(HLT_Photon20                     && pt>=20  && pt<60 )
+	 (isMC                             && pt<60)
 	 ))
        );
 
@@ -1269,7 +1283,7 @@ bool GamHistosFill::LoadJSON(string json)
 
 void GamHistosFill::LoadPU() {
 
-  string eras[] = {"2016P8", "2017P8", "2018P8",
+  string eras[] = {"2016P8","2016P8APV","2017P8", "2018P8",
 		   "2016BCD","2016EF","2016FGH",
 		   "2017B","2017C","2017D","2017E","2017F",
 		   "2018A","2018B","2018C","2018D"};

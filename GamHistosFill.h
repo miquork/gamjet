@@ -40,6 +40,7 @@ public :
    bool            is17;
    bool            is18;
    string          dataset;
+   string          _filename; // file name for debugging purposes
 
 // Fixed size dimensions of array or collections stored in the TTree if any.
    // nCorrT1MetJet, nFatJet, nJet, nSoftActivityJet, nSubJet
@@ -258,7 +259,8 @@ public :
 
    Float_t         genWeight;
    Float_t         Pileup_nTrueInt;
-
+   UInt_t          nPSWeight;
+   Float_t         PSWeight[4];   //[nPSWeight]
 
    // List of branches
    TBranch        *b_run;   //!
@@ -396,6 +398,17 @@ public :
    TBranch        *b_Flag_trkPOG_logErrorTooManyClusters;   //!
    TBranch        *b_Flag_METFilters;   //!
 
+   // Extras for MC
+   TBranch        *b_genWeight;
+   TBranch        *b_Pileup_nTrueInt;
+   TBranch        *b_nPSWeight;   //!
+   TBranch        *b_PSWeight;   //!
+   TBranch        *b_nGenIsolatedPhoton;   //!
+   TBranch        *b_GenIsolatedPhoton_eta;   //!
+   TBranch        *b_GenIsolatedPhoton_mass;   //!
+   TBranch        *b_GenIsolatedPhoton_phi;   //!
+   TBranch        *b_GenIsolatedPhoton_pt;   //!
+
    // Triggers from 2016
    TBranch        *b_HLT_Photon250_NoHE;   //!
    TBranch        *b_HLT_Photon300_NoHE;   //!
@@ -476,7 +489,7 @@ GamHistosFill::GamHistosFill(TTree *tree, int itype, string datasetname)
   is16 = (ds=="2016B" || ds=="2016C" || ds=="2016D" || ds=="2016BCD" ||
 	  ds=="2016E" || ds=="2016F" || ds=="2016EF" ||
 	  ds=="2016FG" || ds=="2016H" || ds=="2016FGH" ||
-	  ds=="2016BCDEF" || ds=="2016P8");
+	  ds=="2016BCDEF" || ds=="2016P8" || ds=="2016P8APV");
   is17 = (ds=="2017B" || ds=="2017C" || ds=="2017D" || ds=="2017E" ||
 	  ds=="2017F" || ds=="2017BCDEF" || ds=="2017P8");
   is18 = (ds=="2018A" || ds=="2018B" || ds=="2018C" || ds=="2018D" || 
@@ -687,6 +700,20 @@ void GamHistosFill::Init(TTree *tree)
    fChain->SetBranchAddress("Flag_trkPOG_logErrorTooManyClusters", &Flag_trkPOG_logErrorTooManyClusters, &b_Flag_trkPOG_logErrorTooManyClusters);
    fChain->SetBranchAddress("Flag_METFilters", &Flag_METFilters, &b_Flag_METFilters);
 
+   if (isMC) {
+     fChain->SetBranchAddress("genWeight", &genWeight, &b_genWeight);
+     fChain->SetBranchAddress("nPSWeight", &nPSWeight, &b_nPSWeight);
+     fChain->SetBranchAddress("PSWeight", PSWeight, &b_PSWeight);
+     fChain->SetBranchAddress("Pileup_nTrueInt", &Pileup_nTrueInt, &b_Pileup_nTrueInt);
+
+     fChain->SetBranchAddress("nGenIsolatedPhoton", &nGenIsolatedPhoton, &b_nGenIsolatedPhoton);
+     fChain->SetBranchAddress("GenIsolatedPhoton_eta", GenIsolatedPhoton_eta, &b_GenIsolatedPhoton_eta);
+     fChain->SetBranchAddress("GenIsolatedPhoton_mass", GenIsolatedPhoton_mass, &b_GenIsolatedPhoton_mass);
+     fChain->SetBranchAddress("GenIsolatedPhoton_phi", GenIsolatedPhoton_phi, &b_GenIsolatedPhoton_phi);
+     fChain->SetBranchAddress("GenIsolatedPhoton_pt", GenIsolatedPhoton_pt, &b_GenIsolatedPhoton_pt);
+   } // isMC
+
+
    // Safety resets of all branches
    b_HLT_Photon250_NoHE = 0;
    b_HLT_Photon300_NoHE = 0;
@@ -729,13 +756,17 @@ void GamHistosFill::Init(TTree *tree)
    if (is16) {
 
    // 250 only in 2016 (2017-2018 has 300_NoHE)
+   if (!isMC) {
    fChain->SetBranchAddress("HLT_Photon250_NoHE", &HLT_Photon250_NoHE, &b_HLT_Photon250_NoHE);
+   } // !isMC
    fChain->SetBranchAddress("HLT_Photon300_NoHE", &HLT_Photon300_NoHE, &b_HLT_Photon300_NoHE);
 
    // 2017-2018 thresholds (vs 2016) 20 (22), 33 (30), x (36)
+   if (!isMC) {
    fChain->SetBranchAddress("HLT_Photon22", &HLT_Photon22, &b_HLT_Photon22);
    fChain->SetBranchAddress("HLT_Photon30", &HLT_Photon30, &b_HLT_Photon30);
    fChain->SetBranchAddress("HLT_Photon36", &HLT_Photon36, &b_HLT_Photon36);
+   } // !isMC
    fChain->SetBranchAddress("HLT_Photon50", &HLT_Photon50, &b_HLT_Photon50);
    fChain->SetBranchAddress("HLT_Photon75", &HLT_Photon75, &b_HLT_Photon75);
    fChain->SetBranchAddress("HLT_Photon90", &HLT_Photon90, &b_HLT_Photon90);
@@ -743,7 +774,9 @@ void GamHistosFill::Init(TTree *tree)
    fChain->SetBranchAddress("HLT_Photon175", &HLT_Photon175, &b_HLT_Photon175);
 
    // only in 2016
+   if (!isMC) {
    fChain->SetBranchAddress("HLT_Photon165_HE10", &HLT_Photon165_HE10, &b_HLT_Photon165_HE10);
+   } // !isMC
 
    // only in 2016 (medium 22,30,36 replaced by loose 20,30 in 2017-2018)
    fChain->SetBranchAddress("HLT_Photon22_R9Id90_HE10_IsoM", &HLT_Photon22_R9Id90_HE10_IsoM, &b_HLT_Photon22_R9Id90_HE10_IsoM);
@@ -780,7 +813,6 @@ void GamHistosFill::Init(TTree *tree)
    fChain->SetBranchAddress("HLT_Photon300_NoHE", &HLT_Photon300_NoHE, &b_HLT_Photon300_NoHE);
 
    // 2017-2018 thresholds (vs 2016) 20 (22), 33 (30), x (36)
-   fChain->SetBranchAddress("HLT_Photon20", &HLT_Photon20, &b_HLT_Photon20);
    fChain->SetBranchAddress("HLT_Photon33", &HLT_Photon33, &b_HLT_Photon33);
 
    // also in 2016, except 150
@@ -804,7 +836,7 @@ void GamHistosFill::Init(TTree *tree)
    fChain->SetBranchAddress("HLT_Photon30_HoverELoose", &HLT_Photon30_HoverELoose, &b_HLT_Photon30_HoverELoose);
 
    } // is17 || is18
-   if (is17) {
+   if (is17 && !isMC) {
 
      fChain->SetBranchAddress("HLT_Photon40_HoverELoose", &HLT_Photon40_HoverELoose, &b_HLT_Photon40_HoverELoose);
      fChain->SetBranchAddress("HLT_Photon50_HoverELoose", &HLT_Photon50_HoverELoose, &b_HLT_Photon50_HoverELoose);
@@ -812,6 +844,9 @@ void GamHistosFill::Init(TTree *tree)
 
    } // is17
    if (is18) {
+
+   // only in 2018
+   fChain->SetBranchAddress("HLT_Photon20", &HLT_Photon20, &b_HLT_Photon20);
 
    // only in 2018
    fChain->SetBranchAddress("HLT_Photon100EB_TightID_TightIso", &HLT_Photon100EB_TightID_TightIso, &b_HLT_Photon100EB_TightID_TightIso);
@@ -829,6 +864,10 @@ Bool_t GamHistosFill::Notify()
    // is started when using PROOF. It is normally not necessary to make changes
    // to the generated code, but the routine can be extended by the
    // user if needed. The return value is currently not used.
+
+  if (fChain && fChain->GetCurrentFile()) {
+    _filename = fChain->GetCurrentFile()->GetName();
+  }
 
    return kTRUE;
 }

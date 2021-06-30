@@ -35,35 +35,75 @@ void replacePt(TGraphErrors *g, TH1 *h) {
   return;
 }
 
+void GamHistosRatios(string ver = "v9", string iov = "2018ABCD");
+void GamHistosRatio() {
+  GamHistosRatios("v10","2016BCDEF");
+  GamHistosRatios("v10","2016FGH");
+  GamHistosRatios("v10","2017BCDEF");
+  GamHistosRatios("v9","2018ABCD");
+}
 
-void GamHistosRatio(string ver = "v6") {
+void GamHistosRatios(string ver, string iov) {
 
   const char *cv = ver.c_str();
+  const char *ci = iov.c_str();
 
-  // Merge files, if not already done (delete combination file to redo)
-  gSystem->Exec(Form("hadd files/GamHistosFill_data_2018ABCD_%s.root "
-		     "files/GamHistosFill_data_2018A_%s.root "
-		     "files/GamHistosFill_data_2018B_%s.root "
-		     "files/GamHistosFill_data_2018C_%s.root "
-		     "files/GamHistosFill_data_2018D1_%s.root "
-		     "files/GamHistosFill_data_2018D2_%s.root",
-		     cv,cv,cv,cv,cv,cv));
+  TFile *fd(0), *fm(0), *fr(0);
+  if (ver=="v10" && iov=="2016BCDEF") {
+    // Merge files, if not already done (delete combination file to redo)
+    gSystem->Exec(Form("hadd files/GamHistosFill_data_2016BCDEF_%s.root "
+		       "files/GamHistosFill_data_2016BCD_%s.root "
+		       "files/GamHistosFill_data_2016EF_%s.root ",
+		       cv,cv,cv));
 
-  TFile *fd = new TFile(Form("files/GamHistosFill_data_2018ABCD_%s.root",cv),
-			     "READ");
+    fd = new TFile(Form("files/GamHistosFill_data_%s_%s.root",ci,cv),"READ");
+    fm = new TFile(Form("files/GamHistosFill_mc_2016P8APV_%s.root",cv),"READ");
+    fr = new TFile(Form("files/GamHistosRatio_%s_P8APV_%s.root",ci,cv),"RECREATE");
+  }
+  if (ver=="v10" && iov=="2016FGH") {
+
+    fd = new TFile(Form("files/GamHistosFill_data_%s_%s.root",ci,cv),"READ");
+    fm = new TFile(Form("files/GamHistosFill_mc_2016P8_%s.root",cv),"READ");
+    fr = new TFile(Form("files/GamHistosRatio_%s_P8_%s.root",ci,cv),"RECREATE");
+  }
+  if (ver=="v10" && iov=="2017BCDEF") {
+    // Merge files, if not already done (delete combination file to redo)
+    gSystem->Exec(Form("hadd files/GamHistosFill_data_2017BCDEF_%s.root "
+		       "files/GamHistosFill_data_2017B_%s.root "
+		       "files/GamHistosFill_data_2017C_%s.root "
+		       "files/GamHistosFill_data_2017D_%s.root "
+		       "files/GamHistosFill_data_2017E_%s.root "
+		       "files/GamHistosFill_data_2017F_%s.root ",
+		       cv,cv,cv,cv,cv,cv));
+
+    fd = new TFile(Form("files/GamHistosFill_data_%s_%s.root",ci,cv),"READ");
+    fm = new TFile(Form("files/GamHistosFill_mc_2017P8_%s.root",cv),"READ");
+    fr = new TFile(Form("files/GamHistosRatio_%s_P8_%s.root",ci,cv),"RECREATE");
+  }
+  if (ver=="v9" && iov=="2018ABCD") {
+
+    // Merge files, if not already done (delete combination file to redo)
+    gSystem->Exec(Form("hadd files/GamHistosFill_data_2018ABCD_%s.root "
+		       "files/GamHistosFill_data_2018A_%s.root "
+		       "files/GamHistosFill_data_2018B_%s.root "
+		       "files/GamHistosFill_data_2018C_%s.root "
+		       //"files/GamHistosFill_data_2018D1_%s.root "
+		       //"files/GamHistosFill_data_2018D2_%s.root",
+		       "files/GamHistosFill_data_2018D_%s.root",
+		       //cv,cv,cv,cv,cv,cv));
+		       cv,cv,cv,cv,cv));
+    
+    fd = new TFile(Form("files/GamHistosFill_data_%s_%s.root",ci,cv),"READ");
+    fm = new TFile(Form("files/GamHistosFill_mc_2018P8_%s.root",cv),"READ");
+    fr = new TFile(Form("files/GamHistosRatio_%s_P8_%s.root",ci,cv),"RECREATE");
+  }
+
   assert(fd && !fd->IsZombie());
-
-  TFile *fm = new TFile(Form("files/GamHistosFill_mc_2018P8_%s.root",cv),
-			"READ");
   assert(fm && !fm->IsZombie());
-
-  cout << "Merging files " << fd->GetName() << " and " << fm->GetName() << endl;
-  
-  TFile *fr = new TFile(Form("files/GamHistosRatio_2018ABCD_P8_%s.root",cv),
-			"RECREATE");
   assert(fr && !fr->IsZombie());
   fr->mkdir("orig");
   
+  cout << "Merging files "<<fd->GetName()<<" and "<<fm->GetName() << endl;  
   cout << "Output file " << fr->GetName() << endl << flush;
   
   // Automatically go through the list of keys (profiles, histograms)
