@@ -111,31 +111,25 @@ void GamHistosFill::Loop()
     fChain->SetBranchStatus("*",0);  // disable all branches
     
     // Baseline triggers with very high prescale except Photon200
+    if (is18) {
+      fChain->SetBranchStatus("HLT_Photon20",1);
+    }
     if (is16) {
       if (!isMC) fChain->SetBranchStatus("HLT_Photon22",1);
       if (!isMC) fChain->SetBranchStatus("HLT_Photon30",1);
       if (!isMC) fChain->SetBranchStatus("HLT_Photon36",1);
-      fChain->SetBranchStatus("HLT_Photon50",1);
-      fChain->SetBranchStatus("HLT_Photon75",1);
-      fChain->SetBranchStatus("HLT_Photon90",1);
-      fChain->SetBranchStatus("HLT_Photon120",1);
-      fChain->SetBranchStatus("HLT_Photon175",1);
-      //fChain->SetBranchStatus("HLT_Photon500",1);
-      //fChain->SetBranchStatus("HLT_Photon600",1);
     }
     if (is17 || is18) {
       fChain->SetBranchStatus("HLT_Photon33",1);
-      fChain->SetBranchStatus("HLT_Photon50",1);
-      fChain->SetBranchStatus("HLT_Photon75",1);
-      fChain->SetBranchStatus("HLT_Photon90",1);
-      fChain->SetBranchStatus("HLT_Photon120",1);
-      fChain->SetBranchStatus("HLT_Photon150",1);
-      fChain->SetBranchStatus("HLT_Photon175",1);
       fChain->SetBranchStatus("HLT_Photon200",1);
+    //fChain->SetBranchStatus("HLT_Photon500",1);
+    //fChain->SetBranchStatus("HLT_Photon600",1);
     }
-    if (is18) {
-      fChain->SetBranchStatus("HLT_Photon20",1);
-    }
+    fChain->SetBranchStatus("HLT_Photon50",1);
+    fChain->SetBranchStatus("HLT_Photon75",1);
+    fChain->SetBranchStatus("HLT_Photon90",1);
+    fChain->SetBranchStatus("HLT_Photon120",1);
+    fChain->SetBranchStatus("HLT_Photon175",1);
 
     // Presumably backup triggers for unprescaled Photon175 or Photon200
     if (is16 && !isMC) fChain->SetBranchStatus("HLT_Photon165_HE10",1);
@@ -189,15 +183,18 @@ void GamHistosFill::Loop()
     fChain->SetBranchStatus("Flag_HBHENoiseIsoFilter",1);
     fChain->SetBranchStatus("Flag_EcalDeadCellTriggerPrimitiveFilter",1);
     fChain->SetBranchStatus("Flag_BadPFMuonFilter",1);
+    //fChain->SetBranchStatus("Flag_BadPFMuonDzFilter",1); // not in nAOD?
     //inputList.("Flag_BadPFMuonDzFilter",1); // new in UL, but part of above?
     //inputList.("Flag_BadChargedCandidateFilter",0); // not recommended
     //inputList.("Flag_globalTightHalo2016Filter",0); // obsolete?
     //inputList.("Flag_CSCTightHaloFilter",0); // obsolete?
-    fChain->SetBranchStatus("Flag_ecalBadCalibFilter",1);//new, not used by Sami
-    //if dataset.isData:
-    if (!isMC) {
-      fChain->SetBranchStatus("Flag_eeBadScFilter",1); // data only
+    if (!is16) {
+      fChain->SetBranchStatus("Flag_ecalBadCalibFilter",1);//new (add for Sami)
     }
+    //if dataset.isData:
+    //if (!isMC) {
+    fChain->SetBranchStatus("Flag_eeBadScFilter",1); // MC added 7 July 2021
+    //}
     
     // MC weights
     if (isMC)  fChain->SetBranchStatus("genWeight",1);
@@ -303,17 +300,34 @@ void GamHistosFill::Loop()
   parsePileUpJSON("files/pileup_ASCII_2016-2018.txt");
   
   // Load veto maps
-  // JECDatabase/jet_veto_maps/Summer19UL18_V1/hotjets-UL18.root
-  // JECDatabase/jet_veto_maps/Summer19UL17_V2/hotjets-UL17_v2.root
   // JECDatabase/jet_veto_maps/Summer19UL16_V0/hotjets-UL16.root
-  TFile *fjv = new TFile("files/hotjets-UL18.root","READ");
+  // JECDatabase/jet_veto_maps/Summer19UL17_V2/hotjets-UL17_v2.root
+  // JECDatabase/jet_veto_maps/Summer19UL18_V1/hotjets-UL18.root
+  TFile *fjv(0);
+  if (TString(ds.c_str()).Contains("2016"))
+    fjv = new TFile("files/hotjets-UL16.root","READ");
+  if (TString(ds.c_str()).Contains("2017"))
+    fjv = new TFile("files/hotjets-UL17_v2.root","READ");
+  if (TString(ds.c_str()).Contains("2018"))
+    fjv = new TFile("files/hotjets-UL18.root","READ");
   assert(fjv);
-  // One year needs MC added. Was it UL17?
-  // h2hot_ul18_plus_hem1516_and_hbp2m1
-  // h2hot_ul17_plus_hep17_plus_hbpw89
-  // h2hot_ul16_plus_hbm2_hbp12_qie11
-  // + h2hot_mc (for UL16)
-  TH2D *h2jv = (TH2D*)fjv->Get("h2hot_ul18_plus_hem1516_and_hbp2m1");
+
+  // Veto lists for different years (NB: extra MC map for UL16):
+  // h2hot_ul16_plus_hbm2_hbp12_qie11 + h2hot_mc (for UL16)
+  // h2hot_ul17_plus_hep17_plus_hbpw89 (UL17)
+  // h2hot_ul18_plus_hem1516_and_hbp2m1 (UL18)
+  TH2D *h2jv = 0;
+  if (TString(ds.c_str()).Contains("2016")) {
+    h2jv = (TH2D*)fjv->Get("h2hot_ul16_plus_hbm2_hbp12_qie11");
+    assert(h2jv);
+    TH2D *h2mc = (TH2D*)fjv->Get("h2hot_mc");
+    assert(h2mc);
+    h2jv->Add(h2mc);
+  }
+  if (TString(ds.c_str()).Contains("2017"))
+    h2jv = (TH2D*)fjv->Get("h2hot_ul17_plus_hep17_plus_hbpw89");
+  if (TString(ds.c_str()).Contains("2018"))
+    h2jv = (TH2D*)fjv->Get("h2hot_ul18_plus_hem1516_and_hbp2m1");
   assert(h2jv);
 
   // Create histograms. Copy format from existing files from Lyon
@@ -328,16 +342,6 @@ void GamHistosFill::Loop()
   //     old bin trigger edges  (20,30,60,85,*95*,105,130,230)
   double vx[] = {15, 20, 25, 30, 35, 40, 50, 60, 70, 85, 105, 130, 175, 230,
   		 300, 400, 500, 600, 700, 850, 1000, 1200, 1450, 1750};
-  // Re-optimized binning to increase density in 105-230 GeV range
-  //double vx[] = {15, 20, 25, 30, 35, 40, 50, 60, 70, 85, 105,
-  //		 110, 115, 120, 125, 130, 135, 140, 145, 150, 155, 165,
-  //		 175, 185, 195, 210, 230,
-  //		 300, 400, 500, 600, 700, 850, 1000, 1200, 1450, 1750};
-  // Second re-optimized wider binning (not used yet)
-  //     optimal trigger edges: (20,30,(35),55,80,95,105,115,210)
-  //double vx[] = {15, 20, 25, 30, 35, 45, 55, 65, 80, 95, 105, 115, 130,
-  //		 150, 180, 210, 250, 300, 360, 430, 520, 630, 760, 910,
-  //		 1200, 1450, 1750};
   const int nx = sizeof(vx)/sizeof(vx[0])-1;
   
   string dir = (isMC ? "MC" : "DATA");
@@ -611,6 +615,8 @@ void GamHistosFill::Loop()
 	b_HLT_Photon20->GetEntry(ientry);
 
       // Only in (most of) 2018
+      if (b_HLT_Photon120EB_TightID_TightIso && is18) // not in 2016-17, 2018A
+	b_HLT_Photon120EB_TightID_TightIso->GetEntry(ientry);
       if (b_HLT_Photon110EB_TightID_TightIso && is18) // not in 2016-17, 2018A
 	b_HLT_Photon110EB_TightID_TightIso->GetEntry(ientry);
       if (b_HLT_Photon100EB_TightID_TightIso && is18) // not in 2016-17, 2018A
@@ -654,6 +660,15 @@ void GamHistosFill::Loop()
       
       if ((is18 &&
 	   !(HLT_Photon200 ||
+	     HLT_Photon175 || 
+	     HLT_Photon150 || 
+	     HLT_Photon120 || 
+	     HLT_Photon90 || 
+	     HLT_Photon75 || 
+	     HLT_Photon50 || 
+	     HLT_Photon33 || 
+	     HLT_Photon20 ||
+	     HLT_Photon120EB_TightID_TightIso ||
 	     HLT_Photon110EB_TightID_TightIso ||
 	     HLT_Photon100EB_TightID_TightIso ||
 	     HLT_Photon90_R9Id90_HE10_IsoM ||
@@ -663,11 +678,21 @@ void GamHistosFill::Loop()
 	     HLT_Photon20_HoverELoose)) ||
 	   (is17 &&
 	   !(HLT_Photon200 ||
+	     HLT_Photon175 || 
+	     HLT_Photon150 || 
+	     HLT_Photon120 || 
+	     HLT_Photon90 || 
+	     HLT_Photon75 || 
+	     HLT_Photon50 || 
+	     HLT_Photon33 || 
 	     HLT_Photon165_R9Id90_HE10_IsoM ||
 	     HLT_Photon120_R9Id90_HE10_IsoM ||
 	     HLT_Photon90_R9Id90_HE10_IsoM ||
 	     HLT_Photon75_R9Id90_HE10_IsoM ||
 	     HLT_Photon50_R9Id90_HE10_IsoM ||
+	     HLT_Photon60_HoverELoose ||
+	     HLT_Photon50_HoverELoose ||
+	     HLT_Photon40_HoverELoose ||
 	     HLT_Photon30_HoverELoose ||
 	     HLT_Photon20_HoverELoose)) ||
 	  (is16 &&
@@ -741,7 +766,9 @@ void GamHistosFill::Loop()
       } 
       
       // Leading tight photon(s)
-      if (Photon_pt[i]>15 && Photon_cutBased[i]==3 && Photon_hoe[i]<0.02148) {
+      // R9>0.94 to avoid bias wrt R9Id90 triggers and from photon conversions
+      if (Photon_pt[i]>15 && Photon_cutBased[i]==3 && Photon_hoe[i]<0.02148 &&
+	  Photon_r9[i]>0.94) {
 	++nGam;
 	if (iGam==-1) {
 	  iGam = i;
@@ -946,51 +973,7 @@ void GamHistosFill::Loop()
     // Basic event selection. Take care to match pT bin edges
     // vx: {15, 20, 25, 30, 35, 40, 50, 60, 85, 105, 130, 175, 230, 300,
     double pt = ptgam; // shorthand to make trigger selection more readable
-    // First version of trigger for old pT binning
-    /*
-    bool pass_trig = 
-      (//isMC ||
-       // Unprescaled trigger for pT>230
-       (HLT_Photon200 && pt>=230) ||
-       // Run 1 style triggers with very high prescale
-       //(HLT_Photon175 && pt>230  && pt<300) ||
-       //(HLT_Photon150 && pt>=175 && pt<230) ||
-       //(HLT_Photon120 && pt>=130 && pt<175) ||
-       //(HLT_Photon90  && pt>=105 && pt<130) ||
-       //(HLT_Photon75  && pt>=85  && pt<105) ||
-       //(HLT_Photon50  && pt>=60  && pt<85) ||
-       //(HLT_Photon33  && pt>=35  && pt<60) ||
-       //(HLT_Photon20  && pt>=20  && pt<35) ||
-       // Tight triggers with low prescale for 105-230 GeV
-       //(HLT_Photon120EB_TightID_TightIso && pt>=130 && pt<230) ||
-       (HLT_Photon110EB_TightID_TightIso && pt>=130 && pt<230) ||
-       (HLT_Photon100EB_TightID_TightIso && pt>=105 && pt<130) ||
-       // Medium triggers with medium prescale for 60-85
-       //(HLT_Photon165_R9Id90_HE10_IsoM   && pt>=175 && pt<230) ||
-       //(HLT_Photon120_R9Id90_HE10_IsoM   && pt>=130 && pt<175) ||
-       //(HLT_Photon90_R9Id90_HE10_IsoM    && pt>=105 && pt<130) ||
-       (HLT_Photon75_R9Id90_HE10_IsoM    && pt>=85  && pt<105) ||
-       (HLT_Photon50_R9Id90_HE10_IsoM    && pt>=60  && pt<85) ||
-       // Loose triggers with high prescale for 20-60 GeV
-       (HLT_Photon30_HoverELoose         && pt>=35  && pt<60) ||
-       (HLT_Photon20_HoverELoose         && pt>=20  && pt<35)
-       );
-    */
-    /*
-    // Second version of trigger to maximize statistics
-    bool pass_trig = 
-      ((HLT_Photon200 && pt>=210) ||
-       (HLT_Photon110EB_TightID_TightIso && pt>=115 && pt<210) ||
-       (HLT_Photon100EB_TightID_TightIso && pt>=105 && pt<115) ||
-       (HLT_Photon90_R9Id90_HE10_IsoM    && pt>=95  && pt<105) ||
-       (HLT_Photon75_R9Id90_HE10_IsoM    && pt>=80  && pt<95) ||
-       (HLT_Photon50_R9Id90_HE10_IsoM    && pt>=55  && pt<80) ||
-       (HLT_Photon33                     && pt>=35  && pt<55) ||
-       (HLT_Photon30_HoverELoose         && pt>=30  && pt<55) ||
-       (HLT_Photon20_HoverELoose         && pt>=20  && pt<55) ||
-       (HLT_Photon20                     && pt>=20  && pt<55)
-       );
-    */
+
     // {15, 20, 25, 30, 35, 40, 50, 60, 70, 85, 105, 130, 175, 230,
     //  300, 400, 500, 600, 700, 850, 1000, 1200, 1450, 1750};
     bool pass_trig = 
@@ -1008,15 +991,15 @@ void GamHistosFill::Loop()
 	 (isMC                           && pt<60)
 	 )) ||
        (is17 &&
-	((HLT_Photon200 && pt>=230) ||
-	 (HLT_Photon165_R9Id90_HE10_IsoM   && pt>=175 && pt<230) ||
-	 (HLT_Photon120_R9Id90_HE10_IsoM   && pt>=130 && pt<175) ||
-	 (HLT_Photon90_R9Id90_HE10_IsoM    && pt>=95  && pt<130) || // !
-	 (HLT_Photon75_R9Id90_HE10_IsoM    && pt>=85  && pt<95 ) || // !
-	 (HLT_Photon50_R9Id90_HE10_IsoM    && pt>=60  && pt<85 ) ||
-	 //(HLT_Photon33                     && pt>=35  && pt<60 ) ||
-	 (HLT_Photon30_HoverELoose         && pt>=30  && pt<60 ) || // !
-	 (HLT_Photon20_HoverELoose         && pt>=20  && pt<60 ) ||
+	((HLT_Photon200                  && pt>=230) ||
+	 (HLT_Photon165_R9Id90_HE10_IsoM && pt>=175 && pt<230) ||
+	 (HLT_Photon120_R9Id90_HE10_IsoM && pt>=130 && pt<175) ||
+	 (HLT_Photon90_R9Id90_HE10_IsoM  && pt>=105 && pt<130) || // ..95
+	 (HLT_Photon75_R9Id90_HE10_IsoM  && pt>=85  && pt<105 ) ||
+	 (HLT_Photon50_R9Id90_HE10_IsoM  && pt>=60  && pt<85 ) ||
+	 //(HLT_Photon33                   && pt>=35  && pt<60 ) ||
+	 (HLT_Photon30_HoverELoose       && pt>=35  && pt<60 ) ||
+	 (HLT_Photon20_HoverELoose       && pt>=20  && pt<35 ) ||
 	 //(HLT_Photon20                     && pt>=20  && pt<60 )
 	 (isMC                             && pt<60)
 	 )) ||
@@ -1028,9 +1011,9 @@ void GamHistosFill::Loop()
 	 (HLT_Photon75_R9Id90_HE10_IsoM    && pt>=85  && pt<95 ) || // !
 	 (HLT_Photon50_R9Id90_HE10_IsoM    && pt>=60  && pt<85 ) ||
 	 //(HLT_Photon33                     && pt>=35  && pt<60 ) ||
-	 (HLT_Photon30_HoverELoose         && pt>=30  && pt<60 ) || // !
-	 (HLT_Photon20_HoverELoose         && pt>=20  && pt<60 ) ||
-	 //(HLT_Photon20                     && pt>=20  && pt<60 )
+	 (HLT_Photon30_HoverELoose         && pt>=35  && pt<60 ) ||
+	 (HLT_Photon20_HoverELoose         && pt>=20  && pt<35 ) ||
+	 //(HLT_Photon20                     && pt>=20  && pt<35 )
 	 (isMC                             && pt<60)
 	 ))
        );
@@ -1041,13 +1024,14 @@ void GamHistosFill::Loop()
 	if (!isMC) hgamtrig_data->Fill(ptgam, w);
 	hgamtrig->Fill(ptgam, w);
       }
-      if (ptgam>=115 && fabs(gam.Eta())<1.3 &&
+      if (ptgam>=105 && fabs(gam.Eta())<1.3 &&
 	  HLT_Photon110EB_TightID_TightIso) {
 	h2gametaphi->Fill(gam.Eta(), gam.Phi(), w);
 	h2gametaphi2->Fill(gam.Eta(), gam.Phi(), w);
       }
       
-      // Event filters for 2017 and 02018 data and MC
+      // Event filters for 2016 and 2017+2018 data and MC
+      // UL lists are separate, but all filter recommendations looked the same
       bool pass_filt = 
 	(Flag_goodVertices &&
 	 Flag_globalSuperTightHalo2016Filter &&
@@ -1055,13 +1039,14 @@ void GamHistosFill::Loop()
 	 Flag_HBHENoiseIsoFilter &&
 	 Flag_EcalDeadCellTriggerPrimitiveFilter &&
 	 Flag_BadPFMuonFilter &&
-	 //Flag_BadPFMuonDzFilter && // new in UL, part of above?
+	 //Flag_BadPFMuonDzFilter && // new in UL, but not in nAOD?
 	 //Flag_BadChargedCandidateFilter && // not recommended
 	 //Flag_globalTightHalo2016Filter && // obsolete?
 	 //Flag_CSCTightHaloFilter // obsolete?
-	 Flag_ecalBadCalibFilter && //new, not used by Sami, only EOY
-	 (isMC || Flag_eeBadScFilter) // data only
-	 );
+	 (is16 || Flag_ecalBadCalibFilter) && //new in UL, not for UL16
+	 //(isMC || Flag_eeBadScFilter) // data only
+	 Flag_eeBadScFilter // MC added 7 July 2021
+	 ); // pass_filt
       
       bool pass_ngam = (nGam>=1);
       bool pass_njet = (nJets>=1);
@@ -1130,19 +1115,23 @@ void GamHistosFill::Loop()
 	  prmpf0->Fill(ptgam, mpf, w);
 	  
 	  if (isMC) {
-	    if (ptgam>=115 && ptgam<210)
+	    if (ptgam>=105 && ptgam<230)
 	      hmus->Fill(Pileup_nTrueInt, w);
 	    h2mus->Fill(ptgam, Pileup_nTrueInt, w);
 	  }
 	  else {
 	    for (int i=0; i!=100; ++i) {
 	      double mu = gRandom->Gaus(Pileup_nTrueInt,TruePUrms);
-	      if (ptgam>=115 && ptgam<210)
+	      if (ptgam>=105 && ptgam<230)
 		hmus->Fill(mu, 0.01*w);
 	      h2mus->Fill(ptgam, mu, 0.01*w);
 	    } // for i in 100
 	  } // is MC
-	  if (ptgam>=115 && ptgam<210) {
+	  //if (ptgam>=130 && ptgam<175) {
+	  //if ((is16 && ptgam>175) ||
+	  //  (is17 && ptgam>230) ||
+	  //  (is18 && ptgam>130)) {
+	  if (ptgam>230) {
 	    pgainvsmu->Fill(Pileup_nTrueInt, Photon_seedGain[iGam], w);
 	    if (b_Photon_eCorr) // safety for 2016
 	      pcorrvsmu->Fill(Pileup_nTrueInt, Photon_eCorr[iGam], w);
@@ -1154,7 +1143,7 @@ void GamHistosFill::Loop()
 	    prhovsmu->Fill(Pileup_nTrueInt, fixedGridRhoFastjetAll, w);
 	    pnpvgoodvsmu->Fill(Pileup_nTrueInt, PV_npvsGood, w);
 	    pnpvallvsmu->Fill(Pileup_nTrueInt, PV_npvs, w);
-	  } // medium pt range
+	  } // high pT range
 	  
 	  pgain1vspt->Fill(ptgam, Photon_seedGain[iGam]==1 ? 1 : 0, w);
 	  pgain6vspt->Fill(ptgam, Photon_seedGain[iGam]==6 ? 1 : 0, w);
