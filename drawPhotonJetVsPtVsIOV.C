@@ -28,14 +28,10 @@ void drawPhotonJetVsPtVsIOV() {
   //drawPhotonJetVsPtVsIOVs("control/pr9vspt","R9","R9",0.83,1.03,0.9,1.14);
   //drawPhotonJetVsPtVsIOVs("control/pgain1vspt","Gain1","Gain1",0.,1.2,0.5,1.5);
   //drawPhotonJetVsPtVsIOVs("control/pgain12vspt","Gain12","Gain12",0.,1.2,0.5,1.5);
-  //drawPhotonJetVsPtVsIOVs("resp_MPFchs_%s_a100_eta00_13","MPF","MPF",
-  //			  0.94,1.08,0.95,1.03);
-  //drawPhotonJetVsPtVsIOVs("resp_MPFR1chs_%s_a100_eta00_13","MPF1","MPF1",
-  //			  0.8,1.10,0.95,1.05);
-  //drawPhotonJetVsPtVsIOVs("resp_MPFRnchs_%s_a100_eta00_13","MPFn","MPFn",
-  //			  -0.1,0.2,-0.03,0.03);
-  drawPhotonJetVsPtVsIOVs("resp_MpfRuchs_%s_a100_eta00_13","MPFu","MPFu",
-  			  -0.05,0.15,-0.03,0.02);
+  //drawPhotonJetVsPtVsIOVs("resp_MPFchs_%s_a100_eta00_13","MPF","MPF",0.94,1.08,0.95,1.03);
+  //drawPhotonJetVsPtVsIOVs("resp_MPFR1chs_%s_a100_eta00_13","MPF1","MPF1",0.8,1.10,0.95,1.05);
+  //drawPhotonJetVsPtVsIOVs("resp_MPFRnchs_%s_a100_eta00_13","MPFn","MPFn",-0.1,0.2,-0.03,0.03);
+  drawPhotonJetVsPtVsIOVs("resp_MpfRuchs_%s_a100_eta00_13","MPFu","MPFu",-0.05,0.15,-0.03,0.02);
 } // drawPhotonJetVsPtVsIOV
 
 void drawPhotonJetVsPtVsIOVs(string so, string var, string name,
@@ -61,7 +57,7 @@ void drawPhotonJetVsPtVsIOVs(string so, string var, string name,
 
   TH1D *h = tdrHist("h",cvar,y1,y2);
   TH1D *h2 = tdrHist("h2","Data/MC",z1,z2);
-  lumi_13TeV = "Run2";
+  lumi_13TeV = "Run2 v12";
   TCanvas *c1 = tdrDiCanvas(Form("c1_%s",cname),h,h2,4,11);
 
 
@@ -85,9 +81,9 @@ void drawPhotonJetVsPtVsIOVs(string so, string var, string name,
     const char *cmc = mcs[i].c_str();
 
     TFile *fd(0), *fm(0);
-    fd = new TFile(Form("files/GamHistosFill_data_%s_v11.root",ciov));
+    fd = new TFile(Form("files/GamHistosFill_data_%s_v12.root",ciov));
     assert(fd && !fd->IsZombie());
-    fm = new TFile(Form("files/GamHistosFill_mc_%s_v11.root",cmc));
+    fm = new TFile(Form("files/GamHistosFill_mc_%s_v12.root",cmc));
     assert(fm && !fm->IsZombie());
 
     curdir->cd();

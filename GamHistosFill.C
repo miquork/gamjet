@@ -401,7 +401,9 @@ void GamHistosFill::Loop()
   TProfile *pgainvspt = new TProfile("pgainvspt","",nx,vx);
   TProfile *pcorrvspt = new TProfile("pcorrvspt","",nx,vx);
   TProfile *perrvspt = new TProfile("perrvspt","",nx,vx);
+  TH2D *h2hoevspt = new TH2D("h2hoevspt","",nx,vx,125,0,0.025);
   TProfile *phoevspt = new TProfile("phoevspt","",nx,vx);
+  TH2D *h2r9vspt = new TH2D("h2r9vspt","",nx,vx,150,0.90,1.05);
   TProfile *pr9vspt = new TProfile("pr9vspt","",nx,vx);
 
   // 2D plots for jet response
@@ -1062,8 +1064,9 @@ void GamHistosFill::Loop()
 	  pass_veto = false;
 	}
       } // jet veto
+      bool pass_leak = (phoj.Pt()<0.06*ptgam);
       bool pass_basic = (pass_trig && pass_filt && pass_ngam && pass_njet &&
-			 pass_dphi && pass_jetid && pass_veto);
+			 pass_dphi && pass_jetid && pass_veto && pass_leak);
       
       // Control plots for jet response
       bool pass_bal = (fabs(1-bal)<0.7);
@@ -1081,7 +1084,7 @@ void GamHistosFill::Loop()
       bool pass_basic_ext = (pass_basic && pass_bal && pass_mpf);
 
       // Control plots for trigger 
-      if (phoj.Pt()>0 && pass_basic_ext && pass_jeteta && pass_alpha100) {
+      if (ptgam>0 && pass_basic_ext && pass_jeteta && pass_alpha100) {
 	//     optimal trigger edges: (20,30,(35),55,80,95,105,115,210)
 	//     old bin trigger edges  (20,30,60,85,*95*,105,130,230)
 	double pt = ptgam;
@@ -1103,7 +1106,7 @@ void GamHistosFill::Loop()
       } // control plots for triggers
 
       // Control plots for photon-jet 
-      if (phoj.Pt()>0 && pass_basic_ext) {
+      if (ptgam>0 && pass_basic_ext) {
 
 	h2phoj->Fill(ptgam, phoj.Pt()/ptgam, w);
 	pphoj->Fill(ptgam, phoj.Pt()/ptgam, w);
@@ -1152,7 +1155,9 @@ void GamHistosFill::Loop()
 	  if (b_Photon_eCorr) // safety for 2016
 	    pcorrvspt->Fill(ptgam, Photon_eCorr[iGam], w);
 	  perrvspt->Fill(ptgam, Photon_energyErr[iGam], w);
+	  h2hoevspt->Fill(ptgam, Photon_hoe[iGam], w);
 	  phoevspt->Fill(ptgam, Photon_hoe[iGam], w);
+	  h2r9vspt->Fill(ptgam, Photon_r9[iGam], w);
 	  pr9vspt->Fill(ptgam, Photon_r9[iGam], w);
 	  //
 	  pmuvspt->Fill(ptgam, Pileup_nTrueInt, w);
