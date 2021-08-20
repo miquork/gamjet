@@ -43,7 +43,9 @@ void mk_GamHistosFill(string dataset = "2018P8") {
 		  //dataset=="2017BCDEF" || 
 		  dataset=="2018A"  || dataset=="2018B" ||
 		  dataset=="2018C"  || dataset=="2018D" ||
-		  dataset=="2018D1" || dataset=="2018D2");
+		  dataset=="2018A1" || dataset=="2018A2" ||
+		  dataset=="2018D1" || dataset=="2018D2" ||
+		  dataset=="2018D3" || dataset=="2018D4");
                   //dataset=="2018ABCD");
   bool addMC = (dataset=="2016P8" || dataset=="2017P8" || dataset=="2018P8" ||
 		dataset=="2016P8APV");

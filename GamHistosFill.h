@@ -251,6 +251,13 @@ public :
    Bool_t          HLT_Photon60_HoverELoose;
 
    // Extras for MC
+   UInt_t          nGenJet;
+   Float_t         GenJet_eta[nGenJetMax];   //[nGenJet]
+   Float_t         GenJet_mass[nGenJetMax];   //[nGenJet]
+   Float_t         GenJet_phi[nGenJetMax];   //[nGenJet]
+   Float_t         GenJet_pt[nGenJetMax];   //[nGenJet]
+   Int_t           GenJet_partonFlavour[nGenJetMax];   //[nGenJet]
+
    UInt_t          nGenIsolatedPhoton;
    Float_t         GenIsolatedPhoton_pt[nPhotonMax];
    Float_t         GenIsolatedPhoton_eta[nPhotonMax];
@@ -403,6 +410,12 @@ public :
    TBranch        *b_Pileup_nTrueInt;
    TBranch        *b_nPSWeight;   //!
    TBranch        *b_PSWeight;   //!
+   TBranch        *b_nGenJet;   //!
+   TBranch        *b_GenJet_eta;   //!
+   TBranch        *b_GenJet_mass;   //!
+   TBranch        *b_GenJet_phi;   //!
+   TBranch        *b_GenJet_pt;   //!
+   TBranch        *b_GenJet_partonFlavour;   //!
    TBranch        *b_nGenIsolatedPhoton;   //!
    TBranch        *b_GenIsolatedPhoton_eta;   //!
    TBranch        *b_GenIsolatedPhoton_mass;   //!
@@ -493,8 +506,9 @@ GamHistosFill::GamHistosFill(TTree *tree, int itype, string datasetname)
   is17 = (ds=="2017B" || ds=="2017C" || ds=="2017D" || ds=="2017E" ||
 	  ds=="2017F" || ds=="2017BCDEF" || ds=="2017P8");
   is18 = (ds=="2018A" || ds=="2018B" || ds=="2018C" || ds=="2018D" || 
-	  ds=="2018D1" || ds=="2018D2" || ds=="2018ABCD" ||
-	  ds=="2018P8");
+	  ds=="2018A1" || ds=="2018A2" ||
+	  ds=="2018D1" || ds=="2018D2" || ds=="2018D3" || ds=="2018D4" ||
+	  ds=="2018ABCD" || ds=="2018P8");
   assert(is16 || is17 || is18);
   
 // if parameter tree is not specified (or zero), connect the file
@@ -706,6 +720,13 @@ void GamHistosFill::Init(TTree *tree)
      fChain->SetBranchAddress("PSWeight", PSWeight, &b_PSWeight);
      fChain->SetBranchAddress("Pileup_nTrueInt", &Pileup_nTrueInt, &b_Pileup_nTrueInt);
 
+     fChain->SetBranchAddress("nGenJet", &nGenJet, &b_nGenJet);
+     fChain->SetBranchAddress("GenJet_eta", GenJet_eta, &b_GenJet_eta);
+     fChain->SetBranchAddress("GenJet_mass", GenJet_mass, &b_GenJet_mass);
+     fChain->SetBranchAddress("GenJet_phi", GenJet_phi, &b_GenJet_phi);
+     fChain->SetBranchAddress("GenJet_pt", GenJet_pt, &b_GenJet_pt);
+     fChain->SetBranchAddress("GenJet_partonFlavour", GenJet_partonFlavour, &b_GenJet_partonFlavour);
+
      fChain->SetBranchAddress("nGenIsolatedPhoton", &nGenIsolatedPhoton, &b_nGenIsolatedPhoton);
      fChain->SetBranchAddress("GenIsolatedPhoton_eta", GenIsolatedPhoton_eta, &b_GenIsolatedPhoton_eta);
      fChain->SetBranchAddress("GenIsolatedPhoton_mass", GenIsolatedPhoton_mass, &b_GenIsolatedPhoton_mass);
@@ -774,14 +795,16 @@ void GamHistosFill::Init(TTree *tree)
    fChain->SetBranchAddress("HLT_Photon175", &HLT_Photon175, &b_HLT_Photon175);
 
    // only in 2016
-   if (!isMC) {
+   if (is16 && !isMC) {
    fChain->SetBranchAddress("HLT_Photon165_HE10", &HLT_Photon165_HE10, &b_HLT_Photon165_HE10);
    } // !isMC
 
    // only in 2016 (medium 22,30,36 replaced by loose 20,30 in 2017-2018)
-   fChain->SetBranchAddress("HLT_Photon22_R9Id90_HE10_IsoM", &HLT_Photon22_R9Id90_HE10_IsoM, &b_HLT_Photon22_R9Id90_HE10_IsoM);
-   fChain->SetBranchAddress("HLT_Photon30_R9Id90_HE10_IsoM", &HLT_Photon30_R9Id90_HE10_IsoM, &b_HLT_Photon30_R9Id90_HE10_IsoM);
-   fChain->SetBranchAddress("HLT_Photon36_R9Id90_HE10_IsoM", &HLT_Photon36_R9Id90_HE10_IsoM, &b_HLT_Photon36_R9Id90_HE10_IsoM);
+   if (is16 && !isMC) {
+     fChain->SetBranchAddress("HLT_Photon22_R9Id90_HE10_IsoM", &HLT_Photon22_R9Id90_HE10_IsoM, &b_HLT_Photon22_R9Id90_HE10_IsoM);
+     fChain->SetBranchAddress("HLT_Photon30_R9Id90_HE10_IsoM", &HLT_Photon30_R9Id90_HE10_IsoM, &b_HLT_Photon30_R9Id90_HE10_IsoM);
+     fChain->SetBranchAddress("HLT_Photon36_R9Id90_HE10_IsoM", &HLT_Photon36_R9Id90_HE10_IsoM, &b_HLT_Photon36_R9Id90_HE10_IsoM);
+   }
 
    // also in 2017-2018
    fChain->SetBranchAddress("HLT_Photon50_R9Id90_HE10_IsoM", &HLT_Photon50_R9Id90_HE10_IsoM, &b_HLT_Photon50_R9Id90_HE10_IsoM);

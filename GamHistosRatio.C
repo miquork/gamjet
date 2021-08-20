@@ -14,6 +14,11 @@
 #include <iostream>
 using namespace std;
 
+// Patches to input raw gamma+jet
+// v15: moved these hard-coded into GamHistosFill, don't redo
+bool addGain1 = false;//true;
+bool addFootprint = false;//true;
+
 // Remove zeroes
 void cleanGraph(TGraphErrors *g) {
   for (int i = g->GetN()-1; i != -1; --i) {
@@ -35,12 +40,13 @@ void replacePt(TGraphErrors *g, TH1 *h) {
   return;
 }
 
-void GamHistosRatios(string ver = "v9", string iov = "2018ABCD");
-void GamHistosRatio() {
-  GamHistosRatios("v10","2016BCDEF");
-  GamHistosRatios("v10","2016FGH");
-  GamHistosRatios("v10","2017BCDEF");
-  GamHistosRatios("v9","2018ABCD");
+void GamHistosRatios(string ver, string iov);
+void GamHistosRatio(string ver = "v15") {
+  GamHistosRatios(ver,"2016BCDEF");
+  GamHistosRatios(ver,"2016FGH");
+  GamHistosRatios(ver,"2017BCDEF");
+  GamHistosRatios(ver,"2018ABCD");
+  //GamHistosRatios(ver,"Run2");
 }
 
 void GamHistosRatios(string ver, string iov) {
@@ -49,7 +55,7 @@ void GamHistosRatios(string ver, string iov) {
   const char *ci = iov.c_str();
 
   TFile *fd(0), *fm(0), *fr(0);
-  if (ver=="v10" && iov=="2016BCDEF") {
+  if (iov=="2016BCDEF") {
     // Merge files, if not already done (delete combination file to redo)
     gSystem->Exec(Form("hadd files/GamHistosFill_data_2016BCDEF_%s.root "
 		       "files/GamHistosFill_data_2016BCD_%s.root "
@@ -60,13 +66,13 @@ void GamHistosRatios(string ver, string iov) {
     fm = new TFile(Form("files/GamHistosFill_mc_2016P8APV_%s.root",cv),"READ");
     fr = new TFile(Form("files/GamHistosRatio_%s_P8APV_%s.root",ci,cv),"RECREATE");
   }
-  if (ver=="v10" && iov=="2016FGH") {
+  if (iov=="2016FGH") {
 
     fd = new TFile(Form("files/GamHistosFill_data_%s_%s.root",ci,cv),"READ");
     fm = new TFile(Form("files/GamHistosFill_mc_2016P8_%s.root",cv),"READ");
     fr = new TFile(Form("files/GamHistosRatio_%s_P8_%s.root",ci,cv),"RECREATE");
   }
-  if (ver=="v10" && iov=="2017BCDEF") {
+  if (iov=="2017BCDEF") {
     // Merge files, if not already done (delete combination file to redo)
     gSystem->Exec(Form("hadd files/GamHistosFill_data_2017BCDEF_%s.root "
 		       "files/GamHistosFill_data_2017B_%s.root "
@@ -80,18 +86,21 @@ void GamHistosRatios(string ver, string iov) {
     fm = new TFile(Form("files/GamHistosFill_mc_2017P8_%s.root",cv),"READ");
     fr = new TFile(Form("files/GamHistosRatio_%s_P8_%s.root",ci,cv),"RECREATE");
   }
-  if (ver=="v9" && iov=="2018ABCD") {
+  if (iov=="2018ABCD") {
 
     // Merge files, if not already done (delete combination file to redo)
     gSystem->Exec(Form("hadd files/GamHistosFill_data_2018ABCD_%s.root "
-		       "files/GamHistosFill_data_2018A_%s.root "
+		       "files/GamHistosFill_data_2018A1_%s.root "
+		       "files/GamHistosFill_data_2018A2_%s.root "
 		       "files/GamHistosFill_data_2018B_%s.root "
 		       "files/GamHistosFill_data_2018C_%s.root "
-		       //"files/GamHistosFill_data_2018D1_%s.root "
-		       //"files/GamHistosFill_data_2018D2_%s.root",
-		       "files/GamHistosFill_data_2018D_%s.root",
+		       "files/GamHistosFill_data_2018D1_%s.root "
+		       "files/GamHistosFill_data_2018D2_%s.root "
+		       "files/GamHistosFill_data_2018D3_%s.root "
+		       "files/GamHistosFill_data_2018D4_%s.root",
+		       //"files/GamHistosFill_data_2018D_%s.root",
 		       //cv,cv,cv,cv,cv,cv));
-		       cv,cv,cv,cv,cv));
+		       cv, cv,cv,cv,cv, cv,cv,cv,cv));
     
     fd = new TFile(Form("files/GamHistosFill_data_%s_%s.root",ci,cv),"READ");
     fm = new TFile(Form("files/GamHistosFill_mc_2018P8_%s.root",cv),"READ");
@@ -102,6 +111,7 @@ void GamHistosRatios(string ver, string iov) {
   assert(fm && !fm->IsZombie());
   assert(fr && !fr->IsZombie());
   fr->mkdir("orig");
+  fr->mkdir("flavor");
   
   cout << "Merging files "<<fd->GetName()<<" and "<<fm->GetName() << endl;  
   cout << "Output file " << fr->GetName() << endl << flush;
@@ -130,10 +140,35 @@ void GamHistosRatios(string ver, string iov) {
       fr->cd("orig");
       TH1D *hm = pm->ProjectionX(Form("h_%s",pm->GetName()));
       TH1D *hd = pd->ProjectionX(Form("h_%s",pd->GetName()));
+
+      // Patch presumed Gain1 miscalibration in data
+      if ((mcname.Contains("_MPFchs_") || mcname.Contains("_MPFR1chs_") ||
+	   mcname.Contains("_PtBalchs_")) && addGain1) {
+	const char *co = "control/pgain1vspt";
+	TProfile *pd = (TProfile*)fd->Get(Form(co,"DATA")); assert(pd);
+	//TProfile *pm = (TProfile*)fm->Get(Form(co,"MC")); assert(pm);
+	hd->Add(pd,0.02);
+      }
+
+      // Patch presumed Photon vs PFphoton difference + footprint
+      if ((mcname.Contains("_MPFchs_") || mcname.Contains("_MpfRuchs_")) &&
+	  addFootprint) {
+	const char *co = "control/pphoj0";
+	TProfile *pd = (TProfile*)fd->Get(Form(co,"DATA")); assert(pd);
+	TProfile *pm = (TProfile*)fm->Get(Form(co,"MC")); assert(pm);
+	hd->Add(pd);
+	hm->Add(pm);
+      }
+
       TString rationame = mcname;
       rationame.ReplaceAll("_MC","");
       TH1D *hr = (TH1D*)hd->Clone(Form("h_%s",rationame.Data()));
-      hr->Divide(hm);
+      if (TString(key->GetName()).Contains("MPFR1chs") || 
+	  TString(key->GetName()).Contains("MPFRnchs") || 
+	  TString(key->GetName()).Contains("MpfRuchs"))
+	hr->Add(hm,-1);
+      else
+	hr->Divide(hm);
       fm->cd();
 
       // Retrieve pT mapping
@@ -214,6 +249,78 @@ void GamHistosRatios(string ver, string iov) {
       hr->Write();
     } // TH1D
   } // while key in itkey
+
+
+  // Flavor responses in their own folder
+  fm->cd("flavor");
+  TDirectory *dm = gDirectory;
+  fd->cd("flavor");
+  TDirectory *dd = gDirectory;
+
+  TList *fkeys = dm->GetListOfKeys();
+  TListIter itfkey(fkeys);
+  
+  while ( (key = dynamic_cast<TKey*>(itfkey.Next())) ) {
+    if (debug) cout << key->GetName() << endl << flush;
+    obj = key->ReadObj(); assert(obj);
+
+    dm->cd();
+    if (obj->InheritsFrom("TProfile")) {
+      TProfile *pm = (TProfile*)obj;
+      TProfile *pd = (TProfile*)dd->Get(key->GetName());
+      assert(pd);
+
+      fr->cd("orig");
+
+      TH1D *hm = pm->ProjectionX(Form("%s_mc",pm->GetName()));
+      TH1D *hd = pd->ProjectionX(Form("%s_data",pd->GetName()));
+      TH1D *hr = (TH1D*)hd->Clone(Form("%s_ratio",pd->GetName()));
+      if (TString(key->GetName()).Contains("mpf1") || 
+	  TString(key->GetName()).Contains("mpfn") || 
+	  TString(key->GetName()).Contains("mpfu"))
+	hr->Add(hm,-1);
+      else
+	hr->Divide(hm);
+
+      fr->cd("flavor");
+
+      TGraphErrors *gd = new TGraphErrors(hd);
+      gd->SetNameTitle(hd->GetName(),hd->GetName());
+      TGraphErrors *gm = new TGraphErrors(hm);
+      gm->SetNameTitle(hm->GetName(),hm->GetName());
+      TGraphErrors *gr = new TGraphErrors(hr);
+      gr->SetNameTitle(hr->GetName(),hr->GetName());
+      
+      cleanGraph(gm);
+      cleanGraph(gd);
+      cleanGraph(gr);
+      
+      gm->SetLineColor(kRed);
+      gd->SetLineColor(kBlue);
+      gr->SetLineColor(kBlack);
+      
+      gm->Write(); 
+      gd->Write();
+      gr->Write();
+      dm->cd();
+    } // TProfile
+    else if (obj->InheritsFrom("TH1D")) {
+
+      TH1D *hm = (TH1D*)obj;
+      TH1D *hd = (TProfile*)dd->Get(key->GetName());
+      assert(hd);
+      TH1D *hr = (TH1D*)hd->Clone(Form("%s_ratio",key->GetName()));
+      hr->Divide(hm);
+
+      hm->SetName(Form("%s_mc",key->GetName()));
+      hd->SetName(Form("%s_data",key->GetName()));
+
+      fr->cd("flavor");
+      hm->Write();
+      hd->Write();
+      hr->Write();
+    } // TH1D
+  } // while
 
   cout << "Writing file " << fr->GetName() << endl << flush;
   fr->Write();
