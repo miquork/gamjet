@@ -17,7 +17,9 @@ using namespace std;
 // Patches to input raw gamma+jet
 // v15: moved these hard-coded into GamHistosFill, don't redo
 bool addGain1 = false;//true;
+//double gain1 = 0.99; // 1.02
 bool addFootprint = false;//true;
+bool patchGx = true; // patch Gxi to missing Gx
 
 // Remove zeroes
 void cleanGraph(TGraphErrors *g) {
@@ -41,7 +43,7 @@ void replacePt(TGraphErrors *g, TH1 *h) {
 }
 
 void GamHistosRatios(string ver, string iov);
-void GamHistosRatio(string ver = "v15") {
+void GamHistosRatio(string ver = "v16") {
   GamHistosRatios(ver,"2016BCDEF");
   GamHistosRatios(ver,"2016FGH");
   GamHistosRatios(ver,"2017BCDEF");
@@ -302,6 +304,15 @@ void GamHistosRatios(string ver, string iov) {
       gm->Write(); 
       gd->Write();
       gr->Write();
+
+      string s = key->GetName();
+      if (patchGx && s[s.length()-1]=='i') { // ends with 'i' (e.g. counts_gii)
+	string s2 = s.substr(0,s.length()-1); // remove final 'i' (counts_gi)
+	gm->Write((s2+"_mc").c_str());
+	gd->Write((s2+"_data").c_str());
+	gr->Write((s2+"_ratio").c_str());
+      }
+
       dm->cd();
     } // TProfile
     else if (obj->InheritsFrom("TH1D")) {
@@ -319,6 +330,14 @@ void GamHistosRatios(string ver, string iov) {
       hm->Write();
       hd->Write();
       hr->Write();
+
+      string s = key->GetName();
+      if (patchGx && s[s.length()-1]=='i') { // ends with 'i' (e.g. counts_gii)
+	string s2 = s.substr(0,s.length()-1); // remove final 'i' (counts_gi)
+	hm->Write((s2+"_mc").c_str());
+	hd->Write((s2+"_data").c_str());
+	hr->Write((s2+"_ratio").c_str());
+      }
     } // TH1D
   } // while
 

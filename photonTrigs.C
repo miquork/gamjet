@@ -29,30 +29,30 @@ void trigDraw(TH1D *h, int color, int style, double xmin, double xmax,
 } // trigDraw
 
 
-void photonTrigs() {
+void photonTrigs(string year = "2018") {
 
   setTDRStyle();
   TDirectory *curdir = gDirectory;
 
   TFile *f0(0), *f1(0);
   
-  if (false) { // 2018
+  if (year=="2018") { // 2018
     f0 = new TFile("files/GamHistosFill_data_v1.root","READ");
-    f1 = new TFile("files/GamHistosFill_data_2018ABCD_v9.root","READ");
+    f1 = new TFile("files/GamHistosFill_data_2018ABCD_v16.root","READ");//9
     lumi_13TeV = "2018ABCD";
   }
-  if (true) { // 2017
-    f0 = new TFile("files/GamHistosFill_data_2017BCDEF_v10.root","READ");
+  if (year=="2017") { // 2017
+    f0 = new TFile("files/GamHistosFill_data_2017BCDEF_v16.root","READ");//10
     f1 = f0;
     lumi_13TeV = "2017BCDEF";
   }
-  if (false) { // 2017
-    f0 = new TFile("files/GamHistosFill_data_2017BCDEF_v10.root","READ");
+  if (year=="2016GH") { // 2016GH
+    f0 = new TFile("files/GamHistosFill_data_2016FGH_v16.root","READ");//10
     f1 = f0;
-    lumi_13TeV = "2017BCDEF";
+    lumi_13TeV = "2016GH";
   }
-  if (true) { // 2016
-    f0 = new TFile("files/GamHistosFill_data_2016BCDEF_v10.root","READ");
+  if (year=="2016BCDEF") { // 2016
+    f0 = new TFile("files/GamHistosFill_data_2016BCDEF_v16.root","READ");//10
     f1 = f0;
     lumi_13TeV = "2016BCDEF";
   }
@@ -102,7 +102,7 @@ void photonTrigs() {
   trigDraw(h33,kGray+2,3004,40,60,25,130);
   trigDraw(h20l,kOrange+2,3005,20,60,15,60);
   trigDraw(h30l,kOrange+3,3005,30,60,25,60);
-  if (lumi_13TeV=="2016BCDEF") {
+  if (lumi_13TeV=="2016BCDEF" || lumi_13TeV=="2016GH") {
     trigDraw(h22m,kCyan+1,3005,20,35,15,60);
     trigDraw(h30m,kCyan+2,3005,35,40,15,60);
     trigDraw(h36m,kCyan+3,3005,40,60,15,60);
@@ -156,7 +156,7 @@ void photonTrigs() {
   TLegend *leg = tdrLeg(0.48,0.90-5*0.04,0.68,0.90);
   leg->AddEntry(had,"EGamma","F");
   leg->AddEntry(htd,"JEC #gamma + jet","F");
-  if (lumi_13TeV=="2016BCDEF")
+  if (lumi_13TeV=="2016BCDEF" || lumi_13TeV=="2016GH")
     leg->AddEntry(h175,"HLT_Photon175","F");
   else
     leg->AddEntry(h200,"HLT_Photon200","F");
@@ -164,7 +164,7 @@ void photonTrigs() {
   leg->AddEntry(h90m,"*[90,120,165]_medium","F");
 
   TLegend *leg2 = tdrLeg(0.62,0.70-2*0.04,0.82,0.70);
-  if (lumi_13TeV=="2016BCDEF") {
+  if (lumi_13TeV=="2016BCDEF" || lumi_13TeV=="2016GH") {
     leg2->AddEntry(h50m,"*[50,75]_med.","F");
     leg2->AddEntry(h22m,"*[22,30,36]_m.","F");
   }
@@ -174,7 +174,8 @@ void photonTrigs() {
   }
 
   TLegend *leg3 = tdrLeg(0.67,0.62-1*0.04,0.87,0.62);
-  if (lumi_13TeV!="2016BCDEF") leg3->AddEntry(h33,"Photon33","F");
+  if (lumi_13TeV!="2016BCDEF" && lumi_13TeV!="2016GH")
+    leg3->AddEntry(h33,"Photon33","F");
 
   gPad->RedrawAxis();
 

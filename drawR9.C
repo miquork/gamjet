@@ -9,11 +9,12 @@ void drawR9() {
   setTDRStyle();
   TDirectory *curdir = gDirectory;
 
-  TFile *fd = new TFile("files/GamHistosFill_data_Run2_v12.root","READ");
-  //TFile *fd = new TFile("files/GamHistosFill_data_2018ABCD_v12.root","READ");
+  // v12 first with R9 cut and 2D plot
+  //TFile *fd = new TFile("files/GamHistosFill_data_Run2_v16.root","READ");
+  TFile *fd = new TFile("files/GamHistosFill_data_2018ABCD_v16.root","READ");
   assert(fd && !fd->IsZombie());
-  TFile *fm = new TFile("files/GamHistosFill_mc_Run2P8_v12.root","READ");
-  //TFile *fm = new TFile("files/GamHistosFill_mc_2018P8_v12.root","READ");
+  //TFile *fm = new TFile("files/GamHistosFill_mc_Run2P8_v16.root","READ");
+  TFile *fm = new TFile("files/GamHistosFill_mc_2018P8_v16.root","READ");
   assert(fm && !fm->IsZombie());
 
   curdir->cd();

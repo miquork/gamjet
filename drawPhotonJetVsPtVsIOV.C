@@ -8,7 +8,7 @@
 #include "tdrstyle_mod15.C"
 
 bool addMPFu2n = true;
-bool addG1toMPF = true;
+bool addG1toMPF = false;//true;
 bool addG12toMPF = false;
 
 // Forward declaration of call
@@ -23,15 +23,20 @@ void drawPhotonJetVsPtVsIOVs(string so, string var, string name,
 			    
 // Multiple calls to draw function
 void drawPhotonJetVsPtVsIOV() {
-  //drawPhotonJetVsPtVsIOVs("control/pphoj","Leakage","Leakage",0.,0.125,-0.005,0.03);//0.5,2.5);
+  //drawPhotonJetVsPtVsIOVs("control/pphoj","Leakage","Leakage",0.,0.125,-0.005,0.03);//0.5,2.5); // before leakage cut
+  //drawPhotonJetVsPtVsIOVs("control/pphoj","Leakage","Leakage",0.,0.125,-0.005,0.03);//0.5,2.5); // before leakage cut
+  //drawPhotonJetVsPtVsIOVs("control/pphoj","Leakage","Leakage",0.005,0.020,-0.0024,0.004);// after leakage cut
+  //drawPhotonJetVsPtVsIOVs("control/pphoj","Leakage","Leakage",0.00,0.025,-0.004,0.004);// before gain1
+  //drawPhotonJetVsPtVsIOVs("control/pphoj0","Leakage0","Leakage0",0.,0.025,-0.004,0.004);// after gain1
+  //drawPhotonJetVsPtVsIOVs("control/pcorrvspt","Correction","Correction",0.99,1.01,-0.001,0.001);//0.5,2.5);
   //drawPhotonJetVsPtVsIOVs("control/phoevspt","H/E","HoE",0.,0.01,0.7,1.6);
   //drawPhotonJetVsPtVsIOVs("control/pr9vspt","R9","R9",0.83,1.03,0.9,1.14);
   //drawPhotonJetVsPtVsIOVs("control/pgain1vspt","Gain1","Gain1",0.,1.2,0.5,1.5);
-  //drawPhotonJetVsPtVsIOVs("control/pgain12vspt","Gain12","Gain12",0.,1.2,0.5,1.5);
+  drawPhotonJetVsPtVsIOVs("control/pgain12vspt","Gain12","Gain12",0.,1.2,0.5,1.5);
   //drawPhotonJetVsPtVsIOVs("resp_MPFchs_%s_a100_eta00_13","MPF","MPF",0.94,1.08,0.95,1.03);
   //drawPhotonJetVsPtVsIOVs("resp_MPFR1chs_%s_a100_eta00_13","MPF1","MPF1",0.8,1.10,0.95,1.05);
   //drawPhotonJetVsPtVsIOVs("resp_MPFRnchs_%s_a100_eta00_13","MPFn","MPFn",-0.1,0.2,-0.03,0.03);
-  drawPhotonJetVsPtVsIOVs("resp_MpfRuchs_%s_a100_eta00_13","MPFu","MPFu",-0.05,0.15,-0.03,0.02);
+  //drawPhotonJetVsPtVsIOVs("resp_MpfRuchs_%s_a100_eta00_13","MPFu","MPFu",-0.05,0.15,-0.03,0.02);
 } // drawPhotonJetVsPtVsIOV
 
 void drawPhotonJetVsPtVsIOVs(string so, string var, string name,
@@ -57,7 +62,7 @@ void drawPhotonJetVsPtVsIOVs(string so, string var, string name,
 
   TH1D *h = tdrHist("h",cvar,y1,y2);
   TH1D *h2 = tdrHist("h2","Data/MC",z1,z2);
-  lumi_13TeV = "Run2 v12";
+  lumi_13TeV = "Run2 v16";
   TCanvas *c1 = tdrDiCanvas(Form("c1_%s",cname),h,h2,4,11);
 
 
@@ -81,9 +86,9 @@ void drawPhotonJetVsPtVsIOVs(string so, string var, string name,
     const char *cmc = mcs[i].c_str();
 
     TFile *fd(0), *fm(0);
-    fd = new TFile(Form("files/GamHistosFill_data_%s_v12.root",ciov));
+    fd = new TFile(Form("files/GamHistosFill_data_%s_v16.root",ciov));
     assert(fd && !fd->IsZombie());
-    fm = new TFile(Form("files/GamHistosFill_mc_%s_v12.root",cmc));
+    fm = new TFile(Form("files/GamHistosFill_mc_%s_v16.root",cmc));
     assert(fm && !fm->IsZombie());
 
     curdir->cd();
@@ -124,7 +129,7 @@ void drawPhotonJetVsPtVsIOVs(string so, string var, string name,
     assert(hm);
     
     TH1D *hr = (TH1D*)hd->Clone(Form("hr_%s_%s",cvar,ciov));
-    if (name=="MPFn" || name=="MPFu" || name=="Leakage") {
+    if (name=="MPFn" || name=="MPFu" || name=="Leakage" || name=="Leakage0") {
       hr->Add(hm,-1);
       h2->SetYTitle("Data-MC");
     }

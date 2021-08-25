@@ -1,0 +1,198 @@
+// Purpose: draw photon leakage distribution to estimate appropriate cuts
+#include "TFile.h"
+#include "TH2D.h"
+#include "TLine.h"
+
+#include "tdrstyle_mod15.C"
+
+void drawGamEtaPhi() {
+  
+  setTDRStyle();
+  TDirectory *curdir = gDirectory;
+
+  //TFile *fd = new TFile("files/GamHistosFill_data_Run2_v12.root","READ");
+  //TFile *fd = new TFile("files/GamHistosFill_data_2018ABCD_v12.root","READ");
+  TFile *fd = new TFile("files/GamHistosFill_data_Run2_v16.root","READ");
+  assert(fd && !fd->IsZombie());
+  //TFile *fm = new TFile("files/GamHistosFill_mc_Run2P8_v12.root","READ");
+  //TFile *fm = new TFile("files/GamHistosFill_mc_2018P8_v12.root","READ");
+  TFile *fm = new TFile("files/GamHistosFill_mc_Run2P8_v16.root","READ");
+  assert(fm && !fm->IsZombie());
+
+  curdir->cd();
+
+  TH2D *h2d0 = (TH2D*)fd->Get("control/h2gametaphi2"); assert(h2d);
+  TH2D *h2m0 = (TH2D*)fm->Get("control/h2gametaphi2"); assert(h2m);
+  //TH2D *h2d0 = (TH2D*)fd->Get("control/h2gametaphi"); assert(h2d);
+  //TH2D *h2m0 = (TH2D*)fm->Get("control/h2gametaphi"); assert(h2m);
+
+  assert(h2d0->GetNbinsX()==h2m0->GetNbinsX());
+  assert(h2d0->GetNbinsY()==h2m0->GetNbinsY());
+
+  TH2D *h2d = (TH2D*)h2d0->Clone("h2d");
+  TH2D *h2m = (TH2D*)h2m0->Clone("h2m");
+
+  const int nx = h2d->GetNbinsX();
+  const int ny = h2d->GetNbinsY();
+  for (int i = 1; i != h2d->GetNbinsX()+1; ++i) {
+
+    //double nd = h2d->Integral(i,i,-1,-1);
+    //double nm = h2m->Integral(i,i,-1,-1);
+
+    int ix1 = max(1,i-12);
+    int ix2 = min(nx,i+12);
+    //int ix1 = max(1,i-2);
+    //int ix2 = min(nx,i+2);
+    double dx = (ix2 - ix1 + 1);// * h2d->GetXaxis()->GetBinWidth(i);
+    double dy = ny;// * h2d->GetYaxis()->GetBinWidth(1);
+    // Without option "width" just summing up bin contents in the range
+    double nd = h2d0->Integral(ix1,ix2,1,ny) / (dx * dy);
+    double nm = h2m0->Integral(ix1,ix2,1,ny) / (dx * dy);
+    
+    for (int j = 1; j != h2d->GetNbinsY()+1; ++j) {
+      if (nd>0) h2d->SetBinContent(i, j, h2d0->GetBinContent(i, j) / nd);
+      if (nm>0) h2m->SetBinContent(i, j, h2m0->GetBinContent(i, j) / nm);
+    } // for j
+  } // for i
+
+
+  // Reference for tower maps
+  TH2D *h2t0 = (TH2D*)fd->Get("control/h2gametaphi"); assert(h2t0);
+  TH2D *h2t = (TH2D*)h2t0->Clone("h2t");
+
+  const int nxt = h2t->GetNbinsX();
+  const int nyt = h2t->GetNbinsY();
+  for (int i = 1; i != h2t->GetNbinsX()+1; ++i) {
+
+    int ix1 = max(1,i-2);
+    int ix2 = min(nxt,i+2);
+    double dx = (ix2 - ix1 + 1);
+    double dy = nyt;
+    // Without option "width" just summing up bin contents in the range
+    double nt = h2t0->Integral(ix1,ix2,1,ny) / (dx * dy);
+    
+    for (int j = 1; j != h2t->GetNbinsY()+1; ++j) {
+      if (nt>0) h2t->SetBinContent(i, j, h2t->GetBinContent(i, j) / nt);
+    } // for j
+  } // for i
+
+
+  TCanvas *c1d = new TCanvas("c1d","c1d",600,600);
+  //gPad->SetLogx();
+  //gPad->SetLogz();
+  gPad->SetRightMargin(0.12);
+  //h2d->RebinY(4);
+  h2d->GetXaxis()->SetMoreLogLabels();
+  h2d->GetXaxis()->SetNoExponent();
+  h2d->GetZaxis()->SetRangeUser(1e-4,2.0);
+  h2d->Draw("COLZ");
+
+  TLine *l = new TLine();
+  l->SetLineStyle(kSolid); l->SetLineColor(kGray+1);
+  int ix = h2d->GetXaxis()->FindBin(0.2)+12;
+  l->DrawLine(h2d->GetXaxis()->GetBinLowEdge(ix-12),
+	      h2d->GetYaxis()->GetBinLowEdge(1),
+	      h2d->GetXaxis()->GetBinLowEdge(ix-12),
+	      h2d->GetYaxis()->GetBinLowEdge(ny+1));
+  l->DrawLine(h2d->GetXaxis()->GetBinLowEdge(ix+12+1),
+	      h2d->GetYaxis()->GetBinLowEdge(1),
+	      h2d->GetXaxis()->GetBinLowEdge(ix+12+1),
+	      h2d->GetYaxis()->GetBinLowEdge(ny+1));
+
+  TCanvas *c1m = new TCanvas("c1m","c1m",600,600);
+  //gPad->SetLogx();
+  //gPad->SetLogz();
+  gPad->SetRightMargin(0.12);
+  //h2m->RebinY(4);
+  h2m->GetXaxis()->SetMoreLogLabels();
+  h2m->GetXaxis()->SetNoExponent();
+  h2m->GetZaxis()->SetRangeUser(1e-4,2.0);
+  h2m->Draw("COLZ");
+
+  TCanvas *c1t = new TCanvas("c1t","c1t",600,600);
+  gPad->SetRightMargin(0.12);
+  h2t->GetXaxis()->SetMoreLogLabels();
+  h2t->GetXaxis()->SetNoExponent();
+  h2t->GetZaxis()->SetRangeUser(1e-4,2.0);
+  h2t->Draw("COLZ");
+
+  TCanvas *c1r = new TCanvas("c1r","c1r",600,600);
+  //gPad->SetLogx();
+  //gPad->SetLogz();
+  gPad->SetRightMargin(0.12);
+  TH2D *h2r = (TH2D*)h2d->Clone("h2r");
+  TH2D *h2m2 = (TH2D*)h2m->Clone("h2m");
+  //h2r->RebinY(4);
+  //h2m2->RebinY(4);
+  h2r->Divide(h2m2);
+  h2r->GetZaxis()->SetRangeUser(0.0,2.0);
+  h2r->Draw("COLZ");
+
+
+  TCanvas *c2 = new TCanvas("c2","c2",1200,400);
+
+  TH1D *hphipd = h2d->ProjectionY("hphipd",nx/2+1,nx);
+  hphipd->Scale(2./nx);
+  hphipd->SetLineColor(kRed);
+
+  TH1D *hphimd = h2d->ProjectionY("hphimd",1,nx/2);
+  hphimd->Scale(2./nx);
+  hphimd->SetLineColor(kBlue);
+
+  TH1D *hphipm = h2m->ProjectionY("hphipm",nx/2+1,nx);
+  hphipm->Scale(2./nx);
+  hphipm->SetLineColor(kRed+1);
+
+  TH1D *hphimm = h2m->ProjectionY("hphimm",1,nx/2);
+  hphimm->Scale(2./nx);
+  hphimm->SetLineColor(kBlue+1);
+  
+  hphipd->Draw("HIST");
+  hphimd->Draw("HIST SAME");
+
+  hphipm->Draw("HIST SAME");
+  hphimm->Draw("HIST SAME");
+
+  c1d->SaveAs("pdf/drawGamEtaPhi_data.pdf");
+  c1m->SaveAs("pdf/drawGamEtaPhi_mc.pdf");
+  c1r->SaveAs("pdf/drawGamEtaPhi_ratio.pdf");
+  c2->SaveAs("pdf/drawGamEtaPhi_phi.pdf");
+
+  // Extract cleaning maps from this
+  TH2D *h2cracks = (TH2D*)h2d->Clone("h2cracks"); h2cracks->Reset();
+  TH2D *h2holes = (TH2D*)h2d->Clone("h2holes"); h2holes->Reset();
+  TH2D *h2tower = (TH2D*)h2t->Clone("h2tower"); h2tower->Reset();
+  for (int i = 1; i != h2d->GetNbinsX()+1; ++i) {
+    for (int j = 1; j != h2d->GetNbinsY()+1; ++j) {
+      int k = h2t->FindBin(h2d->GetXaxis()->GetBinCenter(i),
+			   h2d->GetYaxis()->GetBinCenter(j));
+      if (h2t->GetBinContent(k) < 0.5) {
+	h2holes->SetBinContent(i, j, 2.);
+	h2tower->SetBinContent(k, 2.);
+      }
+      else {
+	h2holes->SetBinContent(i, j, 0.);
+	h2tower->SetBinContent(k, 0.);
+      }
+    } // for j
+  } // for i
+
+
+  if (true) {
+    h2tower->SetLineColor(kRed);
+
+    c1d->cd();
+    //h2holes->Draw("SAME BOX");
+    h2tower->Draw("SAME BOX");
+    c1m->cd();
+    //h2holes->Draw("SAME BOX");
+    h2tower->Draw("SAME BOX");
+    c1r->cd();
+    //h2holes->Draw("SAME BOX");
+    h2tower->Draw("SAME BOX");
+
+    c1d->SaveAs("pdf/drawGamEtaPhi_data_ringed.pdf");
+    c1m->SaveAs("pdf/drawGamEtaPhi_mc_ringed.pdf");
+    c1r->SaveAs("pdf/drawGamEtaPhi_ratio_ringed.pdf");
+  }
+}

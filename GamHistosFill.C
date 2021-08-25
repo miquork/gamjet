@@ -352,19 +352,22 @@ void GamHistosFill::Loop()
   if (TString(ds.c_str()).Contains("2016")) {
     //btagDeepB->set("2016",0.2217,0.6321,0.8953);
     //btagDeepC->set("2016",-0.48,-0.1,-0.1+frac*(0.69+0.1));
-    bthr = 0.8953;
+    //bthr = 0.8953;
+    bthr = 0.6321;
     cthr = -0.1+frac*(0.69+0.1);
   }
   if (TString(ds.c_str()).Contains("2017")) {
     //btagDeepB->set("2017",0.1522,0.4941,0.8001);
     //btagDeepC->set("2017",0.05,0.15,0.15+frac*(0.8-0.15));
-    bthr = 0.8001;
+    //bthr = 0.8001; // tight
+    bthr = 0.4941; // medium
     cthr = 0.15+frac*(0.8-0.15);
   }
   if (TString(ds.c_str()).Contains("2018")) {
     //btagDeepB->set("2018",0.1241,0.4184,0.7527);
     //btagDeepC->set("2018",0.04,0.137,0.137+frac*(0.66-0.137));
-    bthr = 0.7527;
+    //bthr = 0.7527; // tight
+    bthr = 0.4184; // medium
     cthr = 0.137+frac*(0.66-0.137);
   }
 
@@ -473,6 +476,8 @@ void GamHistosFill::Loop()
 				360,-TMath::Pi(),TMath::Pi());
   TH2D *h2gametaphi3 = new TH2D("h2gametaphi3","",150,-1.305,+1.305,
 				720,-TMath::Pi(),TMath::Pi());
+  TH2D *h2gametaphi4 = new TH2D("h2gametaphi4","",150,-1.305,+1.305,
+				1440,-TMath::Pi(),TMath::Pi());
   TH2D *h2ngam = new TH2D("h2ngam","",nx,vx,5,0,5);
   TH1D *hgen = new TH1D("hgen","",nx,vx);
   TH1D *hgam = new TH1D("hgam","",nx,vx);
@@ -1206,6 +1211,7 @@ void GamHistosFill::Loop()
 	h2gametaphi->Fill(gam.Eta(), gam.Phi(), w);
 	h2gametaphi2->Fill(gam.Eta(), gam.Phi(), w);
 	h2gametaphi3->Fill(gam.Eta(), gam.Phi(), w);
+	h2gametaphi4->Fill(gam.Eta(), gam.Phi(), w);
       }
       
       // Event filters for 2016 and 2017+2018 data and MC

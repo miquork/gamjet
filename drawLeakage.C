@@ -10,14 +10,18 @@ void drawLeakage() {
   TDirectory *curdir = gDirectory;
 
   TFile *fd = new TFile("files/GamHistosFill_data_Run2_v11.root","READ");
+  //TFile *fd = new TFile("files/GamHistosFill_data_Run2_v16.root","READ");
   assert(fd && !fd->IsZombie());
   TFile *fm = new TFile("files/GamHistosFill_mc_Run2P8_v11.root","READ");
+  //TFile *fm = new TFile("files/GamHistosFill_mc_Run2P8_v16.root","READ");
   assert(fm && !fm->IsZombie());
 
   curdir->cd();
 
   TH2D *h2d = (TH2D*)fd->Get("control/h2phoj"); assert(h2d);
   TH2D *h2m = (TH2D*)fm->Get("control/h2phoj"); assert(h2m);
+  //TH2D *h2d = (TH2D*)fd->Get("control/h2phoj0"); assert(h2d);
+  //TH2D *h2m = (TH2D*)fm->Get("control/h2phoj0"); assert(h2m);
 
   for (int i = 1; i != h2d->GetNbinsX()+1; ++i) {
 
