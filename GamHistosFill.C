@@ -314,7 +314,7 @@ void GamHistosFill::Loop()
     LoadJSON("files/Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt");
 
   // Load pileup JSON
-  parsePileUpJSON("files/pileup_ASCII_2016-2018.txt");
+  parsePileUpJSON("files/pileup_ASCII_UL16-UL18.txt");
   
   // Load veto maps
   // JECDatabase/jet_veto_maps/Summer19UL16_V0/hotjets-UL16.root
@@ -1235,7 +1235,7 @@ void GamHistosFill::Loop()
       bool pass_ngam = (nGam>=1);
       bool pass_njet = (nJets>=1);
       bool pass_gameta = (fabs(gam.Eta()) < 1.3);
-      bool pass_dphi = (gam.DeltaPhi(jet) > 2.7);
+      bool pass_dphi = (gam.DeltaPhi(jet) > 2.7); // pi-0.44 as in KIT Z+jet
       bool pass_jetid = (iJet!=-1 && Jet_jetId[iJet]>=4); // tightLepVeto
       bool pass_veto = true;
       if (true) { // jet veto

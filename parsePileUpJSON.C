@@ -1,5 +1,8 @@
 // Parse pileup_latest.txt and return true pileup for (run,LS) pair
-// Input from /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/13TeV/PileUp/pileup_latest.txt
+// Input from
+// /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/PileUp/UltraLegacy/pileup_latest.txt [Jun 4; also separate preVFP and postVFP Jun 30]
+// /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/PileUp/UltraLegacy/pileup_latest.txt [Jun 4]
+// /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/13TeV/PileUp/UltraLegacy/pileup_latest.txt [Jun 4]
 // Re-formatted with minitools/JSONtoASCII.py
 // Run with 'root -l -b -q minitools/parsePileupJSON.C+g'
 #ifndef __parsePileUpJSON_C__
@@ -35,8 +38,8 @@ map<int, map<int, lumiInfo> > _mus2;
 
 // Read pileup_latest.txt into memory
 // NB: first reformat pileup_latext.txt into C++ -friedly format:
-// minitools/JSONtoASCII.py rootfiles/pileup_latest_2018.txt > pileup_ASCII_2018.txt
-void parsePileUpJSON(string filename="rootfiles/pileup_ASCII_2016-2018.txt", 
+// minitools/JSONtoASCII.py rootfiles/pileup_latest_UL18.txt > rootfiles/pileup_ASCII_UL18.txt
+void parsePileUpJSON(string filename="rootfiles/pileup_ASCII_UL16-UL18.txt", 
 		     string filename2="", 
 		     string json="",
 		     double minbXsec = 69200) {
