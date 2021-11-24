@@ -6,6 +6,7 @@
 
 #include "TH1D.h"
 #include "TProfile.h"
+#include "TProfile2D.h"
 #include "TLorentzVector.h"
 #include "TStopwatch.h"
 
@@ -22,6 +23,7 @@ struct BasicHistos {
   TH1D *hn;
   TProfile *prpt;
   TProfile *prbal;
+  TProfile *prdb;
   TProfile *prmpf;
   TProfile *prmpf1;
   TProfile *prmpfn;
@@ -228,6 +230,16 @@ void GamHistosFill::Loop()
     fChain->SetBranchStatus("Jet_rawFactor",1);
     fChain->SetBranchStatus("Jet_area",1);
     fChain->SetBranchStatus("Jet_jetId",1);
+
+    // PF composition
+    fChain->SetBranchStatus("Jet_chHEF",1);
+    fChain->SetBranchStatus("Jet_neHEF",1);
+    fChain->SetBranchStatus("Jet_neEmEF",1);
+    fChain->SetBranchStatus("Jet_chEmEF",1);
+    fChain->SetBranchStatus("Jet_muEF",1);
+    fChain->SetBranchStatus("Jet_chFPV0EF",1);
+
+    if (isMC) fChain->SetBranchStatus("Jet_genJetIdx",1);
     
     fChain->SetBranchStatus("Jet_btagDeepB",1);
     fChain->SetBranchStatus("Jet_btagDeepC",1);
@@ -303,6 +315,11 @@ void GamHistosFill::Loop()
   if (ds=="2016P8APV") jecl1rc = getFJC("Summer19UL16APV_V7_MC_L1RC");
   if (ds=="2017P8")    jecl1rc = getFJC("Summer19UL17_V5_MC_L1RC");
   if (ds=="2018P8")    jecl1rc = getFJC("Summer19UL18_V5_MC_L1RC");
+  //
+  if (ds=="2016QCD")    jecl1rc = getFJC("Summer19UL16_V7_MC_L1RC");
+  if (ds=="2016QCDAPV") jecl1rc = getFJC("Summer19UL16APV_V7_MC_L1RC");
+  if (ds=="2017QCD")    jecl1rc = getFJC("Summer19UL17_V5_MC_L1RC");
+  if (ds=="2018QCD")    jecl1rc = getFJC("Summer19UL18_V5_MC_L1RC");
   assert(jecl1rc);
   
   // Load JSON files
@@ -352,8 +369,8 @@ void GamHistosFill::Loop()
   if (TString(ds.c_str()).Contains("2016")) {
     //btagDeepB->set("2016",0.2217,0.6321,0.8953);
     //btagDeepC->set("2016",-0.48,-0.1,-0.1+frac*(0.69+0.1));
-    //bthr = 0.8953;
-    bthr = 0.6321;
+    //bthr = 0.8953; // tight
+    bthr = 0.6321; // medium
     cthr = -0.1+frac*(0.69+0.1);
   }
   if (TString(ds.c_str()).Contains("2017")) {
@@ -385,6 +402,14 @@ void GamHistosFill::Loop()
   		 300, 400, 500, 600, 700, 850, 1000, 1200, 1450, 1750};
   const int nx = sizeof(vx)/sizeof(vx[0])-1;
   
+  // L2L3Res eta binning
+  double vy[] = {-5.191, -3.839, -3.489, -3.139, -2.964, -2.853, -2.650,
+		 -2.500, -2.322, -2.172, -1.930, -1.653, -1.479, -1.305,
+		 -1.044, -0.783, -0.522, -0.261, 0.000, 0.261, 0.522, 0.783,
+		 1.044, 1.305, 1.479, 1.653, 1.930, 2.172, 2.322, 2.500,
+		 2.650, 2.853, 2.964, 3.139, 3.489, 3.839, 5.191};
+  const int ny = sizeof(vy)/sizeof(vy[0])-1;
+
   string dir = (isMC ? "MC" : "DATA");
   
   vector<pair<double,double> > etas;
@@ -398,7 +423,46 @@ void GamHistosFill::Loop()
   alphas.push_back(0.15);
   alphas.push_back(0.10);
   alphas.push_back(0.50); 
+
+  // PF composition plots stored in a separate directory
+  fout->mkdir("pf");
+  fout->cd("pf");  
   
+  TH2D *h2pteta = new TH2D("h2pteta","",nx,vx,ny,vy);
+  TProfile *pabseta = new TProfile("pabseta","",nx,vx);
+
+  // 1D composition and response
+  TProfile *pdb = new TProfile("pdb","",nx,vx);
+  TProfile *pmpf = new TProfile("pmpf","",nx,vx);
+  TProfile *pchf = new TProfile("pchf","",nx,vx);
+  TProfile *pnhf = new TProfile("pnhf","",nx,vx);
+  TProfile *pnef = new TProfile("pnef","",nx,vx);
+  TProfile *pcef = new TProfile("pcef","",nx,vx);
+  TProfile *pmuf = new TProfile("pmuf","",nx,vx);
+  TProfile *ppuf = new TProfile("ppuf","",nx,vx);
+
+  // for (int i = 0; i != 72; ++i) cout << Form("%1.3f, ",-TMath::Pi()+i*TMath::TwoPi()/72.); cout << endl;
+  const int nphi = 72;
+  const double vphi[nphi+1] = 
+    {-3.142, -3.054, -2.967, -2.880, -2.793, -2.705, -2.618, -2.531, -2.443,
+     -2.356, -2.269, -2.182, -2.094, -2.007, -1.920, -1.833, -1.745, -1.658,
+     -1.571, -1.484, -1.396, -1.309, -1.222, -1.134, -1.047, -0.960, -0.873,
+     -0.785, -0.698, -0.611, -0.524, -0.436, -0.349, -0.262, -0.175, -0.087,
+     0.000, 0.087, 0.175, 0.262, 0.349, 0.436, 0.524, 0.611, 0.698, 0.785,
+     0.873, 0.960, 1.047, 1.134, 1.222, 1.309, 1.396, 1.484, 1.571, 1.658,
+     1.745, 1.833, 1.920, 2.007, 2.094, 2.182, 2.269, 2.356, 2.443, 2.531,
+     2.618, 2.705, 2.793, 2.880, 2.967, 3.054,3.142};
+
+  // 2D composition and response
+  TProfile2D *p2db = new TProfile2D("p2db","",ny,vy,nphi,vphi);
+  TProfile2D *p2mpf = new TProfile2D("p2mpf","",ny,vy,nphi,vphi);
+  TProfile2D *p2chf = new TProfile2D("p2chf","",ny,vy,nphi,vphi);
+  TProfile2D *p2nhf = new TProfile2D("p2nhf","",ny,vy,nphi,vphi);
+  TProfile2D *p2nef = new TProfile2D("p2nef","",ny,vy,nphi,vphi);
+  TProfile2D *p2cef = new TProfile2D("p2cef","",ny,vy,nphi,vphi);
+  TProfile2D *p2muf = new TProfile2D("p2muf","",ny,vy,nphi,vphi);
+  TProfile2D *p2puf = new TProfile2D("p2puf","",ny,vy,nphi,vphi);
+
   // Control plots stored in a separate directory
   fout->mkdir("control");
   fout->cd("control");
@@ -631,6 +695,7 @@ void GamHistosFill::Loop()
       const char *cname = name.c_str();
       TProfile *prpt  =  new TProfile(Form(cname,"PtGam"),"",nx,vx);
       TProfile *prbal =  new TProfile(Form(cname,"PtBalchs"),"",nx,vx);
+      TProfile *prdb =  new TProfile(Form(cname,"DBchs"),"",nx,vx);
       TProfile *prmpf =  new TProfile(Form(cname,"MPFchs"),"",nx,vx);
       TProfile *prmpf1 = new TProfile(Form(cname,"MPFR1chs"),"",nx,vx);
       TProfile *prmpfn = new TProfile(Form(cname,"MPFRnchs"),"",nx,vx);
@@ -642,6 +707,7 @@ void GamHistosFill::Loop()
       mh.hn = hn;
       mh.prpt = prpt;
       mh.prbal = prbal;
+      mh.prdb = prdb;
       mh.prmpf = prmpf;
       mh.prmpf1 = prmpf1;
       mh.prmpfn = prmpfn;
@@ -656,7 +722,8 @@ void GamHistosFill::Loop()
   TLorentzVector met, met1, metn, metu, rawmet, corrmet, rawgam;
   TLorentzVector jeti, corrjets, rawjet, rawjets, rcjet, rcjets, rcoffsets;
   TLorentzVector geni, genjet, genjet2;
-
+  TLorentzVector fox; // for isQCD
+  
   //Long64_t nentries = fChain->GetEntriesFast();
   Long64_t nentries = fChain->GetEntries();
   cout << "\nStarting loop over " << dataset << " with "
@@ -914,7 +981,7 @@ void GamHistosFill::Loop()
 
     // Correct photon for gain1 and MPF for "footprint" (photon vs PFgamma)
     rawgam = gam;
-    if (iGam!=-1 && Photon_seedGain[iGam]==1 && !isMC) gam *= 1./1.02;
+    if (iGam!=-1 && Photon_seedGain[iGam]==1 && !isMC) gam *= 1./1.01;
     if (iGam!=-1) {
       // [0]+log(x)*([1]+log(x)*[2]) in range [15,1750] to MC pphoj0
       //1  p0           4.57516e-02   3.91871e-04   1.09043e-07   4.17033e-05
@@ -953,6 +1020,43 @@ void GamHistosFill::Loop()
       phoj0 -= phoj0off;
     }
 
+    // For QCD background, emulate a photon+jet event by replacing
+    // one of the leading jets with genjet taking the place of the photon
+    int iFox(-1);
+    fox.SetPtEtaPhiM(0,0,0,0);
+    if (isQCD && iGam==-1 && nJet>=2) {
+      iFox = (jentry%2); // "random" selection from two leading jets
+      // Jet_genJetIdx would be great, but only there for UL18 nAOD? Maybe there
+      int k = Jet_genJetIdx[iFox];
+      if (k>=0 && k<nGenJet) {
+	gam.SetPtEtaPhiM(GenJet_pt[k], GenJet_eta[k], GenJet_phi[k],
+			 GenJet_mass[k]);
+	// NB: should remove UE clustered into gam. In Minsuk's rho_ZB_new.pdf
+	// QCD_CP5 has about 3.5 GeV/A of UE offset at generator level
+	double area = Jet_area[iFox];
+	gam *= (gam.Pt()>0 ? 1 - 3.5*area/gam.Pt() : 1.);
+	rawgam = gam;
+
+	fox.SetPtEtaPhiM(Jet_pt[iFox], Jet_eta[iFox], Jet_phi[iFox],
+			 Jet_mass[iFox]);
+	fox *= (1-Jet_rawFactor[iFox]);
+	// Calculate L1RC correction
+	jecl1rc->setJetPt(fox.Pt());
+	jecl1rc->setJetEta(fox.Eta());
+	jecl1rc->setJetA(Jet_area[iFox]);
+	jecl1rc->setRho(fixedGridRhoFastjetAll);
+	double corrl1rc = jecl1rc->getCorrection();
+	fox *= corrl1rc;
+	// NB2: should also remove UE clustered into fox. In Minsuk's plot
+	// QCD_CP5 has about 2.5 GeV/A of UE offset at FullSim level
+	fox *= (fox.Pt()>0 ? 1 - 2.5*area/fox.Pt() : 1.);
+
+	// NB3: For consistency with gamma+jet, phoj should still have reco UE
+	phoj.SetPtEtaPhiM(2.5*area,0,0,0);
+	phoj0 = phoj;
+	nGam = 1;
+      }
+    } // isQCD
   
     // Event weights (1 for MadGraph)
     //bool isMC = (run==1);
@@ -994,7 +1098,8 @@ void GamHistosFill::Loop()
     for (unsigned int i = 0; i != nJet; ++i) {
       
       // Check that jet is not photon and pTcorr>15 GeV
-      if (Jet_pt[i]>15 && (iGam==-1 || (int)i != Photon_jetIdx[iGam])) {
+      if (Jet_pt[i]>15 && (iGam==-1 || (int)i != Photon_jetIdx[iGam]) &&
+	  (!isQCD || i!=iFox)) {
 	
 	++nJets;
 	jeti.SetPtEtaPhiM(Jet_pt[i], Jet_eta[i], Jet_phi[i], Jet_mass[i]);
@@ -1047,7 +1152,8 @@ void GamHistosFill::Loop()
 
     // Set MET vectors
     rawmet.SetPtEtaPhiM(ChsMET_pt, 0, ChsMET_phi, 0);
-    rawmet += rawgam - gam; // replace PF photon with Reco photon
+    if (isQCD && iFox!=-1) rawmet += fox - gam; // fox=rawjet-PU, gam=genjet
+    else rawmet += rawgam - gam; // replace PF photon with Reco photon
     met1 = -jet -gam;
     metn = -jetn;
     //corrmet = rawmet +rawjets -corrjets -rcoffsets;
@@ -1197,7 +1303,8 @@ void GamHistosFill::Loop()
 	 (HLT_Photon20_HoverELoose         && pt>=20  && pt<35 ) ||
 	 //(HLT_Photon20                     && pt>=20  && pt<35 )
 	 (isMC                             && pt<60)
-	 ))
+	 )) ||
+       isQCD
        );
 
       // Summary of combined trigger efficiencies
@@ -1248,7 +1355,8 @@ void GamHistosFill::Loop()
       } // jet veto
       bool pass_leak = (phoj.Pt()<0.06*ptgam);
       bool pass_basic = (pass_trig && pass_filt && pass_ngam && pass_njet &&
-			 pass_dphi && pass_jetid && pass_veto && pass_leak);
+			 pass_gameta && pass_dphi && pass_jetid && pass_veto &&
+			 pass_leak); // add pass_gameta v19 / 202111122 !
       
       // Control plots for jet response
       bool pass_bal = (fabs(1-bal)<0.7);
@@ -1405,7 +1513,7 @@ void GamHistosFill::Loop()
 	h2phoj0->Fill(ptgam, footprint, w);
 	pphoj0->Fill(ptgam, footprint, w);
 
-	if (Photon_seedGain[iGam]==1) {
+	if (iGam!=-1 && Photon_seedGain[iGam]==1) {
 	  h2phoj1->Fill(ptgam, footprint, w);
 	  pphoj1->Fill(ptgam, footprint, w);
 	  if (pass_jeteta && pass_alpha100) {
@@ -1413,7 +1521,7 @@ void GamHistosFill::Loop()
 	    prmpf1->Fill(ptgam, mpf, w);
 	  }
 	}
-	if (Photon_seedGain[iGam]==6) {
+	if (iGam!=-1 && Photon_seedGain[iGam]==6) {
 	  h2phoj6->Fill(ptgam, footprint, w);
 	  pphoj6->Fill(ptgam, footprint, w);
 	  if (pass_jeteta && pass_alpha100) {
@@ -1421,7 +1529,7 @@ void GamHistosFill::Loop()
 	    prmpf6->Fill(ptgam, mpf, w);
 	  }
 	}
-	if (Photon_seedGain[iGam]==12) {
+	if (iGam!=-1 && Photon_seedGain[iGam]==12) {
 	  h2phoj12->Fill(ptgam, footprint, w);
 	  pphoj12->Fill(ptgam, footprint, w);
 	  if (pass_jeteta && pass_alpha100) {
@@ -1436,6 +1544,34 @@ void GamHistosFill::Loop()
 	  prbal0->Fill(ptgam, bal, w);
 	  prmpf0->Fill(ptgam, mpf, w);
 	  
+	  // PF composition plots
+	  h2pteta->Fill(ptgam, Jet_eta[iJet], w);
+	  pabseta->Fill(ptgam, fabs(Jet_eta[iJet]), w);
+
+	  // 1D composition and response
+	  pdb->Fill(ptgam, bal, w);
+	  pmpf->Fill(ptgam, mpf, w);
+	  pchf->Fill(ptgam, Jet_chHEF[iJet], w);
+	  pnhf->Fill(ptgam, Jet_neHEF[iJet], w);
+	  pnef->Fill(ptgam, Jet_neEmEF[iJet], w);
+	  pcef->Fill(ptgam, Jet_chEmEF[iJet], w);
+	  pmuf->Fill(ptgam, Jet_muEF[iJet], w);
+	  ppuf->Fill(ptgam, Jet_chFPV0EF[iJet], w);
+	  
+	  // 2D composition and response
+	  if (ptgam>230) {
+	    double eta = Jet_eta[iJet];
+	    double phi = Jet_phi[iJet];
+	    p2db->Fill(eta, phi, bal, w);
+	    p2mpf->Fill(eta, phi, mpf, w);
+	    p2chf->Fill(eta, phi, Jet_chHEF[iJet], w);
+	    p2nhf->Fill(eta, phi, Jet_neHEF[iJet], w);
+	    p2nef->Fill(eta, phi, Jet_neEmEF[iJet], w);
+	    p2cef->Fill(eta, phi, Jet_chEmEF[iJet], w);
+	    p2muf->Fill(eta, phi, Jet_muEF[iJet], w);
+	    p2puf->Fill(eta, phi, Jet_chFPV0EF[iJet], w);
+	  }
+
 	  if (isMC) {
 	    if (ptgam>=105 && ptgam<230)
 	      hmus->Fill(Pileup_nTrueInt, w);
@@ -1453,32 +1589,34 @@ void GamHistosFill::Loop()
 	  //if ((is16 && ptgam>175) ||
 	  //  (is17 && ptgam>230) ||
 	  //  (is18 && ptgam>130)) {
-	  if (ptgam>230) {
+	  if (ptgam>230 && iGam!=-1) {
 	    pgainvsmu->Fill(Pileup_nTrueInt, Photon_seedGain[iGam], w);
 	    if (b_Photon_eCorr) // safety for 2016
 	      pcorrvsmu->Fill(Pileup_nTrueInt, Photon_eCorr[iGam], w);
 	    perrvsmu->Fill(Pileup_nTrueInt, Photon_energyErr[iGam], w);
 	    phoevsmu->Fill(Pileup_nTrueInt, Photon_hoe[iGam], w);
 	    pr9vsmu->Fill(Pileup_nTrueInt, Photon_r9[iGam], w);
-	    //
+	  }
+	  if (ptgam>230) {
 	    pmuvsmu->Fill(Pileup_nTrueInt, Pileup_nTrueInt, w);
 	    prhovsmu->Fill(Pileup_nTrueInt, fixedGridRhoFastjetAll, w);
 	    pnpvgoodvsmu->Fill(Pileup_nTrueInt, PV_npvsGood, w);
 	    pnpvallvsmu->Fill(Pileup_nTrueInt, PV_npvs, w);
 	  } // high pT range
 	  
-	  pgain1vspt->Fill(ptgam, Photon_seedGain[iGam]==1 ? 1 : 0, w);
-	  pgain6vspt->Fill(ptgam, Photon_seedGain[iGam]==6 ? 1 : 0, w);
-	  pgain12vspt->Fill(ptgam, Photon_seedGain[iGam]==12 ? 1 : 0, w);
-	  pgainvspt->Fill(ptgam, Photon_seedGain[iGam], w);
-	  if (b_Photon_eCorr) // safety for 2016
-	    pcorrvspt->Fill(ptgam, Photon_eCorr[iGam], w);
-	  perrvspt->Fill(ptgam, Photon_energyErr[iGam], w);
-	  h2hoevspt->Fill(ptgam, Photon_hoe[iGam], w);
-	  phoevspt->Fill(ptgam, Photon_hoe[iGam], w);
-	  h2r9vspt->Fill(ptgam, Photon_r9[iGam], w);
-	  pr9vspt->Fill(ptgam, Photon_r9[iGam], w);
-	  //
+	  if (iGam!=-1) {
+	    pgain1vspt->Fill(ptgam, Photon_seedGain[iGam]==1 ? 1 : 0, w);
+	    pgain6vspt->Fill(ptgam, Photon_seedGain[iGam]==6 ? 1 : 0, w);
+	    pgain12vspt->Fill(ptgam, Photon_seedGain[iGam]==12 ? 1 : 0, w);
+	    pgainvspt->Fill(ptgam, Photon_seedGain[iGam], w);
+	    if (b_Photon_eCorr) // safety for 2016
+	      pcorrvspt->Fill(ptgam, Photon_eCorr[iGam], w);
+	    perrvspt->Fill(ptgam, Photon_energyErr[iGam], w);
+	    h2hoevspt->Fill(ptgam, Photon_hoe[iGam], w);
+	    phoevspt->Fill(ptgam, Photon_hoe[iGam], w);
+	    h2r9vspt->Fill(ptgam, Photon_r9[iGam], w);
+	    pr9vspt->Fill(ptgam, Photon_r9[iGam], w);
+	  }
 	  pmuvspt->Fill(ptgam, Pileup_nTrueInt, w);
 	  prhovspt->Fill(ptgam, fixedGridRhoFastjetAll, w);
 	  pnpvgoodvspt->Fill(ptgam, PV_npvsGood, w);
@@ -1510,9 +1648,11 @@ void GamHistosFill::Loop()
 	    BasicHistos& mh = (*pmh); assert(mh.hn);
 	    
 	    // Fill histograms (h*) and profiles (p*)
+	    //assert(fabs(mpf1+mpfn+mpfu-mpf)<1e-4);
 	    mh.hn->Fill(ptgam, w);
 	    mh.prpt->Fill(ptgam, ptgam, w);
 	    mh.prbal->Fill(ptgam, bal, w);
+	    mh.prdb->Fill(ptgam, mpf1, w);
 	    mh.prmpf->Fill(ptgam, mpf, w);
 	    mh.prmpf1->Fill(ptgam, mpf1, w);
 	    mh.prmpfn->Fill(ptgam, mpfn, w);
@@ -1609,11 +1749,13 @@ bool GamHistosFill::LoadJSON(string json)
 void GamHistosFill::LoadPU() {
 
   string eras[] = {"2016P8","2016P8APV","2017P8", "2018P8",
+		   "2016QCD","2016QCDAPV","2017QCD", "2018QCD",
 		   "2016BCD","2016EF","2016FGH",
 		   "2017B","2017C","2017D","2017E","2017F",
 		   "2018A","2018B","2018C","2018D"};
   const int neras = sizeof(eras)/sizeof(eras[0]);
 
+  // files/pileup.root updated with tchain.C on Hefaistos
   TFile *f = new TFile("files/pileup.root","READ");
   assert(f && !f->IsZombie());
 
