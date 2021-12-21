@@ -10,6 +10,8 @@
 #include "TProfile.h"
 #include "TH1D.h"
 #include "TGraphErrors.h"
+#include "TProfile2D.h"
+#include "TH2D.h"
 
 #include <iostream>
 using namespace std;
@@ -43,7 +45,7 @@ void replacePt(TGraphErrors *g, TH1 *h) {
 }
 
 void GamHistosRatios(string ver, string iov);
-void GamHistosRatio(string ver = "v16") {
+void GamHistosRatio(string ver = "v20") {
   GamHistosRatios(ver,"2016BCDEF");
   GamHistosRatios(ver,"2016FGH");
   GamHistosRatios(ver,"2017BCDEF");
@@ -55,6 +57,7 @@ void GamHistosRatios(string ver, string iov) {
 
   const char *cv = ver.c_str();
   const char *ci = iov.c_str();
+  const char *cvo = cv; // patch to use older version of data, if needed
 
   TFile *fd(0), *fm(0), *fr(0);
   if (iov=="2016BCDEF") {
@@ -62,17 +65,21 @@ void GamHistosRatios(string ver, string iov) {
     gSystem->Exec(Form("hadd files/GamHistosFill_data_2016BCDEF_%s.root "
 		       "files/GamHistosFill_data_2016BCD_%s.root "
 		       "files/GamHistosFill_data_2016EF_%s.root ",
-		       cv,cv,cv));
+		       cv,cvo,cvo));
 
     fd = new TFile(Form("files/GamHistosFill_data_%s_%s.root",ci,cv),"READ");
-    fm = new TFile(Form("files/GamHistosFill_mc_2016P8APV_%s.root",cv),"READ");
-    fr = new TFile(Form("files/GamHistosRatio_%s_P8APV_%s.root",ci,cv),"RECREATE");
+    //fm = new TFile(Form("files/GamHistosFill_mc_2016P8APV_%s.root",cv),"READ");
+    //fr = new TFile(Form("files/GamHistosRatio_%s_P8APV_%s.root",ci,cv),"RECREATE");
+    fm = new TFile(Form("files/GamHistosMix_mc_2016APVP8QCD_%s.root",cv),"READ");
+    fr = new TFile(Form("files/GamHistosRatio_%s_P8QCDAPV_%s.root",ci,cv),"RECREATE");
   }
   if (iov=="2016FGH") {
 
-    fd = new TFile(Form("files/GamHistosFill_data_%s_%s.root",ci,cv),"READ");
-    fm = new TFile(Form("files/GamHistosFill_mc_2016P8_%s.root",cv),"READ");
-    fr = new TFile(Form("files/GamHistosRatio_%s_P8_%s.root",ci,cv),"RECREATE");
+    fd = new TFile(Form("files/GamHistosFill_data_%s_%s.root",ci,cvo),"READ");
+    //fm = new TFile(Form("files/GamHistosFill_mc_2016P8_%s.root",cv),"READ");
+    //fr = new TFile(Form("files/GamHistosRatio_%s_P8_%s.root",ci,cv),"RECREATE");
+    fm = new TFile(Form("files/GamHistosMix_mc_2016P8QCD_%s.root",cv),"READ");
+    fr = new TFile(Form("files/GamHistosRatio_%s_P8QCD_%s.root",ci,cv),"RECREATE");
   }
   if (iov=="2017BCDEF") {
     // Merge files, if not already done (delete combination file to redo)
@@ -82,11 +89,13 @@ void GamHistosRatios(string ver, string iov) {
 		       "files/GamHistosFill_data_2017D_%s.root "
 		       "files/GamHistosFill_data_2017E_%s.root "
 		       "files/GamHistosFill_data_2017F_%s.root ",
-		       cv,cv,cv,cv,cv,cv));
+		       cv, cvo,cvo,cvo,cvo,cvo));
 
     fd = new TFile(Form("files/GamHistosFill_data_%s_%s.root",ci,cv),"READ");
-    fm = new TFile(Form("files/GamHistosFill_mc_2017P8_%s.root",cv),"READ");
-    fr = new TFile(Form("files/GamHistosRatio_%s_P8_%s.root",ci,cv),"RECREATE");
+    //fm = new TFile(Form("files/GamHistosFill_mc_2017P8_%s.root",cv),"READ");
+    //fr = new TFile(Form("files/GamHistosRatio_%s_P8_%s.root",ci,cv),"RECREATE");
+    fm = new TFile(Form("files/GamHistosMix_mc_2017P8QCD_%s.root",cv),"READ");
+    fr = new TFile(Form("files/GamHistosRatio_%s_P8QCD_%s.root",ci,cv),"RECREATE");
   }
   if (iov=="2018ABCD") {
 
@@ -102,11 +111,13 @@ void GamHistosRatios(string ver, string iov) {
 		       "files/GamHistosFill_data_2018D4_%s.root",
 		       //"files/GamHistosFill_data_2018D_%s.root",
 		       //cv,cv,cv,cv,cv,cv));
-		       cv, cv,cv,cv,cv, cv,cv,cv,cv));
+		       cv, cvo,cvo,cvo,cvo, cvo,cvo,cvo,cvo));
     
     fd = new TFile(Form("files/GamHistosFill_data_%s_%s.root",ci,cv),"READ");
-    fm = new TFile(Form("files/GamHistosFill_mc_2018P8_%s.root",cv),"READ");
-    fr = new TFile(Form("files/GamHistosRatio_%s_P8_%s.root",ci,cv),"RECREATE");
+    //fm = new TFile(Form("files/GamHistosFill_mc_2018P8_%s.root",cv),"READ");
+    //fr = new TFile(Form("files/GamHistosRatio_%s_P8_%s.root",ci,cv),"RECREATE");
+    fm = new TFile(Form("files/GamHistosMix_mc_2018P8QCD_%s.root",cv),"READ");
+    fr = new TFile(Form("files/GamHistosRatio_%s_P8QCD_%s.root",ci,cv),"RECREATE");
   }
 
   assert(fd && !fd->IsZombie());
@@ -114,6 +125,7 @@ void GamHistosRatios(string ver, string iov) {
   assert(fr && !fr->IsZombie());
   fr->mkdir("orig");
   fr->mkdir("flavor");
+  fr->mkdir("pf");
   
   cout << "Merging files "<<fd->GetName()<<" and "<<fm->GetName() << endl;  
   cout << "Output file " << fr->GetName() << endl << flush;
@@ -124,7 +136,7 @@ void GamHistosRatios(string ver, string iov) {
   TObject *obj;
   TKey *key;
   
-  bool debug = false;
+  bool debug = true;
   while ( (key = dynamic_cast<TKey*>(itkey.Next())) ) {
     if (debug) cout << key->GetName() << endl << flush;
     obj = key->ReadObj(); assert(obj);
@@ -137,6 +149,8 @@ void GamHistosRatios(string ver, string iov) {
       TString dataname = mcname;
       dataname.ReplaceAll("MC","DATA");
       TProfile *pd = (TProfile*)fd->Get(dataname.Data());
+      if (!pd && dataname.Contains("Rho")) continue; // v19
+      if (!pd && dataname.Contains("_ps")) continue; // v19
       assert(pd);
 
       fr->cd("orig");
@@ -145,7 +159,8 @@ void GamHistosRatios(string ver, string iov) {
 
       // Patch presumed Gain1 miscalibration in data
       if ((mcname.Contains("_MPFchs_") || mcname.Contains("_MPFR1chs_") ||
-	   mcname.Contains("_PtBalchs_")) && addGain1) {
+	   mcname.Contains("_PtBalchs_") || mcname.Contains("_DBchs_")) &&
+	  addGain1) {
 	const char *co = "control/pgain1vspt";
 	TProfile *pd = (TProfile*)fd->Get(Form(co,"DATA")); assert(pd);
 	//TProfile *pm = (TProfile*)fm->Get(Form(co,"MC")); assert(pm);
@@ -177,14 +192,16 @@ void GamHistosRatios(string ver, string iov) {
       char c[256];
       int a, y1, y2;
       if (debug) cout << "mcname: " << mcname << endl << flush;
-      sscanf(mcname.Data(),"resp_%[PtGamBalMPFpfR1nuchs]_MC_a%d_eta%d_%d",
+      sscanf(mcname.Data(),"resp_%[PtGamBalDBMPFpfR1nuchsRho]_MC_a%d_eta%d_%d",
 	     c,&a,&y1,&y2);
       if (debug) cout << "c: " << c << endl << flush;
       TString mcptname = mcname;
-      mcptname.ReplaceAll(c,"PtGam");
+      if (string(c)=="Rho") mcptname.ReplaceAll("Rho_CHS","PtGam");
+      else mcptname.ReplaceAll(c,"PtGam");
       if (debug) cout << "PtGam(MC):" << mcptname << endl << flush;
       TString dataptname = dataname;
-      dataptname.ReplaceAll(c,"PtGam");
+      if (string(c)=="Rho") dataptname.ReplaceAll("Rho_CHS","PtGam");
+      else dataptname.ReplaceAll(c,"PtGam");
       if (debug) cout << "PtGam(data):" << dataptname << endl << flush;
       TProfile *pmpt = (TProfile*)fm->Get(mcptname.Data());   assert(pmpt);
       TProfile *pdpt = (TProfile*)fd->Get(dataptname.Data()); assert(pdpt);
@@ -192,12 +209,23 @@ void GamHistosRatios(string ver, string iov) {
       // Detailed calculation for data/MC average
       TH1D *hrpt = pmpt->ProjectionX("tmp");
       for (int i = 1; i != hrpt->GetNbinsX()+1; ++i) {
-	hrpt->SetBinContent(i, 0.5*(pmpt->GetBinContent(i)+
-				    pdpt->GetBinContent(i)));
-	hrpt->SetBinError(i, sqrt(pow(0.5*(pmpt->GetBinContent(i)-
-					   pdpt->GetBinContent(i)),2) +
-				  pow(pmpt->GetBinError(i),2) +
-				  pow(pdpt->GetBinError(i),2)));
+
+	double pt = 0.5*(pmpt->GetBinContent(i)+pdpt->GetBinContent(i));
+	double ept = sqrt(pow(0.5*(pmpt->GetBinContent(i)-
+				   pdpt->GetBinContent(i)),2) +
+			  pow(pmpt->GetBinError(i),2) +
+			  pow(pdpt->GetBinError(i),2));
+	// Safeguards for empty bins in data or MC (e.g. due to trigger)
+	if (pmpt->GetBinContent(i)==0) {
+	  pt  = pdpt->GetBinContent(i);
+	  ept = pdpt->GetBinError(i);
+	}
+	if (pdpt->GetBinContent(i)==0) {
+	  pt  = pmpt->GetBinContent(i);
+	  ept = pmpt->GetBinError(i);
+	}
+	hrpt->SetBinContent(i, pt);
+	hrpt->SetBinError(i, ept);
       } // for i in hrpt
 
       fr->cd();
@@ -235,6 +263,8 @@ void GamHistosRatios(string ver, string iov) {
       TString dataname = mcname;
       dataname.ReplaceAll("MC","DATA");
       TH1D *hd = (TProfile*)fd->Get(dataname.Data());
+      if (!hd && dataname.Contains("Xsec")) continue; // v19
+      if (!hd && dataname.Contains("_ps")) continue; // v19
       assert(hd);
 
       TString rationame = mcname;
@@ -255,21 +285,22 @@ void GamHistosRatios(string ver, string iov) {
 
   // Flavor responses in their own folder
   fm->cd("flavor");
-  TDirectory *dm = gDirectory;
+  TDirectory *d1m = gDirectory;
   fd->cd("flavor");
-  TDirectory *dd = gDirectory;
+  TDirectory *d1d = gDirectory;
 
-  TList *fkeys = dm->GetListOfKeys();
+  TList *fkeys = d1m->GetListOfKeys();
   TListIter itfkey(fkeys);
   
   while ( (key = dynamic_cast<TKey*>(itfkey.Next())) ) {
     if (debug) cout << key->GetName() << endl << flush;
     obj = key->ReadObj(); assert(obj);
 
-    dm->cd();
+    d1m->cd();
     if (obj->InheritsFrom("TProfile")) {
       TProfile *pm = (TProfile*)obj;
-      TProfile *pd = (TProfile*)dd->Get(key->GetName());
+      TProfile *pd = (TProfile*)d1d->Get(key->GetName());
+      if (!pd) continue; // v20 strange jets missing from data
       assert(pd);
 
       fr->cd("orig");
@@ -313,12 +344,13 @@ void GamHistosRatios(string ver, string iov) {
 	gr->Write((s2+"_ratio").c_str());
       }
 
-      dm->cd();
+      d1m->cd();
     } // TProfile
     else if (obj->InheritsFrom("TH1D")) {
 
       TH1D *hm = (TH1D*)obj;
-      TH1D *hd = (TProfile*)dd->Get(key->GetName());
+      TH1D *hd = (TProfile*)d1d->Get(key->GetName());
+      if (!hd) continue; // v20 strange jets missing from data
       assert(hd);
       TH1D *hr = (TH1D*)hd->Clone(Form("%s_ratio",key->GetName()));
       hr->Divide(hm);
@@ -339,7 +371,170 @@ void GamHistosRatios(string ver, string iov) {
 	hr->Write((s2+"_ratio").c_str());
       }
     } // TH1D
-  } // while
+  } // while flavor
+
+
+  // PF composition in their own folder
+  fm->cd("pf");
+  TDirectory *d2m = gDirectory;
+  fd->cd("pf");
+  TDirectory *d2d = gDirectory;
+
+  TList *pkeys = d2m->GetListOfKeys();
+  TListIter itpkey(pkeys);
+  
+  while ( (key = dynamic_cast<TKey*>(itpkey.Next())) ) {
+    if (debug) cout << key->GetName() << endl << flush;
+    obj = key->ReadObj(); assert(obj);
+
+    d2m->cd();
+    if (obj->InheritsFrom("TProfile2D")) {
+      TProfile2D *p2m = (TProfile2D*)obj;
+      TProfile2D *p2d = (TProfile2D*)d2d->Get(key->GetName());
+      assert(p2d);
+
+      fr->cd("orig");
+
+      TH2D *h2m = p2m->ProjectionXY(Form("%s_mc",p2m->GetName()));
+      TH2D *h2d = p2d->ProjectionXY(Form("%s_data",p2d->GetName()));
+      TH2D *h2r = (TH2D*)h2d->Clone(Form("%s_ratio",p2d->GetName()));
+      if (TString(key->GetName()).Contains("chf") || 
+	  TString(key->GetName()).Contains("nhf") || 
+	  TString(key->GetName()).Contains("nef") || 
+	  TString(key->GetName()).Contains("cef") || 
+	  TString(key->GetName()).Contains("muf") || 
+	  TString(key->GetName()).Contains("puf"))
+	h2r->Add(h2m,-1);
+      else
+	h2r->Divide(h2m);
+
+      fr->cd("pf");
+
+      h2m->Write(); 
+      h2d->Write();
+      h2r->Write();
+
+      d2m->cd();
+    }
+    else if (obj->InheritsFrom("TProfile")) {
+      TProfile *pm = (TProfile*)obj;
+      TProfile *pd = (TProfile*)d2d->Get(key->GetName());
+      assert(pd);
+
+      fr->cd("orig");
+
+      TH1D *hm = pm->ProjectionX(Form("%s_mc",pm->GetName()));
+      TH1D *hd = pd->ProjectionX(Form("%s_data",pd->GetName()));
+      TH1D *hr = (TH1D*)hd->Clone(Form("%s_ratio",pd->GetName()));
+      if (TString(key->GetName()).Contains("chf") || 
+	  TString(key->GetName()).Contains("nhf") || 
+	  TString(key->GetName()).Contains("nef") || 
+	  TString(key->GetName()).Contains("cef") || 
+	  TString(key->GetName()).Contains("muf") || 
+	  TString(key->GetName()).Contains("puf"))
+	hr->Add(hm,-1);
+      else
+	hr->Divide(hm);
+
+      fr->cd("pf");
+
+      TGraphErrors *gd = new TGraphErrors(hd);
+      gd->SetNameTitle(hd->GetName(),hd->GetName());
+      TGraphErrors *gm = new TGraphErrors(hm);
+      gm->SetNameTitle(hm->GetName(),hm->GetName());
+      TGraphErrors *gr = new TGraphErrors(hr);
+      gr->SetNameTitle(hr->GetName(),hr->GetName());
+      
+      cleanGraph(gm);
+      cleanGraph(gd);
+      cleanGraph(gr);
+      
+      gm->SetLineColor(kRed);
+      gd->SetLineColor(kBlue);
+      gr->SetLineColor(kBlack);
+      
+      gm->Write(); 
+      gd->Write();
+      gr->Write();
+
+      d2m->cd();
+    } // TProfile
+    else if (obj->InheritsFrom("TH2D")) {
+
+      TH2D *h2m = (TH2D*)obj;
+      TH2D *h2d = (TH2D*)d2d->Get(key->GetName());
+      assert(h2d);
+      TH2D *h2r = (TH2D*)h2d->Clone(Form("%s_ratio",key->GetName()));
+      h2r->Divide(h2m);
+
+      h2m->SetName(Form("%s_mc",key->GetName()));
+      h2d->SetName(Form("%s_data",key->GetName()));
+
+      fr->cd("pf");
+      h2m->Write();
+      h2d->Write();
+      h2r->Write();
+    } // TH2D
+  } // while pf composition
+
+
+  // Rho plots in the control folder
+  fm->cd("control");
+  TDirectory *d3m = gDirectory;
+  fd->cd("control");
+  TDirectory *d3d = gDirectory;
+
+  TList *rkeys = d3m->GetListOfKeys();
+  TListIter itrkey(rkeys);
+  
+  while ( (key = dynamic_cast<TKey*>(itrkey.Next())) ) {
+    if (debug) cout << key->GetName() << endl << flush;
+    obj = key->ReadObj(); assert(obj);
+
+    // Select the plots to keep further
+    if (!(string(obj->GetName())=="prhovspt" ||
+	  string(obj->GetName())=="prhovsmu" ||
+	  string(obj->GetName())=="pnpvgoodvsmu" ||
+	  string(obj->GetName())=="pnpvallvsmu"))
+	continue;
+
+    d3m->cd();
+    if (obj->InheritsFrom("TProfile")) {
+      TProfile *pm = (TProfile*)obj;
+      TProfile *pd = (TProfile*)d3d->Get(key->GetName());
+      assert(pd);
+
+      fr->cd("orig");
+
+      TH1D *hm = pm->ProjectionX(Form("%s_mc",pm->GetName()));
+      TH1D *hd = pd->ProjectionX(Form("%s_data",pd->GetName()));
+      TH1D *hr = (TH1D*)hd->Clone(Form("%s_ratio",pd->GetName()));
+      hr->Divide(hm);
+
+      fr->cd();
+
+      TGraphErrors *gd = new TGraphErrors(hd);
+      gd->SetNameTitle(hd->GetName(),hd->GetName());
+      TGraphErrors *gm = new TGraphErrors(hm);
+      gm->SetNameTitle(hm->GetName(),hm->GetName());
+      TGraphErrors *gr = new TGraphErrors(hr);
+      gr->SetNameTitle(hr->GetName(),hr->GetName());
+      
+      cleanGraph(gm);
+      cleanGraph(gd);
+      cleanGraph(gr);
+      
+      gm->SetLineColor(kRed);
+      gd->SetLineColor(kBlue);
+      gr->SetLineColor(kBlack);
+      
+      gm->Write(); 
+      gd->Write();
+      gr->Write();
+
+      d3m->cd();
+    } // TProfile
+  } // while rho (control)
 
   cout << "Writing file " << fr->GetName() << endl << flush;
   fr->Write();

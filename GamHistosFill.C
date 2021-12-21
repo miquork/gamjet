@@ -21,6 +21,7 @@ bool _gh_debug = false;
 // Classes to structure sets of histograms and profiles
 struct BasicHistos {
   TH1D *hn;
+  TH1D *hxsec;
   TProfile *prpt;
   TProfile *prbal;
   TProfile *prdb;
@@ -28,6 +29,7 @@ struct BasicHistos {
   TProfile *prmpf1;
   TProfile *prmpfn;
   TProfile *prmpfu;
+  TProfile *prho;
 };
 
 // Helper function to retrieve FactorizedJetCorrector 
@@ -200,7 +202,9 @@ void GamHistosFill::Loop()
     
     // MC weights
     if (isMC)  fChain->SetBranchStatus("genWeight",1);
-    
+    if (isMC)  fChain->SetBranchStatus("nPSWeight",1);
+    if (isMC)  fChain->SetBranchStatus("PSWeight",1);
+
     fChain->SetBranchStatus("fixedGridRhoFastjetAll",1);
     fChain->SetBranchStatus("PV_npvs",1);
     fChain->SetBranchStatus("PV_npvsGood",1);
@@ -214,11 +218,15 @@ void GamHistosFill::Loop()
     fChain->SetBranchStatus("Photon_phi",1);
     fChain->SetBranchStatus("Photon_mass",1);
     fChain->SetBranchStatus("Photon_hoe",1);
-    fChain->SetBranchStatus("Photon_cutBased",1);
+    if (is17 && isMC && isQCD)
+      fChain->SetBranchStatus("Photon_cutBasedBitmap",1);
+    else
+      fChain->SetBranchStatus("Photon_cutBased",1);
     fChain->SetBranchStatus("Photon_jetIdx",1);
 
     fChain->SetBranchStatus("Photon_seedGain",1);
-    if (!is16) fChain->SetBranchStatus("Photon_eCorr",1); // not in 2016
+    //if (b_Photon_eCorr)
+    fChain->SetBranchStatus("Photon_eCorr",1); // not in 2016
     fChain->SetBranchStatus("Photon_energyErr",1);
     fChain->SetBranchStatus("Photon_r9",1);
     
@@ -259,11 +267,15 @@ void GamHistosFill::Loop()
     // and with LHEPart_pt[2] (parton photon) in MadGraph HT samples, but
     // MadGraph has plenty of uncorrelated soft and hard photons as well
     if (isMC) {
-      fChain->SetBranchStatus("nGenIsolatedPhoton",1);
-      fChain->SetBranchStatus("GenIsolatedPhoton_pt",1);
-      fChain->SetBranchStatus("GenIsolatedPhoton_eta",1);
-      fChain->SetBranchStatus("GenIsolatedPhoton_phi",1);
-      fChain->SetBranchStatus("GenIsolatedPhoton_mass",1);
+      if (!isQCD) {
+	fChain->SetBranchStatus("nGenIsolatedPhoton",1);
+	fChain->SetBranchStatus("GenIsolatedPhoton_pt",1);
+	fChain->SetBranchStatus("GenIsolatedPhoton_eta",1);
+	fChain->SetBranchStatus("GenIsolatedPhoton_phi",1);
+	fChain->SetBranchStatus("GenIsolatedPhoton_mass",1);
+      }
+      else
+	nGenIsolatedPhoton = 0;
     }
     if (isMC) {
       fChain->SetBranchStatus("nGenJet",1);
@@ -322,6 +334,22 @@ void GamHistosFill::Loop()
   if (ds=="2018QCD")    jecl1rc = getFJC("Summer19UL18_V5_MC_L1RC");
   assert(jecl1rc);
   
+  string sera("");
+  if (ds=="2016P8APV" || ds=="2016QCDAPV") sera = "2016APV";
+  if (ds=="2016P8" || ds=="2016QCD") sera = "2016FGH";
+  if (ds=="2017P8" || ds=="2017QCD") sera = "2017";
+  if (ds=="2018P8" || ds=="2018QCD") sera = "2018";
+  //
+  if (ds=="2016B"||ds=="2016C"||ds=="2016D"||ds=="2016BCD"||
+      ds=="2016E"||ds=="2016F"||ds=="2016EF"||ds=="2016BCDEF") sera = "2016APV";
+  if (ds=="2016FG"||ds=="2016H"||ds=="2016FGH") sera = "2016FGH";
+  if (ds=="2017B"||ds=="2017C"||ds=="2017D"||ds=="2017E"||ds=="2017F"||
+      ds=="2017BCDEF") sera = "2017";
+  if (ds=="2018A"||ds=="2018A1"||ds=="2018A2"||ds=="2018B"||ds=="2018C"||
+      ds=="2018D"||ds=="2018D1"||ds=="2018D2"||ds=="2018D3"||ds=="2018D4")
+    sera = "2018";
+  assert(sera!="");
+
   // Load JSON files
   if (TString(ds.c_str()).Contains("2016"))
     LoadJSON("files/Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.txt");
@@ -332,6 +360,9 @@ void GamHistosFill::Loop()
 
   // Load pileup JSON
   parsePileUpJSON("files/pileup_ASCII_UL16-UL18.txt");
+
+  // Load pileup profiles
+  LoadPU();
   
   // Load veto maps
   // JECDatabase/jet_veto_maps/Summer19UL16_V0/hotjets-UL16.root
@@ -545,11 +576,17 @@ void GamHistosFill::Loop()
   TH2D *h2ngam = new TH2D("h2ngam","",nx,vx,5,0,5);
   TH1D *hgen = new TH1D("hgen","",nx,vx);
   TH1D *hgam = new TH1D("hgam","",nx,vx);
+  TH1D *hgamtrg = new TH1D("hgamtrg","",nx,vx);
   TProfile *peffgr = new TProfile("peffgr","",nx,vx);
   TProfile *peffid = new TProfile("peffid","",nx,vx);
   TProfile *pfake = new TProfile("pfake","",nx,vx);
-  TH2D *h2rgam = new TH2D("h2rgam","",nx,vx,100,0.90,1.10);
+  TProfile *pfakeqcd = new TProfile("pfakeqcd","",nx,vx); // for QCD bkg
+  TProfile *pfakeqcd2 = new TProfile("pfakeqcd2","",nx,vx); // for QCD bkg
+  TH2D *h2rgam = new TH2D("h2rgam","",nx,vx,350,0.80,1.15);
+  TH2D *h2rgamqcd = new TH2D("h2rgamqcd","",nx,vx,350,0.80,1.15); // for QCD bkg
   TProfile *prgam = new TProfile("prgam","",nx,vx);
+  TProfile *prgamqcd = new TProfile("prgamqcd","",nx,vx); // for QCD bkg
+  TProfile *prgamqcd2 = new TProfile("prgamqcd2","",nx,vx); // for QCD bkg
   TH2D *h2cgam = new TH2D("h2cgam","",nx,vx,100,0.90,1.10);
   TProfile *pcgam = new TProfile("pcgam","",nx,vx);
 
@@ -647,10 +684,11 @@ void GamHistosFill::Loop()
 
   map<string, double> mvar;
   map<string, map<string, map<string, TH1*> > > mp;
-  string avar[] = {"counts","mpfchs1","ptchs","mpf1","mpfn","mpfu",
+  string avar[] = {"counts","mpfchs1","ptchs","mpf1","mpfn","mpfu","rho",
 		   "rjet","gjet","rgen"};
   string atag[] = {"i","b","c","q","g","n"};
-  string aflv[] = {"i","b","c","q","g","n"};
+  //string aflv[] = {"i","b","c","q","g","n"};
+  string aflv[] = {"i","b","c","q","s","ud","g","n"};
   const int nvar = sizeof(avar)/sizeof(avar[0]);
   const int ntag = sizeof(atag)/sizeof(atag[0]);
   const int nflv = sizeof(aflv)/sizeof(aflv[0]);
@@ -675,23 +713,29 @@ void GamHistosFill::Loop()
   // Loop to create histograms and profiles
   // Match ordering to Lyon files (alpha->eta->data/MC) when creating
   // Although otherwise ordering is data/MC->eta->alpha
-  map<int, map<int, BasicHistos*> > mBasicHistos;
+  // Add PS weight variations
+  unsigned int nps = (isMC ? nPSWeightMax+1 : 1);
+  map<int, map<int, map<int, BasicHistos*> > > mBasicHistos;
   for (unsigned int ialpha = 0; ialpha != alphas.size(); ++ialpha) {
     for (unsigned int ieta = 0; ieta != etas.size(); ++ieta) { 
-      
+    for (unsigned int ips = 0; ips != nps; ++ips) {
+
       // Select data/MC, alpha and eta bin
       const char *cd = dir.c_str();
       int ia = int(100*alphas[ialpha]);
       int iy1 = int(10*etas[ieta].first);
       int iy2 = int(10*etas[ieta].second);
       int iy = 100*int(iy1) + int(iy2);
+      const char *cps = (ips==0 ? "" : Form("_ps%d",ips-1));
       
       // Counts
       TH1D *hn = new TH1D(Form("resp_MPFchs_%s_a%d_eta%02d_%02d_RawNEvents"
-			       "_data_vs_pt",cd,ia,iy1,iy2),"",nx,vx);
+			       "_data_vs_pt%s",cd,ia,iy1,iy2,cps),"",nx,vx);
+      TH1D *hxsec = new TH1D(Form("resp_MPFchs_%s_a%d_eta%02d_%02d_Xsec"
+				  "_data_vs_pt%s",cd,ia,iy1,iy2,cps),"",nx,vx);
       
       // Response profiles
-      string name = Form("resp_%%s_%s_a%d_eta%02d_%02d",cd,ia,iy1,iy2);
+      string name = Form("resp_%%s_%s_a%d_eta%02d_%02d%s",cd,ia,iy1,iy2,cps);
       const char *cname = name.c_str();
       TProfile *prpt  =  new TProfile(Form(cname,"PtGam"),"",nx,vx);
       TProfile *prbal =  new TProfile(Form(cname,"PtBalchs"),"",nx,vx);
@@ -700,11 +744,13 @@ void GamHistosFill::Loop()
       TProfile *prmpf1 = new TProfile(Form(cname,"MPFR1chs"),"",nx,vx);
       TProfile *prmpfn = new TProfile(Form(cname,"MPFRnchs"),"",nx,vx);
       TProfile *prmpfu = new TProfile(Form(cname,"MpfRuchs"),"",nx,vx);
+      TProfile *prho = new TProfile(Form(cname,"Rho_CHS"),"",nx,vx);
 
       // Store links to histograms and profiles into maps
       BasicHistos *pmh = new BasicHistos();
       BasicHistos& mh = (*pmh);
       mh.hn = hn;
+      mh.hxsec = hxsec;
       mh.prpt = prpt;
       mh.prbal = prbal;
       mh.prdb = prdb;
@@ -712,13 +758,16 @@ void GamHistosFill::Loop()
       mh.prmpf1 = prmpf1;
       mh.prmpfn = prmpfn;
       mh.prmpfu = prmpfu;
-      mBasicHistos[iy][ia] = pmh;
+      mh.prho = prho;
+      mBasicHistos[iy][ia][ips] = pmh;
+    } // for ips in PSWeight
     } // for ieta in etas
   } // for ialpha in alphas
   
   curdir->cd();
   
   TLorentzVector gam, gami, lhe, gen, phoj, phoj0, phoj0off, jet, jet2, jetn;
+  TLorentzVector gamorig; // for QCD bkg
   TLorentzVector met, met1, metn, metu, rawmet, corrmet, rawgam;
   TLorentzVector jeti, corrjets, rawjet, rawjets, rcjet, rcjets, rcoffsets;
   TLorentzVector geni, genjet, genjet2;
@@ -923,6 +972,10 @@ void GamHistosFill::Loop()
     nb = fChain->GetEntry(jentry);   nbytes += nb;
     // if (Cut(ientry) < 0) continue;
 
+    // Sanity check PS weights
+    if (!isMC) { nPSWeight = 0; }
+    assert(nPSWeight<=nPSWeightMax);
+
     // Does the run/LS pass the latest JSON selection?
     if (!isMC && _json[run][luminosityBlock]==0) {
       //_badjson.insert(pair<int, int>(run, lbn));
@@ -946,6 +999,7 @@ void GamHistosFill::Loop()
     // Select leading photon. Use tight cut-based ID and PF relative isolation
     // Temporary: select photon based on LHE photon match
     int iGamGen(-1), iGam(-1), nGam(0);
+    int iGamOrig(-1); // for QCD bkg
     gen.SetPtEtaPhiM(0,0,0,0);
     gam.SetPtEtaPhiM(0,0,0,0);
     phoj.SetPtEtaPhiM(0,0,0,0);
@@ -1024,7 +1078,12 @@ void GamHistosFill::Loop()
     // one of the leading jets with genjet taking the place of the photon
     int iFox(-1);
     fox.SetPtEtaPhiM(0,0,0,0);
-    if (isQCD && iGam==-1 && nJet>=2) {
+    //if (isQCD && iGam==-1 && nJet>=2) {
+    if (isQCD && nJet>=2) {
+      // Save original good photon, if one was found
+      iGamOrig = iGam;
+      gamorig = gam;
+
       iFox = (jentry%2); // "random" selection from two leading jets
       // Jet_genJetIdx would be great, but only there for UL18 nAOD? Maybe there
       int k = Jet_genJetIdx[iFox];
@@ -1068,13 +1127,101 @@ void GamHistosFill::Loop()
     if (!isMC) Pileup_nTrueInt = getTruePU(run,luminosityBlock,&TruePUrms);
     double ptgam = gam.Pt();
 
+    // Trigger selection. Take care to match pT bin edges
+    // {15, 20, 25, 30, 35, 40, 50, 60, 70, 85, 105, 130, 175, 230,
+    //  300, 400, 500, 600, 700, 850, 1000, 1200, 1450, 1750};
+    // NB: Photon90 threshold could be 95, Photon175 coud be 185, if bins split?
+    double pt = ptgam; // shorthand to make trigger selection more readable
+    int itrg(0); // choose trigger for PU reweighing as side effect (hack...)
+    bool pass_trig = 
+      ((is16 && 
+	((HLT_Photon175                  && pt>=230            && (itrg=175)) ||
+	 //(HLT_Photon165_HE10             && pt>=175 && pt<230) || // not in MC
+	 (HLT_Photon165_R9Id90_HE10_IsoM && pt>=175 && pt<230  && (itrg=165)) ||
+	 (HLT_Photon120_R9Id90_HE10_IsoM && pt>=130 && pt<175  && (itrg=120)) ||
+	 (HLT_Photon90_R9Id90_HE10_IsoM  && pt>=105 && pt<130  && (itrg=90)) ||
+	 (HLT_Photon75_R9Id90_HE10_IsoM  && pt>=85  && pt<105  && (itrg=75)) ||
+	 (HLT_Photon50_R9Id90_HE10_IsoM  && pt>=60  && pt<85   && (itrg=50)) ||
+	 (HLT_Photon36_R9Id90_HE10_IsoM  && pt>=40  && pt<60   && (itrg=36)) ||
+	 (HLT_Photon30_R9Id90_HE10_IsoM  && pt>=35  && pt<40   && (itrg=30)) ||
+	 (HLT_Photon22_R9Id90_HE10_IsoM  && pt>=20  && pt<35   && (itrg=22)) ||
+	 (isMC                           && pt>=40  && pt<60   && (itrg=36)) ||
+	 (isMC                           && pt>=35  && pt<40   && (itrg=30)) ||
+	 (isMC                           && pt>=20  && pt<35   && (itrg=22))
+	 )) ||
+       (is17 &&
+	((HLT_Photon200                  && pt>=230            && (itrg=200)) ||
+	 (HLT_Photon165_R9Id90_HE10_IsoM && pt>=175 && pt<230  && (itrg=165)) ||
+	 (HLT_Photon120_R9Id90_HE10_IsoM && pt>=130 && pt<175  && (itrg=120)) ||
+	 (HLT_Photon90_R9Id90_HE10_IsoM  && pt>=105 && pt<130  && (itrg=90)) ||
+	 (HLT_Photon75_R9Id90_HE10_IsoM  && pt>=85  && pt<105  && (itrg=75)) ||
+	 (HLT_Photon50_R9Id90_HE10_IsoM  && pt>=60  && pt<85   && (itrg=50)) ||
+	 //(HLT_Photon33                   && pt>=35  && pt<60 ) ||
+	 (HLT_Photon30_HoverELoose       && pt>=35  && pt<60   && (itrg=30)) ||
+	 (HLT_Photon20_HoverELoose       && pt>=20  && pt<35   && (itrg=20)) ||
+	 //(HLT_Photon20                     && pt>=20  && pt<60 )
+	 (isMC                           && pt>=35  && pt<60   && (itrg=30)) ||
+	 (isMC                           && pt>=20  && pt<35   && (itrg=20))
+	 )) ||
+       (is18 &&
+	((HLT_Photon200                    && pt>=230           && (itrg=200))||
+	 (HLT_Photon110EB_TightID_TightIso && pt>=130 && pt<230 && (itrg=110))||
+	 (HLT_Photon100EB_TightID_TightIso && pt>=105 && pt<130 && (itrg=100))||
+	 (HLT_Photon90_R9Id90_HE10_IsoM    && pt>=95  && pt<105 && (itrg=90)) ||
+	 (HLT_Photon75_R9Id90_HE10_IsoM    && pt>=85  && pt<95  && (itrg=75)) ||
+	 (HLT_Photon50_R9Id90_HE10_IsoM    && pt>=60  && pt<85  && (itrg=50)) ||
+	 //(HLT_Photon33                     && pt>=35  && pt<60 ) ||
+	 (HLT_Photon30_HoverELoose         && pt>=35  && pt<60  && (itrg=30)) ||
+	 (HLT_Photon20_HoverELoose         && pt>=20  && pt<35  && (itrg=20)) ||
+	 //(HLT_Photon20                     && pt>=20  && pt<35 )
+	 (isMC                             && pt>=35  && pt<60  && (itrg=30)) ||
+	 (isMC                             && pt>=20  && pt<35  && (itrg=20))
+	 ))
+       );
+  
+    // Select trigger pT bins by hand for QCD. Error prone...
+    if (isQCD && !pass_trig) {
+      pass_trig = 
+	((is16 && 
+	  ((pt>=230            && (itrg=175)) ||
+	   (pt>=175 && pt<230  && (itrg=165)) ||
+	   (pt>=130 && pt<175  && (itrg=120)) ||
+	   (pt>=105 && pt<130  && (itrg=90)) ||
+	   (pt>=85  && pt<105  && (itrg=75)) ||
+	   (pt>=60  && pt<85   && (itrg=50)) ||
+	   (pt>=40  && pt<60   && (itrg=36)) ||
+	   (pt>=35  && pt<40   && (itrg=30)) ||
+	   (pt>=20  && pt<35   && (itrg=22))
+	   )) ||
+	 (is17 &&
+	  ((pt>=230            && (itrg=200)) ||
+	   (pt>=175 && pt<230  && (itrg=165)) ||
+	   (pt>=130 && pt<175  && (itrg=120)) ||
+	   (pt>=105 && pt<130  && (itrg=90)) ||
+	   (pt>=85  && pt<105  && (itrg=75)) ||
+	   (pt>=60  && pt<85   && (itrg=50)) ||
+	   (pt>=35  && pt<60   && (itrg=30)) ||
+	   (pt>=20  && pt<35   && (itrg=20))
+	   )) ||
+	 (is18 &&
+	  ((pt>=230           && (itrg=200))||
+	   (pt>=130 && pt<230 && (itrg=110))||
+	   (pt>=105 && pt<130 && (itrg=100))||
+	   (pt>=95  && pt<105 && (itrg=90)) ||
+	   (pt>=85  && pt<95  && (itrg=75)) ||
+	   (pt>=60  && pt<85  && (itrg=50)) ||
+	   (pt>=35  && pt<60  && (itrg=30)) ||
+	   (pt>=20  && pt<35  && (itrg=20))
+	   ))
+	 );
+    } // isQCD
+
+    assert(itrg>0 || !pass_trig);
+
     // Reweight MC pileup
-    if (false) {
-      string mcname = "2016P8";
-      string dataname = "2016BCD";
-      string trigname = "200";
-      TH1D *hm = _pu[mcname]; assert(hm);
-      TH1D *hd = _pu[dataname+trigname]; assert(hd);
+    if (isMC && pass_trig) {
+      TH1D *hm = _pu[dataset][1]; assert(hm);
+      TH1D *hd = _pu[sera][itrg]; assert(hd);
       assert(hm->GetNbinsX()==hd->GetNbinsX());
       int k = hm->FindBin(Pileup_nTrueInt);
       assert(hm->GetBinLowEdge(k)==hd->GetBinLowEdge(k));
@@ -1083,6 +1230,11 @@ void GamHistosFill::Loop()
       double nd  = hd->GetBinContent(k);
       double wt = (nm>0 ? nd / nm : 0);
       w *= wt;
+    }
+    // Normalize data luminosity
+    if (!isMC && pass_trig) {
+      double lumi = _lumi[sera][itrg]; assert(lumi>0);
+      w *= 1./lumi;
     }
 
     // Select leading jets. Just exclude photon, don't apply JetID yet
@@ -1135,6 +1287,8 @@ void GamHistosFill::Loop()
     
     // Select genjet matching leading and subleading reco jet
     int iGenJet(-1), iGenJet2(-1);
+    genjet.SetPtEtaPhiM(0,0,0,0);
+    genjet2.SetPtEtaPhiM(0,0,0,0);
     if (isMC) {
       for (int i = 0; i != nGenJet; ++i) {
 	geni.SetPtEtaPhiM(GenJet_pt[i],GenJet_eta[i],GenJet_phi[i],
@@ -1143,7 +1297,7 @@ void GamHistosFill::Loop()
 	  iGenJet = i;
 	  genjet = geni;
 	}
-	if (iJet2!=-1 && geni.DeltaR(jet2)<0.4 && iGenJet2==-1) {
+	else if (iJet2!=-1 && geni.DeltaR(jet2)<0.4 && iGenJet2==-1) {
 	  iGenJet2 = i;
 	  genjet2 = geni;
 	}
@@ -1208,6 +1362,17 @@ void GamHistosFill::Loop()
     if (ptgam>0 && fabs(gam.Eta()) < 1.3) {
       hgam->Fill(ptgam, w);
       if (isMC) pfake->Fill(ptgam, iGam!=iGamGen ? 1 : 0, w);
+      if (isQCD) {
+	bool hasorig = (iGamOrig!=-1 && gam.DeltaR(gamorig)<0.2);
+	bool inwindow = (fabs(gamorig.Pt() / ptgam - 0.9) < 0.2); // [0.8,1.1]
+	pfakeqcd->Fill(ptgam, hasorig ? 1 : 0, w);
+	pfakeqcd2->Fill(ptgam, hasorig && inwindow ? 1 : 0, w);
+	if (hasorig) {
+	  h2rgamqcd->Fill(ptgam, gamorig.Pt() / ptgam, w);
+	  prgamqcd->Fill(ptgam, gamorig.Pt() / ptgam, w);
+	  if (inwindow) prgamqcd2->Fill(ptgam, gamorig.Pt() / ptgam, w);
+	} // hasorig
+      }
       if (iGam==iGamGen && gen.Pt()>0) {
 	h2rgam->Fill(gen.Pt(), ptgam / gen.Pt(), w);
 	prgam->Fill(gen.Pt(), ptgam / gen.Pt(), w);
@@ -1258,60 +1423,12 @@ void GamHistosFill::Loop()
       if (HLT_Photon20_HoverELoose) hgam20l->Fill(ptgam, w);
     } // barrel photon
 
-    // Basic event selection. Take care to match pT bin edges
-    // vx: {15, 20, 25, 30, 35, 40, 50, 60, 85, 105, 130, 175, 230, 300,
-    double pt = ptgam; // shorthand to make trigger selection more readable
-
-    // {15, 20, 25, 30, 35, 40, 50, 60, 70, 85, 105, 130, 175, 230,
-    //  300, 400, 500, 600, 700, 850, 1000, 1200, 1450, 1750};
-    bool pass_trig = 
-      ((is16 && 
-	((HLT_Photon175                  && pt>=230) || // 180...
-	 (HLT_Photon165_HE10             && pt>=175 && pt<230) || // not in MC
-	 (HLT_Photon165_R9Id90_HE10_IsoM && pt>=175 && pt<230) || // for MC
-	 (HLT_Photon120_R9Id90_HE10_IsoM && pt>=130 && pt<175) ||
-	 (HLT_Photon90_R9Id90_HE10_IsoM  && pt>=105 && pt<130) || // 95...
-	 (HLT_Photon75_R9Id90_HE10_IsoM  && pt>=85  && pt<105 ) ||
-	 (HLT_Photon50_R9Id90_HE10_IsoM  && pt>=60  && pt<85 ) ||
-	 (HLT_Photon36_R9Id90_HE10_IsoM  && pt>=40  && pt<60 ) ||
-	 (HLT_Photon30_R9Id90_HE10_IsoM  && pt>=35  && pt<40 ) ||
-	 (HLT_Photon22_R9Id90_HE10_IsoM  && pt>=20  && pt<35 ) ||
-	 (isMC                           && pt<60)
-	 )) ||
-       (is17 &&
-	((HLT_Photon200                  && pt>=230) ||
-	 (HLT_Photon165_R9Id90_HE10_IsoM && pt>=175 && pt<230) ||
-	 (HLT_Photon120_R9Id90_HE10_IsoM && pt>=130 && pt<175) ||
-	 (HLT_Photon90_R9Id90_HE10_IsoM  && pt>=105 && pt<130) || // ..95
-	 (HLT_Photon75_R9Id90_HE10_IsoM  && pt>=85  && pt<105 ) ||
-	 (HLT_Photon50_R9Id90_HE10_IsoM  && pt>=60  && pt<85 ) ||
-	 //(HLT_Photon33                   && pt>=35  && pt<60 ) ||
-	 (HLT_Photon30_HoverELoose       && pt>=35  && pt<60 ) ||
-	 (HLT_Photon20_HoverELoose       && pt>=20  && pt<35 ) ||
-	 //(HLT_Photon20                     && pt>=20  && pt<60 )
-	 (isMC                             && pt<60)
-	 )) ||
-       (is18 &&
-	((HLT_Photon200 && pt>=230) ||
-	 (HLT_Photon110EB_TightID_TightIso && pt>=130 && pt<230) ||
-	 (HLT_Photon100EB_TightID_TightIso && pt>=105 && pt<130) ||
-	 (HLT_Photon90_R9Id90_HE10_IsoM    && pt>=95  && pt<105) || // !
-	 (HLT_Photon75_R9Id90_HE10_IsoM    && pt>=85  && pt<95 ) || // !
-	 (HLT_Photon50_R9Id90_HE10_IsoM    && pt>=60  && pt<85 ) ||
-	 //(HLT_Photon33                     && pt>=35  && pt<60 ) ||
-	 (HLT_Photon30_HoverELoose         && pt>=35  && pt<60 ) ||
-	 (HLT_Photon20_HoverELoose         && pt>=20  && pt<35 ) ||
-	 //(HLT_Photon20                     && pt>=20  && pt<35 )
-	 (isMC                             && pt<60)
-	 )) ||
-       isQCD
-       );
-
       // Summary of combined trigger efficiencies
       if (ptgam>0 && fabs(gam.Eta())<1.3 && pass_trig) {
 	if (isMC)  hgamtrig_mc->Fill(ptgam, w);
 	if (!isMC) hgamtrig_data->Fill(ptgam, w);
-	hgamtrig->Fill(ptgam, w);
+	hgamtrig->Fill(ptgam, w); // 5 GeV bins to match hgam[trgX]
+	hgamtrg->Fill(ptgam, w); // wider binning to higher pT (=hgam)
       }
       if (ptgam>=105 && fabs(gam.Eta())<1.3 && pass_trig) {
 	  //HLT_Photon110EB_TightID_TightIso) {
@@ -1392,6 +1509,7 @@ void GamHistosFill::Loop()
 	  mvar["mpf1"] = mpf1;
 	  mvar["mpfn"] = mpfn;
 	  mvar["mpfu"] = mpfu;
+	  mvar["rho"] = fixedGridRhoFastjetAll;
 	  mvar["rjet"] = (ptgam!=0 ? jet.Pt() / ptgam : 0);
 	  mvar["gjet"] = (ptgam!=0 ? genjet.Pt() / ptgam : 0);
 	  mvar["rgen"] = (genjet.Pt()!=0 ? jet.Pt() / genjet.Pt() : 0);
@@ -1414,6 +1532,8 @@ void GamHistosFill::Loop()
 		     (sfl=="b" && abs(flv)==5) ||
 		     (sfl=="c" && abs(flv)==4) ||
 		     (sfl=="q" && abs(flv)<=3 && flv!=0) ||
+		     (sfl=="s" && abs(flv)==3) ||
+		     (sfl=="ud" && abs(flv)<=2 && flv!=0) ||
 		     (sfl=="g" && flv==21) ||
 		     (sfl=="n" && flv==0)) &&
 		    ((stg=="i") ||
@@ -1425,6 +1545,7 @@ void GamHistosFill::Loop()
 
 		  double x = ptgam;
 		  if (svr=="rgen") x = genjet.Pt();
+		  if ((svr=="rjet" || svr=="gjet") && iGenJet==-1) x = 0;
 		  double var = mvar[svr];
 		  TH1* h = mp[svr][stg][sfl];
 		  if (!h) {
@@ -1627,10 +1748,12 @@ void GamHistosFill::Loop()
       // Specific event selection for alpha and eta bins
       for (unsigned int ialpha = 0; ialpha != alphas.size(); ++ialpha) {
 	for (unsigned int ieta = 0; ieta != etas.size(); ++ieta) { 
-	  
+	for (unsigned int ips = 0; ips != nPSWeight+1; ++ips) { 
+
 	  double alpha = alphas[ialpha];
 	  double ymin = etas[ieta].first;
 	  double ymax = etas[ieta].second;
+	  double wps = (ips==0 ? 1. : PSWeight[ips-1]);
 	  
 	  // Specific event selection
 	  bool pass_alpha = (pt2 < alpha*ptgam || pt2 < pt2min);
@@ -1644,20 +1767,23 @@ void GamHistosFill::Loop()
 	    int iy = 100*int(10*ymin) + int(10*ymax);
 	    
 	    // Get reference instead of pointer so can use . and not ->
-	    BasicHistos *pmh = mBasicHistos[iy][ia]; assert(pmh);
+	    BasicHistos *pmh = mBasicHistos[iy][ia][ips]; assert(pmh);
 	    BasicHistos& mh = (*pmh); assert(mh.hn);
 	    
 	    // Fill histograms (h*) and profiles (p*)
 	    //assert(fabs(mpf1+mpfn+mpfu-mpf)<1e-4);
-	    mh.hn->Fill(ptgam, w);
-	    mh.prpt->Fill(ptgam, ptgam, w);
-	    mh.prbal->Fill(ptgam, bal, w);
-	    mh.prdb->Fill(ptgam, mpf1, w);
-	    mh.prmpf->Fill(ptgam, mpf, w);
-	    mh.prmpf1->Fill(ptgam, mpf1, w);
-	    mh.prmpfn->Fill(ptgam, mpfn, w);
-	    mh.prmpfu->Fill(ptgam, mpfu, w);
+	    mh.hn->Fill(ptgam);
+	    mh.hxsec->Fill(ptgam, w*wps);
+	    mh.prpt->Fill(ptgam, ptgam, w*wps);
+	    mh.prbal->Fill(ptgam, bal, w*wps);
+	    mh.prdb->Fill(ptgam, mpf1, w*wps);
+	    mh.prmpf->Fill(ptgam, mpf, w*wps);
+	    mh.prmpf1->Fill(ptgam, mpf1, w*wps);
+	    mh.prmpfn->Fill(ptgam, mpfn, w*wps);
+	    mh.prmpfu->Fill(ptgam, mpfu, w*wps);
+	    mh.prho->Fill(ptgam, fixedGridRhoFastjetAll, w);
 	  } // pass
+	} // for ips in PSWeight
 	} // for ieta in etas
       } // for ialpha in alphas
       
@@ -1748,24 +1874,96 @@ bool GamHistosFill::LoadJSON(string json)
 
 void GamHistosFill::LoadPU() {
 
+  cout << endl << "GamHistosFill::LoadPU" << endl << flush;
+  TDirectory *curdir = gDirectory;
+
   string eras[] = {"2016P8","2016P8APV","2017P8", "2018P8",
 		   "2016QCD","2016QCDAPV","2017QCD", "2018QCD",
-		   "2016BCD","2016EF","2016FGH",
-		   "2017B","2017C","2017D","2017E","2017F",
-		   "2018A","2018B","2018C","2018D"};
+		   "2016APV","2016FGH","2017","2018"};
+		   //"2016BCD","2016EF","2016FGH",
+		   //"2017B","2017C","2017D","2017E","2017F",
+		   //"2018A","2018B","2018C","2018D"};
   const int neras = sizeof(eras)/sizeof(eras[0]);
+  map<string, vector<string> > trigs;
+  trigs["2016P8"].push_back("mc");
+  trigs["2016P8APV"] = trigs["2017P8"] = trigs["2018P8"] = 
+    trigs["2016QCD"] =  trigs["2016QCDAPV"] = trigs["2017QCD"] =
+    trigs["2018QCD"] = trigs["2018P8"] = trigs["2016P8"];
+
+  trigs["2016APV"].push_back("HLT_Photon22_R9Id90_HE10_IsoM");
+  trigs["2016APV"].push_back("HLT_Photon30_R9Id90_HE10_IsoM");
+  trigs["2016APV"].push_back("HLT_Photon36_R9Id90_HE10_IsoM");
+  trigs["2016APV"].push_back("HLT_Photon50_R9Id90_HE10_IsoM");
+  trigs["2016APV"].push_back("HLT_Photon75_R9Id90_HE10_IsoM");
+  trigs["2016APV"].push_back("HLT_Photon90_R9Id90_HE10_IsoM");
+  trigs["2016APV"].push_back("HLT_Photon120_R9Id90_HE10_IsoM");
+  trigs["2016APV"].push_back("HLT_Photon165_R9Id90_HE10_IsoM");
+  //trigs["2016APV"].push_back("HLT_Photon165_HE10");
+  trigs["2016APV"].push_back("HLT_Photon175");
+  trigs["2016FGH"] = trigs["2016APV"];
+
+  trigs["2017"].push_back("HLT_Photon20_HoverELoose");
+  trigs["2017"].push_back("HLT_Photon30_HoverELoose");
+  trigs["2017"].push_back("HLT_Photon50_R9Id90_HE10_IsoM");
+  trigs["2017"].push_back("HLT_Photon75_R9Id90_HE10_IsoM");
+  trigs["2017"].push_back("HLT_Photon90_R9Id90_HE10_IsoM");
+  trigs["2017"].push_back("HLT_Photon120_R9Id90_HE10_IsoM");
+  trigs["2017"].push_back("HLT_Photon165_R9Id90_HE10_IsoM");
+  trigs["2017"].push_back("HLT_Photon200");
+
+  trigs["2018"].push_back("HLT_Photon20_HoverELoose");
+  trigs["2018"].push_back("HLT_Photon30_HoverELoose");
+  trigs["2018"].push_back("HLT_Photon50_R9Id90_HE10_IsoM");
+  trigs["2018"].push_back("HLT_Photon75_R9Id90_HE10_IsoM");
+  trigs["2018"].push_back("HLT_Photon90_R9Id90_HE10_IsoM");
+  trigs["2018"].push_back("HLT_Photon100EB_TightID_TightIso");
+  trigs["2018"].push_back("HLT_Photon110EB_TightID_TightIso");
+  trigs["2018"].push_back("HLT_Photon200");
 
   // files/pileup.root updated with tchain.C on Hefaistos
-  TFile *f = new TFile("files/pileup.root","READ");
-  assert(f && !f->IsZombie());
+  TFile *fmc = new TFile("files/pileup.root","READ");
+  assert(fmc && !fmc->IsZombie());
 
   for (int i = 0; i != neras; ++i) {
-    TH1D *h = (TH1D*)f->Get(Form("pileup_%s",eras[i].c_str()));
-    assert(h);
-    h = (TH1D*)h->Clone(Form("pu%s",eras[i].c_str()));
-    h->Scale(1./h->Integral());
-    _pu[eras[i]] = h;
+    string se = eras[i]; const char *ce = se.c_str();
+    for (unsigned int j = 0; j != trigs[se].size(); ++j) {
+      string st = trigs[se][j]; const char *ct = st.c_str();
+
+      // Read trigger threshold from trigger name
+      int itrg(0);
+      if (st=="mc") itrg = 1;
+      else sscanf(ct,"HLT_Photon%d*",&itrg);
+      
+      TFile *fdt(0);
+      TH1D *h(0);
+      if (st=="mc") {
+	h = (TH1D*)fmc->Get(Form("pileup_%s",ce));
+	assert(h);
+      }
+      else {
+	// data files from Laura (on CERNbox)
+	fdt = new TFile(Form("pileup/%s/pu_%s.root",ce,ct),"READ");
+	assert(fdt && !fdt->IsZombie());
+	h = (TH1D*)fdt->Get("pileup");
+	assert(h);
+      }
+      assert(h);
+
+      curdir->cd();
+      h = (TH1D*)h->Clone(Form("pileup_%s_%s",ce,ct));
+      double lumi = h->Integral();
+      h->Scale(1./lumi);
+      _pu[se][itrg] = h;
+      _lumi[se][itrg] = lumi;
+
+      cout << Form("%s/%s (%d): %1.3g %s\n",ce,ct,itrg,
+		   lumi,st=="mc" ? "events" : "fb-1");
+
+      if (fdt) fdt->Close();
+    } // for j in trigs
   } // for i in eras
-  
+  fmc->Close();
+  cout << endl << flush;
+
   return;
 } // LoadPU
