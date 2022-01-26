@@ -41,7 +41,7 @@ int loadPrescaleTXT() {
   while (fin.getline(cline,nmax)) {
   stringstream ss(cline);
     int run, ls, itrig(0), idx(0), pre(0);
-    ss >> run >> cls;
+    ss >> run >> ls;
     while (ss >> pre) {
       assert(idx<vtrig.size());
       itrig = vtrig[idx]; ++idx;
