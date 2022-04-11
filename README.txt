@@ -17,12 +17,14 @@ HOW TO RUN on Hefaistos:
       (1M entries is just 0.1% ?! => 1.39B entries, about 3.4h runtime)
 
 - rsync -rutP files from Hefaistos
+  - rename GamHistosFill_mc_2016*APV to mc_2016APV* (automatize later)
 - root -l -b GamHistosMix.C+g
 - root -l -b GamHistosRatio.C+g
 
 
 CHANGELOG (latest first):
 ----------------------------
+v20a - Rename 2016QCDAPV and 2016P8APV to 2016APVQCD and 2016APVP8
 v20 - add pileup and PS reweighing for MC and lumi normalization for data
 19f - comment out branches not available for 2017QCD => fixed in v20
 19f - UL2017QCD files re-updated Dec 7
