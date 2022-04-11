@@ -36,9 +36,10 @@ public :
    Int_t           fCurrent; //!current Tree number in a TChain
 
    int             isMC;     // data=0, PythiaPtFlat=1, MadGraphHT=2
-   bool            is16;
+   bool            is16apv, is16fgh, is16;
    bool            is17;
    bool            is18;
+   bool            isQCD;
    string          dataset;
    string          _filename; // file name for debugging purposes
 
@@ -61,6 +62,8 @@ public :
    static const int nTrigObjMax = 50;
    static const int nSVMax = 100;
 
+   static const int nPSWeightMax = 4;
+
 // Fixed size dimensions of array or collections stored in the TTree if any.
 
    // Declaration of leaf types
@@ -76,18 +79,18 @@ public :
    Float_t         Jet_area[nJetMax];   //[nJet]
    Float_t         Jet_btagDeepB[nJetMax];   //[nJet]
    Float_t         Jet_btagDeepC[nJetMax];   //[nJet]
-   Float_t         Jet_btagDeepCvB[nJetMax];   //[nJet]
-   Float_t         Jet_btagDeepCvL[nJetMax];   //[nJet]
-   Float_t         Jet_btagDeepFlavB[nJetMax];   //[nJet]
-   Float_t         Jet_btagDeepFlavC[nJetMax];   //[nJet]
-   Float_t         Jet_btagDeepFlavCvB[nJetMax];   //[nJet]
-   Float_t         Jet_btagDeepFlavCvL[nJetMax];   //[nJet]
-   Float_t         Jet_btagDeepFlavQG[nJetMax];   //[nJet]
+   //Float_t         Jet_btagDeepCvB[nJetMax];   //[nJet]
+   //Float_t         Jet_btagDeepCvL[nJetMax];   //[nJet]
+   //Float_t         Jet_btagDeepFlavB[nJetMax];   //[nJet]
+   //Float_t         Jet_btagDeepFlavC[nJetMax];   //[nJet]
+   //Float_t         Jet_btagDeepFlavCvB[nJetMax];   //[nJet]
+   //Float_t         Jet_btagDeepFlavCvL[nJetMax];   //[nJet]
+   //Float_t         Jet_btagDeepFlavQG[nJetMax];   //[nJet]
    Float_t         Jet_chEmEF[nJetMax];   //[nJet]
    Float_t         Jet_chFPV0EF[nJetMax];   //[nJet]
-   Float_t         Jet_chFPV1EF[nJetMax];   //[nJet]
-   Float_t         Jet_chFPV2EF[nJetMax];   //[nJet]
-   Float_t         Jet_chFPV3EF[nJetMax];   //[nJet]
+   //Float_t         Jet_chFPV1EF[nJetMax];   //[nJet]
+   //Float_t         Jet_chFPV2EF[nJetMax];   //[nJet]
+   //Float_t         Jet_chFPV3EF[nJetMax];   //[nJet]
    Float_t         Jet_chHEF[nJetMax];   //[nJet]
    Float_t         Jet_eta[nJetMax];   //[nJet]
    Float_t         Jet_mass[nJetMax];   //[nJet]
@@ -97,7 +100,7 @@ public :
    Float_t         Jet_neHEF[nJetMax];   //[nJet]
    Float_t         Jet_phi[nJetMax];   //[nJet]
    Float_t         Jet_pt[nJetMax];   //[nJet]
-   Float_t         Jet_puIdDisc[nJetMax];   //[nJet]
+   //Float_t         Jet_puIdDisc[nJetMax];   //[nJet]
    Float_t         Jet_qgl[nJetMax];   //[nJet]
    Float_t         Jet_rawFactor[nJetMax];   //[nJet]
    Int_t           Jet_jetId[nJetMax];   //[nJet]
@@ -106,11 +109,13 @@ public :
    Int_t           Jet_nMuons[nJetMax];   //[nJet]
    Int_t           Jet_puId[nJetMax];   //[nJet]
 
+   Int_t           Jet_genJetIdx[nJetMax];   //[nJet]
+
    Float_t         MET_phi;
    Float_t         MET_pt;
    Float_t         MET_significance;
    Float_t         MET_sumEt;
-   Float_t         MET_sumPtUnclustered;
+   //Float_t         MET_sumPtUnclustered;
 
    UInt_t          nPhoton;
    Float_t         Photon_energyErr[nPhotonMax];   //[nPhoton]
@@ -118,7 +123,7 @@ public :
    Float_t         Photon_hoe[nPhotonMax];   //[nPhoton]
    Float_t         Photon_mass[nPhotonMax];   //[nPhoton]
    Float_t         Photon_mvaID[nPhotonMax];   //[nPhoton]
-   Float_t         Photon_mvaID_Fall17V1p1[nPhotonMax];   //[nPhoton]
+   //Float_t         Photon_mvaID_Fall17V1p1[nPhotonMax];   //[nPhoton]
    Float_t         Photon_pfRelIso03_all[nPhotonMax];   //[nPhoton]
    Float_t         Photon_pfRelIso03_chg[nPhotonMax];   //[nPhoton]
    Float_t         Photon_phi[nPhotonMax];   //[nPhoton]
@@ -127,6 +132,7 @@ public :
    Float_t         Photon_sieie[nPhotonMax];   //[nPhoton]
    Int_t           Photon_charge[nPhotonMax];   //[nPhoton]
    Int_t           Photon_cutBased[nPhotonMax];   //[nPhoton]
+   Int_t           Photon_cutBasedBitmap[nPhotonMax];   // EXTRA
    Int_t           Photon_cutBased_Fall17V1Bitmap[nPhotonMax];   //[nPhoton]
    Int_t           Photon_electronIdx[nPhotonMax];   //[nPhoton]
    Int_t           Photon_jetIdx[nPhotonMax];   //[nPhoton]
@@ -267,7 +273,7 @@ public :
    Float_t         genWeight;
    Float_t         Pileup_nTrueInt;
    UInt_t          nPSWeight;
-   Float_t         PSWeight[4];   //[nPSWeight]
+   Float_t         PSWeight[nPSWeightMax];   //[nPSWeight]
 
    // List of branches
    TBranch        *b_run;   //!
@@ -282,18 +288,18 @@ public :
    TBranch        *b_Jet_area;   //!
    TBranch        *b_Jet_btagDeepB;   //!
    TBranch        *b_Jet_btagDeepC;   //!
-   TBranch        *b_Jet_btagDeepCvB;   //!
-   TBranch        *b_Jet_btagDeepCvL;   //!
-   TBranch        *b_Jet_btagDeepFlavB;   //!
-   TBranch        *b_Jet_btagDeepFlavC;   //!
-   TBranch        *b_Jet_btagDeepFlavCvB;   //!
-   TBranch        *b_Jet_btagDeepFlavCvL;   //!
-   TBranch        *b_Jet_btagDeepFlavQG;   //!
+   //TBranch        *b_Jet_btagDeepCvB;   //!
+   //TBranch        *b_Jet_btagDeepCvL;   //!
+   //TBranch        *b_Jet_btagDeepFlavB;   //!
+   //TBranch        *b_Jet_btagDeepFlavC;   //!
+   //TBranch        *b_Jet_btagDeepFlavCvB;   //!
+   //TBranch        *b_Jet_btagDeepFlavCvL;   //!
+   //TBranch        *b_Jet_btagDeepFlavQG;   //!
    TBranch        *b_Jet_chEmEF;   //!
    TBranch        *b_Jet_chFPV0EF;   //!
-   TBranch        *b_Jet_chFPV1EF;   //!
-   TBranch        *b_Jet_chFPV2EF;   //!
-   TBranch        *b_Jet_chFPV3EF;   //!
+   //TBranch        *b_Jet_chFPV1EF;   //!
+   //TBranch        *b_Jet_chFPV2EF;   //!
+   //TBranch        *b_Jet_chFPV3EF;   //!
    TBranch        *b_Jet_chHEF;   //!
    TBranch        *b_Jet_eta;   //!
    TBranch        *b_Jet_mass;   //!
@@ -303,7 +309,7 @@ public :
    TBranch        *b_Jet_neHEF;   //!
    TBranch        *b_Jet_phi;   //!
    TBranch        *b_Jet_pt;   //!
-   TBranch        *b_Jet_puIdDisc;   //!
+   //TBranch        *b_Jet_puIdDisc;   //!
    TBranch        *b_Jet_qgl;   //!
    TBranch        *b_Jet_rawFactor;   //!
    TBranch        *b_Jet_jetId;   //!
@@ -312,11 +318,13 @@ public :
    TBranch        *b_Jet_nMuons;   //!
    TBranch        *b_Jet_puId;   //!
 
+   TBranch        *b_Jet_genJetIdx;   //!
+
    TBranch        *b_MET_phi;   //!
    TBranch        *b_MET_pt;   //!
    TBranch        *b_MET_significance;   //!
    TBranch        *b_MET_sumEt;   //!
-   TBranch        *b_MET_sumPtUnclustered;   //!
+   //TBranch        *b_MET_sumPtUnclustered;   //!
 
    TBranch        *b_nPhoton;   //!
    TBranch        *b_Photon_energyErr;   //!
@@ -333,6 +341,7 @@ public :
    TBranch        *b_Photon_sieie;   //!
    TBranch        *b_Photon_charge;   //!
    TBranch        *b_Photon_cutBased;   //!
+   TBranch        *b_Photon_cutBasedBitmap;   // EXTRA
    TBranch        *b_Photon_cutBased_Fall17V1Bitmap;   //!
    TBranch        *b_Photon_electronIdx;   //!
    TBranch        *b_Photon_jetIdx;   //!
@@ -487,7 +496,8 @@ public :
    bool LoadJSON(string json);
    void LoadPU();
    std::map<int, std::map<int, int> > _json;
-   map<string, TH1D*> _pu;
+   map<string, map<int, TH1D*> > _pu;
+   map<string, map<int, double> >  _lumi;
 };
 
 #endif
@@ -499,16 +509,20 @@ GamHistosFill::GamHistosFill(TTree *tree, int itype, string datasetname)
 
   // Use data set to decide on active branches
   string& ds = datasetname;
-  is16 = (ds=="2016B" || ds=="2016C" || ds=="2016D" || ds=="2016BCD" ||
-	  ds=="2016E" || ds=="2016F" || ds=="2016EF" ||
-	  ds=="2016FG" || ds=="2016H" || ds=="2016FGH" ||
-	  ds=="2016BCDEF" || ds=="2016P8" || ds=="2016P8APV");
+  is16apv = (ds=="2016B" || ds=="2016C" || ds=="2016D" || ds=="2016BCD" ||
+	     ds=="2016E" || ds=="2016F" || ds=="2016EF" || ds=="2016BCDEF" ||
+	     ds=="2016APVP8" || ds=="2016APVQCD");
+  is16fgh = (ds=="2016FG" || ds=="2016H" || ds=="2016FGH" ||
+	     ds=="2016P8" || ds=="2016QCD");
+  is16 = (is16apv || is16fgh);
   is17 = (ds=="2017B" || ds=="2017C" || ds=="2017D" || ds=="2017E" ||
-	  ds=="2017F" || ds=="2017BCDEF" || ds=="2017P8");
+	  ds=="2017F" || ds=="2017BCDEF" || ds=="2017P8" || ds=="2017QCD");
   is18 = (ds=="2018A" || ds=="2018B" || ds=="2018C" || ds=="2018D" || 
 	  ds=="2018A1" || ds=="2018A2" ||
 	  ds=="2018D1" || ds=="2018D2" || ds=="2018D3" || ds=="2018D4" ||
-	  ds=="2018ABCD" || ds=="2018P8");
+	  ds=="2018ABCD" || ds=="2018P8" || ds=="2018QCD");
+  isQCD = (ds=="2016QCD" || ds=="2016QCDAPV" || ds=="2017QCD" ||
+	   ds=="2018QCD");
   assert(is16 || is17 || is18);
   
 // if parameter tree is not specified (or zero), connect the file
@@ -590,18 +604,18 @@ void GamHistosFill::Init(TTree *tree)
    fChain->SetBranchAddress("Jet_area", Jet_area, &b_Jet_area);
    fChain->SetBranchAddress("Jet_btagDeepB", Jet_btagDeepB, &b_Jet_btagDeepB);
    fChain->SetBranchAddress("Jet_btagDeepC", Jet_btagDeepC, &b_Jet_btagDeepC);
-   fChain->SetBranchAddress("Jet_btagDeepCvB", Jet_btagDeepCvB, &b_Jet_btagDeepCvB);
-   fChain->SetBranchAddress("Jet_btagDeepCvL", Jet_btagDeepCvL, &b_Jet_btagDeepCvL);
-   fChain->SetBranchAddress("Jet_btagDeepFlavB", Jet_btagDeepFlavB, &b_Jet_btagDeepFlavB);
-   fChain->SetBranchAddress("Jet_btagDeepFlavC", Jet_btagDeepFlavC, &b_Jet_btagDeepFlavC);
-   fChain->SetBranchAddress("Jet_btagDeepFlavCvB", Jet_btagDeepFlavCvB, &b_Jet_btagDeepFlavCvB);
-   fChain->SetBranchAddress("Jet_btagDeepFlavCvL", Jet_btagDeepFlavCvL, &b_Jet_btagDeepFlavCvL);
-   fChain->SetBranchAddress("Jet_btagDeepFlavQG", Jet_btagDeepFlavQG, &b_Jet_btagDeepFlavQG);
+   //fChain->SetBranchAddress("Jet_btagDeepCvB", Jet_btagDeepCvB, &b_Jet_btagDeepCvB);
+   //fChain->SetBranchAddress("Jet_btagDeepCvL", Jet_btagDeepCvL, &b_Jet_btagDeepCvL);
+   //fChain->SetBranchAddress("Jet_btagDeepFlavB", Jet_btagDeepFlavB, &b_Jet_btagDeepFlavB);
+   //fChain->SetBranchAddress("Jet_btagDeepFlavC", Jet_btagDeepFlavC, &b_Jet_btagDeepFlavC);
+   //fChain->SetBranchAddress("Jet_btagDeepFlavCvB", Jet_btagDeepFlavCvB, &b_Jet_btagDeepFlavCvB);
+   //fChain->SetBranchAddress("Jet_btagDeepFlavCvL", Jet_btagDeepFlavCvL, &b_Jet_btagDeepFlavCvL);
+   //fChain->SetBranchAddress("Jet_btagDeepFlavQG", Jet_btagDeepFlavQG, &b_Jet_btagDeepFlavQG);
    fChain->SetBranchAddress("Jet_chEmEF", Jet_chEmEF, &b_Jet_chEmEF);
    fChain->SetBranchAddress("Jet_chFPV0EF", Jet_chFPV0EF, &b_Jet_chFPV0EF);
-   fChain->SetBranchAddress("Jet_chFPV1EF", Jet_chFPV1EF, &b_Jet_chFPV1EF);
-   fChain->SetBranchAddress("Jet_chFPV2EF", Jet_chFPV2EF, &b_Jet_chFPV2EF);
-   fChain->SetBranchAddress("Jet_chFPV3EF", Jet_chFPV3EF, &b_Jet_chFPV3EF);
+   //fChain->SetBranchAddress("Jet_chFPV1EF", Jet_chFPV1EF, &b_Jet_chFPV1EF);
+   //fChain->SetBranchAddress("Jet_chFPV2EF", Jet_chFPV2EF, &b_Jet_chFPV2EF);
+   //fChain->SetBranchAddress("Jet_chFPV3EF", Jet_chFPV3EF, &b_Jet_chFPV3EF);
    fChain->SetBranchAddress("Jet_chHEF", Jet_chHEF, &b_Jet_chHEF);
    fChain->SetBranchAddress("Jet_eta", Jet_eta, &b_Jet_eta);
    fChain->SetBranchAddress("Jet_mass", Jet_mass, &b_Jet_mass);
@@ -611,7 +625,7 @@ void GamHistosFill::Init(TTree *tree)
    fChain->SetBranchAddress("Jet_neHEF", Jet_neHEF, &b_Jet_neHEF);
    fChain->SetBranchAddress("Jet_phi", Jet_phi, &b_Jet_phi);
    fChain->SetBranchAddress("Jet_pt", Jet_pt, &b_Jet_pt);
-   fChain->SetBranchAddress("Jet_puIdDisc", Jet_puIdDisc, &b_Jet_puIdDisc);
+   //fChain->SetBranchAddress("Jet_puIdDisc", Jet_puIdDisc, &b_Jet_puIdDisc);
    fChain->SetBranchAddress("Jet_qgl", Jet_qgl, &b_Jet_qgl);
    fChain->SetBranchAddress("Jet_rawFactor", Jet_rawFactor, &b_Jet_rawFactor);
    fChain->SetBranchAddress("Jet_jetId", Jet_jetId, &b_Jet_jetId);
@@ -620,20 +634,24 @@ void GamHistosFill::Init(TTree *tree)
    fChain->SetBranchAddress("Jet_nMuons", Jet_nMuons, &b_Jet_nMuons);
    fChain->SetBranchAddress("Jet_puId", Jet_puId, &b_Jet_puId);
 
+   if (isMC)
+     fChain->SetBranchAddress("Jet_genJetIdx", Jet_genJetIdx, &b_Jet_genJetIdx);
+
    fChain->SetBranchAddress("MET_phi", &MET_phi, &b_MET_phi);
    fChain->SetBranchAddress("MET_pt", &MET_pt, &b_MET_pt);
    fChain->SetBranchAddress("MET_significance", &MET_significance, &b_MET_significance);
    fChain->SetBranchAddress("MET_sumEt", &MET_sumEt, &b_MET_sumEt);
-   fChain->SetBranchAddress("MET_sumPtUnclustered", &MET_sumPtUnclustered, &b_MET_sumPtUnclustered);
+   //fChain->SetBranchAddress("MET_sumPtUnclustered", &MET_sumPtUnclustered, &b_MET_sumPtUnclustered);
 
    fChain->SetBranchAddress("nPhoton", &nPhoton, &b_nPhoton);
-   if (!is16) fChain->SetBranchAddress("Photon_eCorr", Photon_eCorr, &b_Photon_eCorr);
+   //if (!is16) 
+   fChain->SetBranchAddress("Photon_eCorr", Photon_eCorr, &b_Photon_eCorr);
    fChain->SetBranchAddress("Photon_energyErr", Photon_energyErr, &b_Photon_energyErr);
    fChain->SetBranchAddress("Photon_eta", Photon_eta, &b_Photon_eta);
    fChain->SetBranchAddress("Photon_hoe", Photon_hoe, &b_Photon_hoe);
    fChain->SetBranchAddress("Photon_mass", Photon_mass, &b_Photon_mass);
    fChain->SetBranchAddress("Photon_mvaID", Photon_mvaID, &b_Photon_mvaID);
-   fChain->SetBranchAddress("Photon_mvaID_Fall17V1p1", Photon_mvaID_Fall17V1p1, &b_Photon_mvaID_Fall17V1p1);
+   //fChain->SetBranchAddress("Photon_mvaID_Fall17V1p1", Photon_mvaID_Fall17V1p1, &b_Photon_mvaID_Fall17V1p1);
    fChain->SetBranchAddress("Photon_pfRelIso03_all", Photon_pfRelIso03_all, &b_Photon_pfRelIso03_all);
    fChain->SetBranchAddress("Photon_pfRelIso03_chg", Photon_pfRelIso03_chg, &b_Photon_pfRelIso03_chg);
    fChain->SetBranchAddress("Photon_phi", Photon_phi, &b_Photon_phi);
@@ -641,7 +659,12 @@ void GamHistosFill::Init(TTree *tree)
    fChain->SetBranchAddress("Photon_r9", Photon_r9, &b_Photon_r9);
    fChain->SetBranchAddress("Photon_sieie", Photon_sieie, &b_Photon_sieie);
    fChain->SetBranchAddress("Photon_charge", Photon_charge, &b_Photon_charge);
-   fChain->SetBranchAddress("Photon_cutBased", Photon_cutBased, &b_Photon_cutBased);
+   if (is17 && isMC && isQCD)
+     fChain->SetBranchAddress("Photon_cutBasedBitmap", Photon_cutBased, &b_Photon_cutBasedBitmap);
+   else 
+     fChain->SetBranchAddress("Photon_cutBased", Photon_cutBased, &b_Photon_cutBased);
+   //fChain->SetBranchAddress("Photon_cutBasedBitmap", Photon_cutBased, &b_Photon_cutBasedBitmap);
+
    fChain->SetBranchAddress("Photon_cutBased_Fall17V1Bitmap", Photon_cutBased_Fall17V1Bitmap, &b_Photon_cutBased_Fall17V1Bitmap);
    fChain->SetBranchAddress("Photon_electronIdx", Photon_electronIdx, &b_Photon_electronIdx);
    fChain->SetBranchAddress("Photon_jetIdx", Photon_jetIdx, &b_Photon_jetIdx);
@@ -727,11 +750,13 @@ void GamHistosFill::Init(TTree *tree)
      fChain->SetBranchAddress("GenJet_pt", GenJet_pt, &b_GenJet_pt);
      fChain->SetBranchAddress("GenJet_partonFlavour", GenJet_partonFlavour, &b_GenJet_partonFlavour);
 
-     fChain->SetBranchAddress("nGenIsolatedPhoton", &nGenIsolatedPhoton, &b_nGenIsolatedPhoton);
-     fChain->SetBranchAddress("GenIsolatedPhoton_eta", GenIsolatedPhoton_eta, &b_GenIsolatedPhoton_eta);
-     fChain->SetBranchAddress("GenIsolatedPhoton_mass", GenIsolatedPhoton_mass, &b_GenIsolatedPhoton_mass);
-     fChain->SetBranchAddress("GenIsolatedPhoton_phi", GenIsolatedPhoton_phi, &b_GenIsolatedPhoton_phi);
-     fChain->SetBranchAddress("GenIsolatedPhoton_pt", GenIsolatedPhoton_pt, &b_GenIsolatedPhoton_pt);
+     if (!isQCD) {
+       fChain->SetBranchAddress("nGenIsolatedPhoton", &nGenIsolatedPhoton, &b_nGenIsolatedPhoton);
+       fChain->SetBranchAddress("GenIsolatedPhoton_eta", GenIsolatedPhoton_eta, &b_GenIsolatedPhoton_eta);
+       fChain->SetBranchAddress("GenIsolatedPhoton_mass", GenIsolatedPhoton_mass, &b_GenIsolatedPhoton_mass);
+       fChain->SetBranchAddress("GenIsolatedPhoton_phi", GenIsolatedPhoton_phi, &b_GenIsolatedPhoton_phi);
+       fChain->SetBranchAddress("GenIsolatedPhoton_pt", GenIsolatedPhoton_pt, &b_GenIsolatedPhoton_pt);
+     } // isQCD
    } // isMC
 
 

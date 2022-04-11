@@ -324,18 +324,18 @@ void GamHistosFill::Loop()
   //if (ds=="2018ABCD")jecl1rc=getFJC("Summer19UL18_RunABCD_V5_DATA_L1RC");
 
   if (ds=="2016P8")    jecl1rc = getFJC("Summer19UL16_V7_MC_L1RC");
-  if (ds=="2016P8APV") jecl1rc = getFJC("Summer19UL16APV_V7_MC_L1RC");
+  if (ds=="2016APVP8") jecl1rc = getFJC("Summer19UL16APV_V7_MC_L1RC");
   if (ds=="2017P8")    jecl1rc = getFJC("Summer19UL17_V5_MC_L1RC");
   if (ds=="2018P8")    jecl1rc = getFJC("Summer19UL18_V5_MC_L1RC");
   //
   if (ds=="2016QCD")    jecl1rc = getFJC("Summer19UL16_V7_MC_L1RC");
-  if (ds=="2016QCDAPV") jecl1rc = getFJC("Summer19UL16APV_V7_MC_L1RC");
+  if (ds=="2016APVQCD") jecl1rc = getFJC("Summer19UL16APV_V7_MC_L1RC");
   if (ds=="2017QCD")    jecl1rc = getFJC("Summer19UL17_V5_MC_L1RC");
   if (ds=="2018QCD")    jecl1rc = getFJC("Summer19UL18_V5_MC_L1RC");
   assert(jecl1rc);
   
   string sera("");
-  if (ds=="2016P8APV" || ds=="2016QCDAPV") sera = "2016APV";
+  if (ds=="2016APVP8" || ds=="2016APVQCD") sera = "2016APV";
   if (ds=="2016P8" || ds=="2016QCD") sera = "2016FGH";
   if (ds=="2017P8" || ds=="2017QCD") sera = "2017";
   if (ds=="2018P8" || ds=="2018QCD") sera = "2018";
@@ -955,7 +955,7 @@ void GamHistosFill::Loop()
 	     HLT_Photon36 || 
 	     HLT_Photon30 || 
 	     HLT_Photon22 || 
-	     HLT_Photon165_HE10 ||
+	     //HLT_Photon165_HE10 ||
 	     HLT_Photon165_R9Id90_HE10_IsoM ||
 	     HLT_Photon120_R9Id90_HE10_IsoM ||
 	     HLT_Photon90_R9Id90_HE10_IsoM ||
@@ -1877,8 +1877,8 @@ void GamHistosFill::LoadPU() {
   cout << endl << "GamHistosFill::LoadPU" << endl << flush;
   TDirectory *curdir = gDirectory;
 
-  string eras[] = {"2016P8","2016P8APV","2017P8", "2018P8",
-		   "2016QCD","2016QCDAPV","2017QCD", "2018QCD",
+  string eras[] = {"2016P8","2016APVP8","2017P8", "2018P8",
+		   "2016QCD","2016APVQCD","2017QCD", "2018QCD",
 		   "2016APV","2016FGH","2017","2018"};
 		   //"2016BCD","2016EF","2016FGH",
 		   //"2017B","2017C","2017D","2017E","2017F",
@@ -1886,8 +1886,8 @@ void GamHistosFill::LoadPU() {
   const int neras = sizeof(eras)/sizeof(eras[0]);
   map<string, vector<string> > trigs;
   trigs["2016P8"].push_back("mc");
-  trigs["2016P8APV"] = trigs["2017P8"] = trigs["2018P8"] = 
-    trigs["2016QCD"] =  trigs["2016QCDAPV"] = trigs["2017QCD"] =
+  trigs["2016APVP8"] = trigs["2017P8"] = trigs["2018P8"] = 
+    trigs["2016QCD"] =  trigs["2016APVQCD"] = trigs["2017QCD"] =
     trigs["2018QCD"] = trigs["2018P8"] = trigs["2016P8"];
 
   trigs["2016APV"].push_back("HLT_Photon22_R9Id90_HE10_IsoM");
