@@ -17,6 +17,7 @@ using namespace std;
 #include "parsePileUpJSON.C"
 
 bool _gh_debug = false;
+bool _gh_debug100 = false;
 
 // Classes to structure sets of histograms and profiles
 struct BasicHistos {
@@ -103,6 +104,9 @@ void GamHistosFill::Loop()
 //by  b_branchname->GetEntry(ientry); //read only this branch
   if (fChain == 0) return;
 
+  //Not working in v6.26.06 as is
+  //ROOT.EnableImplicitMT(); // From Nico on Skype, to parallelize processing
+
   TStopwatch fulltime, laptime;
   fulltime.Start();
   TDatime bgn;
@@ -115,7 +119,7 @@ void GamHistosFill::Loop()
     fChain->SetBranchStatus("*",0);  // disable all branches
     
     // Baseline triggers with very high prescale except Photon200
-    if (is18) {
+    if (is18 || is22 || is23) {
       fChain->SetBranchStatus("HLT_Photon20",1);
     }
     if (is16) {
@@ -123,7 +127,7 @@ void GamHistosFill::Loop()
       if (!isMC) fChain->SetBranchStatus("HLT_Photon30",1);
       if (!isMC) fChain->SetBranchStatus("HLT_Photon36",1);
     }
-    if (is17 || is18) {
+    if (is17 || is18 || is22 || is23) {
       fChain->SetBranchStatus("HLT_Photon33",1);
       fChain->SetBranchStatus("HLT_Photon200",1);
     //fChain->SetBranchStatus("HLT_Photon500",1);
@@ -147,6 +151,11 @@ void GamHistosFill::Loop()
       fChain->SetBranchStatus("HLT_Photon110EB_TightID_TightIso",1); // best
       fChain->SetBranchStatus("HLT_Photon120EB_TightID_TightIso",1); // backup
     }
+    if (is22 || is23) {
+      fChain->SetBranchStatus("HLT_Photon30EB_TightID_TightIso",1);
+      fChain->SetBranchStatus("HLT_Photon110EB_TightID_TightIso",1);
+      fChain->SetBranchStatus("HLT_Photon100EBHE10",1);
+    }
 
     // Triggers to recover 60-105 GeV range. However, inefficient up to high pT
     // Possibly medium HLT cuts not fully consistent with tight ID?
@@ -162,7 +171,7 @@ void GamHistosFill::Loop()
     fChain->SetBranchStatus("HLT_Photon165_R9Id90_HE10_IsoM",1);
     
     // Triggers to recover 30-60 GeV range. Efficient above 30 GeV
-    if (is17 || is18) {
+    if (is17 || is18 || is22 || is23) {
       fChain->SetBranchStatus("HLT_Photon20_HoverELoose",1);
       fChain->SetBranchStatus("HLT_Photon30_HoverELoose",1);
     }
@@ -204,8 +213,13 @@ void GamHistosFill::Loop()
     if (isMC)  fChain->SetBranchStatus("genWeight",1);
     if (isMC)  fChain->SetBranchStatus("nPSWeight",1);
     if (isMC)  fChain->SetBranchStatus("PSWeight",1);
+    //if (isMC && !(is22 || is23))  fChain->SetBranchStatus("nPSWeight",1);
+    //if (isMC && !(is22 || is23))  fChain->SetBranchStatus("PSWeight",1);
 
-    fChain->SetBranchStatus("fixedGridRhoFastjetAll",1);
+    if (!(is22 || is23))
+      fChain->SetBranchStatus("fixedGridRhoFastjetAll",1);
+    if (is22 || is23)
+      fChain->SetBranchStatus("Rho_fixedGridRhoAll",1);
     fChain->SetBranchStatus("PV_npvs",1);
     fChain->SetBranchStatus("PV_npvsGood",1);
 
@@ -216,7 +230,7 @@ void GamHistosFill::Loop()
     fChain->SetBranchStatus("Photon_pt",1);
     fChain->SetBranchStatus("Photon_eta",1);
     fChain->SetBranchStatus("Photon_phi",1);
-    fChain->SetBranchStatus("Photon_mass",1);
+    if (!(is22||is23)) fChain->SetBranchStatus("Photon_mass",1);
     fChain->SetBranchStatus("Photon_hoe",1);
     if (is17 && isMC && isQCD)
       fChain->SetBranchStatus("Photon_cutBasedBitmap",1);
@@ -225,8 +239,8 @@ void GamHistosFill::Loop()
     fChain->SetBranchStatus("Photon_jetIdx",1);
 
     fChain->SetBranchStatus("Photon_seedGain",1);
-    //if (b_Photon_eCorr)
-    fChain->SetBranchStatus("Photon_eCorr",1); // not in 2016
+    if (b_Photon_eCorr)
+      fChain->SetBranchStatus("Photon_eCorr",1); // not in 2016
     fChain->SetBranchStatus("Photon_energyErr",1);
     fChain->SetBranchStatus("Photon_r9",1);
     
@@ -245,14 +259,24 @@ void GamHistosFill::Loop()
     fChain->SetBranchStatus("Jet_neEmEF",1);
     fChain->SetBranchStatus("Jet_chEmEF",1);
     fChain->SetBranchStatus("Jet_muEF",1);
-    fChain->SetBranchStatus("Jet_chFPV0EF",1);
+    if (!(is22 || is23)) fChain->SetBranchStatus("Jet_chFPV0EF",1);
 
     if (isMC) fChain->SetBranchStatus("Jet_genJetIdx",1);
     
-    fChain->SetBranchStatus("Jet_btagDeepB",1);
-    fChain->SetBranchStatus("Jet_btagDeepC",1);
-    fChain->SetBranchStatus("Jet_qgl",1);
+    if (!(is22 || is23)) fChain->SetBranchStatus("Jet_btagDeepB",1);
+    if (!(is22 || is23)) fChain->SetBranchStatus("Jet_btagDeepC",1);
+    if (!(is22 || is23)) fChain->SetBranchStatus("Jet_qgl",1);
+    //
+    if ((is22 || is23)) fChain->SetBranchStatus("Jet_btagDeepFlavB",1);
+    if ((is22 || is23)) fChain->SetBranchStatus("Jet_btagDeepFlavCvB",1);
+    if ((is22 || is23)) fChain->SetBranchStatus("Jet_btagDeepFlavCvL",1);
+    if ((is22 || is23)) fChain->SetBranchStatus("Jet_btagDeepFlavQG",1);
 
+    //if (isMC && (is22 || is23)) {
+    if (isMG) {
+      fChain->SetBranchStatus("LHE_HT",1);
+      cout << "Running over MadGraph HT bins" << endl;
+    }
     /*
       fChain->SetBranchStatus("nLHEPart",1);
       fChain->SetBranchStatus("LHEPart_pt",1);
@@ -323,6 +347,13 @@ void GamHistosFill::Loop()
   if (ds=="2018D4") jecl1rc = getFJC("Summer19UL18_RunD_V5_DATA_L1RC");
   //if (ds=="2018ABCD")jecl1rc=getFJC("Summer19UL18_RunABCD_V5_DATA_L1RC");
 
+  if (is22 || is23) {
+    if (isMC)
+      jecl1rc = getFJC("Winter23Prompt23_V2_MC_L1RC_AK4PFchs");
+    else
+      jecl1rc = getFJC("Winter23Prompt23_RunC_V2_DATA_L1RC_AK4PFchs");
+  }
+    
   if (ds=="2016P8")    jecl1rc = getFJC("Summer19UL16_V7_MC_L1RC");
   if (ds=="2016APVP8") jecl1rc = getFJC("Summer19UL16APV_V7_MC_L1RC");
   if (ds=="2017P8")    jecl1rc = getFJC("Summer19UL17_V5_MC_L1RC");
@@ -339,6 +370,9 @@ void GamHistosFill::Loop()
   if (ds=="2016P8" || ds=="2016QCD") sera = "2016FGH";
   if (ds=="2017P8" || ds=="2017QCD") sera = "2017";
   if (ds=="2018P8" || ds=="2018QCD") sera = "2018";
+  if (ds=="2022P8" || ds=="2022QCD") sera = "2022";
+  if (ds=="2022EEP8" || ds=="2022EEQCD") sera = "2022EE";
+  if (ds=="2023P8" || ds=="2023QCD") sera = "2023";
   //
   if (ds=="2016B"||ds=="2016C"||ds=="2016D"||ds=="2016BCD"||
       ds=="2016E"||ds=="2016F"||ds=="2016EF"||ds=="2016BCDEF") sera = "2016APV";
@@ -348,6 +382,13 @@ void GamHistosFill::Loop()
   if (ds=="2018A"||ds=="2018A1"||ds=="2018A2"||ds=="2018B"||ds=="2018C"||
       ds=="2018D"||ds=="2018D1"||ds=="2018D2"||ds=="2018D3"||ds=="2018D4")
     sera = "2018";
+  //
+  if (ds=="2022P8" || ds=="2022QCD") sera = "2022";
+  if (ds=="2022EEP8" || ds=="2022EEQCD") sera = "2022EE";
+  if (ds=="2022C" || ds=="2022D") sera ="2022";
+  if (ds=="2022E" || ds=="2022F" || ds=="2022G") sera = "2022EE";
+  if (ds=="2023B" || ds=="2023Cv123" || ds=="2023Cv4" || ds=="2023D")
+    sera = "2023";
   assert(sera!="");
 
   // Load JSON files
@@ -357,6 +398,11 @@ void GamHistosFill::Loop()
     LoadJSON("files/Cert_294927-306462_13TeV_UL2017_Collisions17_GoldenJSON.txt");
   if (TString(ds.c_str()).Contains("2018"))
     LoadJSON("files/Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt");
+  if (TString(ds.c_str()).Contains("2022"))
+    LoadJSON("files/Cert_Collisions2022_355100_362760_Golden.json");
+  if (TString(ds.c_str()).Contains("2023"))
+    LoadJSON("files/Cert_Collisions2023_366442_370790_Golden.json");
+  //Cert_Collisions2023_370354_370790_Golden.json");
 
   // Load pileup JSON
   parsePileUpJSON("files/pileup_ASCII_UL16-UL18.txt");
@@ -375,8 +421,26 @@ void GamHistosFill::Loop()
     fjv = new TFile("files/hotjets-UL17_v2.root","READ");
   if (TString(ds.c_str()).Contains("2018"))
     fjv = new TFile("files/hotjets-UL18.root","READ");
+  if (TString(ds.c_str()).Contains("2022")) {
+    if (TString(ds.c_str()).Contains("2022C") || 
+	TString(ds.c_str()).Contains("2022D") ||
+	TString(ds.c_str()).Contains("2022P8"))
+      fjv = new TFile("files/jetveto2022CD.root","READ");
+    if (TString(ds.c_str()).Contains("2022E") || // incl. EEP8 
+	TString(ds.c_str()).Contains("2022F") || 
+	TString(ds.c_str()).Contains("2022G"))
+      fjv = new TFile("files/jetveto2022EFG.root","READ");
+  }
+  if (TString(ds.c_str()).Contains("2023")) {
+    if (TString(ds.c_str()).Contains("2023B") || 
+	TString(ds.c_str()).Contains("2023C")) 
+      fjv = new TFile("files/jetveto2023BC.root","READ");
+    if (TString(ds.c_str()).Contains("2023D"))
+      fjv = new TFile("files/jetveto2023D.root","READ");
+  }
+  if (!fjv) cout << "Jetvetomap file not found for " << ds << endl << flush;
   assert(fjv);
-
+  
   // Veto lists for different years (NB: extra MC map for UL16):
   // h2hot_ul16_plus_hbm2_hbp12_qie11 + h2hot_mc (for UL16)
   // h2hot_ul17_plus_hep17_plus_hbpw89 (UL17)
@@ -393,6 +457,10 @@ void GamHistosFill::Loop()
     h2jv = (TH2D*)fjv->Get("h2hot_ul17_plus_hep17_plus_hbpw89");
   if (TString(ds.c_str()).Contains("2018"))
     h2jv = (TH2D*)fjv->Get("h2hot_ul18_plus_hem1516_and_hbp2m1");
+  if (TString(ds.c_str()).Contains("2022") ||
+      TString(ds.c_str()).Contains("2023"))
+    h2jv = (TH2D*)fjv->Get("jetvetomap");
+  if (!h2jv) cout << "Jetvetomap histo not found for " << ds << endl << flush;
   assert(h2jv);
 
   // Setup B and C tagging thresholds according to Z+jet settings (Sami)
@@ -418,6 +486,12 @@ void GamHistosFill::Loop()
     bthr = 0.4184; // medium
     cthr = 0.137+frac*(0.66-0.137);
   }
+  if (TString(ds.c_str()).Contains("22")  ||
+      TString(ds.c_str()).Contains("23")) {
+    // Copy of 2018
+    bthr = 0.4184;
+    cthr = 0.137+frac*(0.66-0.137);
+  }
 
   // Create histograms. Copy format from existing files from Lyon
   // Keep only histograms actually used by global fit (reprocess.C)
@@ -429,7 +503,10 @@ void GamHistosFill::Loop()
   
   // Original gamma+jet binning
   //     old bin trigger edges  (20,30,60,85,*95*,105,130,230)
-  double vx[] = {15, 20, 25, 30, 35, 40, 50, 60, 70, 85, 105, 130, 175, 230,
+  //double vx[] = {15, 20, 25, 30, 35, 40, 50, 60, 70, 85, 105, 130, 175, 230,
+  //		 300, 400, 500, 600, 700, 850, 1000, 1200, 1450, 1750};
+  // 22-23 binning
+  double vx[] = {15, 20, 25, 30, 35, 40, 50, 60, 75, 90, 110, 130, 175, 230,
   		 300, 400, 500, 600, 700, 850, 1000, 1200, 1450, 1750};
   const int nx = sizeof(vx)/sizeof(vx[0])-1;
   
@@ -455,6 +532,68 @@ void GamHistosFill::Loop()
   alphas.push_back(0.10);
   alphas.push_back(0.50); 
 
+  // Setup HT bin weighting and monitoring
+  TH1D *hxsec(0), *hnevt(0), *hsumw(0), *hLHE_HT(0), *hHT(0);
+  //double vht[] = {0, 25, 50, 100, 200, 300, 500, 700, 1000, 1500, 2000, 6500};
+  double vht[] = {0, 40, 70, 100, 200, 400, 600, 6500}; // G-4Jets
+  const int nht = sizeof(vht)/sizeof(vht[0])-1;
+  int nMG(0);
+  double wMG(0);
+  if (isMG) {
+    hxsec = new TH1D("hxsec",";H_{T} (GeV);pb",nht,vht);
+    hnevt = new TH1D("hnevt",";H_{T} (GeV);N_{evt}",nht,vht);
+    hsumw = new TH1D("hsumw",";H_{T} (GeV);Sum(weights)",nht,vht);
+    hLHE_HT = new TH1D("hLHE_HT",";H_{T} (GeV);N_{evt} (unweighted)",nht,vht);
+    hHT = new TH1D("hHT",";H_{T} (GeV);N_{evt} (weighted)",2485,15,2500);
+
+    // Reference number of events, retrieved manuallay with
+    // TChain c("Events"); c.AddFile("<path to files>/*.root"); c.GetEntries();
+    // Also re-calculated this code before event loop when needed
+    //int vnevt[nht] = {0, 0, 11197186, 23002929, 17512439, 16405924, 14359110,
+    //		      13473185, 4365993, 2944561, 1836165};
+    int vnevt[7] = {1, 6862, 7213, 5825, 6575, 3185, 2815}; // 2022EEP8 (local)
+    double vsumw[7] = {0, 5.277e+08, 3.126e+08, 2.698e+08, 7.937e+07, 4.976e+06, 1.596e+06}; // 2022EEP8 (local)
+    for (int i = 0; i != nht; ++i) {
+      hnevt->SetBinContent(i+1, vnevt[i]);
+      nMG += vnevt[i];
+      hsumw->SetBinContent(i+1, vsumw[i]);
+      wMG += vsumw[i];
+    }
+    cout << "Loaded (local) MadGraph event numbers ("
+	 << nMG << ", sumw=" << wMG << ")" << endl << flush;
+    
+    // xsec from jetphys/settings.h_template
+    //double vxsec[nht] = {0, 0, 246300000.*23700000./28060000., 23700000,
+    //			 1547000, 322600, 29980, 6334, 1088, 99.11, 20.23};
+    // pT^-4
+    //double vxsec[nht] = {0, 1, 1.07e-1, 2.56e-2, 1.60e-3, 1.00e-4, 1.98e-5};
+    // pT^-3
+    //double vxsec[nht] = {0, 1, 1.86e-1, 6.40e-2, 8.00e-3, 1.00e-3, 2.97e-4};
+    // pT^-2
+    //double vxsec[nht] = {0, 1, 3.27e-1, 1.60e-1, 4.00e-2, 1.00e-2, 4.44e-3};
+    // pT^-2 + fine tuning on hHT histogram (a*pT^b fits at boundary)
+    //double k70 = 5056./3181.;
+    //double k100 = 1475./831.3 * k70;
+    //double k200 = 106.8/124.3 * k100;
+    //double k400 = 9.339/21.11 * k200;
+    //double k600 = 3.622/5.122 * k400;
+    //double vxsec[nht] = {0, 1, k70*3.27e-1, k100*1.60e-1, k200*4.00e-2,
+    //			 k400*1.00e-2, k600*4.44e-3};
+  //double vxsec[7] = {0, 2.727, 1.417, 1.23, 0.2643, 0.02923, 0.009177}; // 2022EEP8 hand-adjusted, including vxsec[i] *= 4./1.467; for above
+
+    // Values from Laurent Thomas, 20 Sep 2023, based on
+    // https://twiki.cern.ch/twiki/bin/viewauth/CMS/HowToGenXSecAnalyzer#Running_the_GenXSecAnalyzer_on_a
+    double vxsec[nht] = {0, 1.524e+04, 8.111e+03, 7.327e+03, 1.541e+03,
+			 1.676e+02, 5.439e+01}; // xsec in pb
+    cout << Form("double vxsec[%d] = {",nht);
+    for (int i = 0; i != nht; ++i) {
+      //vxsec[i] *= 1.7893701e-4; // match 4to70 to 2.727 for 2022C test file
+      hxsec->SetBinContent(i+1, vxsec[i]);
+      cout << Form("%s%1.4g",i==0 ? "" : ", ", vxsec[i]);
+    }
+    cout << "}; // 2022EEP8 hand-adjusted" << endl << flush;
+  }
+  
   // PF composition plots stored in a separate directory
   fout->mkdir("pf");
   fout->cd("pf");  
@@ -657,6 +796,7 @@ void GamHistosFill::Loop()
   TH1D *hgam175 = new TH1D("hgam175","",197,15,1000);
   TH1D *hgam200 = new TH1D("hgam200","",197,15,1000);
   TH1D *hgam300 = new TH1D("hgam300","",197,15,1000);
+  TH1D *hgam30t = new TH1D("hgam30t","",197,15,1000);
   TH1D *hgam100t = new TH1D("hgam100t","",197,15,1000);
   TH1D *hgam110t = new TH1D("hgam110t","",197,15,1000);
   TH1D *hgam120t = new TH1D("hgam120t","",197,15,1000);
@@ -669,6 +809,7 @@ void GamHistosFill::Loop()
   TH1D *hgam120m = new TH1D("hgam120m","",197,15,1000);
   TH1D *hgam165m = new TH1D("hgam165m","",197,15,1000);
   TH1D *hgam165h = new TH1D("hgam165h","",197,15,1000);
+  TH1D *hgam100h = new TH1D("hgam100h","",197,15,1000);
   TH1D *hgam20l = new TH1D("hgam20l","",197,15,1000);
   TH1D *hgam30l = new TH1D("hgam30l","",197,15,1000);
   TH1D *hgam40l = new TH1D("hgam40l","",197,15,1000);
@@ -715,6 +856,7 @@ void GamHistosFill::Loop()
   // Although otherwise ordering is data/MC->eta->alpha
   // Add PS weight variations
   unsigned int nps = (isMC ? nPSWeightMax+1 : 1);
+  //unsigned int nps = ((isMC && !(is22 || is23)) ? nPSWeightMax+1 : 1);
   map<int, map<int, map<int, BasicHistos*> > > mBasicHistos;
   for (unsigned int ialpha = 0; ialpha != alphas.size(); ++ialpha) {
     for (unsigned int ieta = 0; ieta != etas.size(); ++ieta) { 
@@ -774,10 +916,42 @@ void GamHistosFill::Loop()
   TLorentzVector fox; // for isQCD
   
   //Long64_t nentries = fChain->GetEntriesFast();
-  Long64_t nentries = fChain->GetEntries();
+  Long64_t nentries = fChain->GetEntries(); // Long startup time
   cout << "\nStarting loop over " << dataset << " with "
        << nentries << " entries" << endl;
 
+  if (isMG && nentries!=nMG) {
+    cout << "Nentries = "<<nentries<<", expected nMG = "<<nMG<<endl << flush;
+     //assert(false);
+    cout << "Recalculate HT bin counts prior to starting."
+	 << " This will take a few minutes" << endl;
+    hnevt->Reset();
+    for (Long64_t jentry=0; jentry<nentries;jentry++) {
+      Long64_t ientry = LoadTree(jentry);
+      if (ientry < 0) break;
+      b_LHE_HT->GetEntry(ientry); //read only this branch
+      hnevt->Fill(LHE_HT);
+      b_genWeight->GetEntry(ientry); //and this, too
+      hsumw->Fill(LHE_HT, genWeight);
+      if (jentry%1000000==0) cout << "." << flush;
+      if (jentry%50000000==0 && jentry!=0) cout << "\nn="<<jentry<<endl<<flush;
+    } // for jentry
+    nMG = nentries;
+    cout << "\nProcessed " << nMG << " entries" << endl << flush;
+    //
+    cout << Form("int vnevt[%d] = ",hnevt->GetNbinsX());
+    for (int i = 1; i != hnevt->GetNbinsX()+1; ++i) {
+      cout<<Form("%s%d",(i==1 ? "{" : ", "),int(hnevt->GetBinContent(i)+0.5));
+    }
+    cout << "}; // " << dataset << endl << flush;
+    //
+    cout << Form("double vsumw[%d] = ",hsumw->GetNbinsX());
+    for (int i = 1; i != hsumw->GetNbinsX()+1; ++i) {
+      cout<<Form("%s%1.4g",(i==1 ? "{" : ", "),hsumw->GetBinContent(i));
+    }
+    cout << "}; // " << dataset << endl << flush;
+  } // isMC && nentries!=nMG
+  
   //int skip = 21700000; // 2018A first events without 110EB
   //int skip = 55342793; // 2018A first events with 92 photon
   //int skip = 265126992; // 2018A first events with 191 photons, 23 jets
@@ -862,16 +1036,23 @@ void GamHistosFill::Loop()
 	b_HLT_Photon33->GetEntry(ientry);
       if (b_HLT_Photon22 && is16) // 2016
 	b_HLT_Photon22->GetEntry(ientry);
+      //if (b_HLT_Photon20 && (is18 || is22 || is23)) // 2018
       if (b_HLT_Photon20 && is18) // 2018
 	b_HLT_Photon20->GetEntry(ientry);
 
-      // Only in (most of) 2018
+      // Only in (most of) 2018, and now some in 22-23
       if (b_HLT_Photon120EB_TightID_TightIso && is18) // not in 2016-17, 2018A
 	b_HLT_Photon120EB_TightID_TightIso->GetEntry(ientry);
-      if (b_HLT_Photon110EB_TightID_TightIso && is18) // not in 2016-17, 2018A
+      if (b_HLT_Photon110EB_TightID_TightIso && (is18 || is22 || is23)) // not in 2016-17, 2018A
 	b_HLT_Photon110EB_TightID_TightIso->GetEntry(ientry);
       if (b_HLT_Photon100EB_TightID_TightIso && is18) // not in 2016-17, 2018A
 	b_HLT_Photon100EB_TightID_TightIso->GetEntry(ientry);
+
+      // Only 22-23
+      if (b_HLT_Photon100EBHE10 && (is22 || is23))
+	b_HLT_Photon100EBHE10->GetEntry(ientry);
+      if (b_HLT_Photon30EB_TightID_TightIso && (is22 || is23))
+	b_HLT_Photon30EB_TightID_TightIso->GetEntry(ientry);
 
       // Only 2016
       if (b_HLT_Photon22_R9Id90_HE10_IsoM && is16) // only in 2016
@@ -909,7 +1090,27 @@ void GamHistosFill::Loop()
       if (b_HLT_Photon20_HoverELoose && !is16) // not in 2016
 	b_HLT_Photon20_HoverELoose->GetEntry(ientry);
       
-      if ((is18 &&
+      if (((is22 || is23) &&
+	   !(HLT_Photon200 ||
+	     HLT_Photon175 || 
+	     HLT_Photon150 || 
+	     HLT_Photon120 || 
+	     HLT_Photon90 || 
+	     HLT_Photon75 || 
+	     HLT_Photon50 || 
+	     HLT_Photon33 || 
+	     //HLT_Photon20 ||
+	     //HLT_Photon120EB_TightID_TightIso ||
+	     HLT_Photon110EB_TightID_TightIso ||
+	     //HLT_Photon100EB_TightID_TightIso ||
+	     HLT_Photon100EBHE10 ||
+	     HLT_Photon30EB_TightID_TightIso ||
+	     HLT_Photon90_R9Id90_HE10_IsoM ||
+	     HLT_Photon75_R9Id90_HE10_IsoM ||
+	     HLT_Photon50_R9Id90_HE10_IsoM ||
+	     HLT_Photon30_HoverELoose ||
+	     HLT_Photon20_HoverELoose)) ||
+	  (is18 &&
 	   !(HLT_Photon200 ||
 	     HLT_Photon175 || 
 	     HLT_Photon150 || 
@@ -974,6 +1175,7 @@ void GamHistosFill::Loop()
 
     // Sanity check PS weights
     if (!isMC) { nPSWeight = 0; }
+    //if (!isMC || is22 || is23) { nPSWeight = 0; }
     assert(nPSWeight<=nPSWeightMax);
 
     // Does the run/LS pass the latest JSON selection?
@@ -1012,7 +1214,8 @@ void GamHistosFill::Loop()
 
     // Select tight photons and photon matching gen photon
     for (unsigned int i = 0; i != nPhoton; ++i) {
-      
+
+      if (is22 || is23) Photon_mass[i] = 0;
       gami.SetPtEtaPhiM(Photon_pt[i],  Photon_eta[i],
 			Photon_phi[i], Photon_mass[i]);
       
@@ -1047,8 +1250,13 @@ void GamHistosFill::Loop()
     }
    
     // Photon-jet: uncorrected jet minus (uncorr.) photon minus L1RC
-    if (iGam!=-1 && Photon_jetIdx[iGam]!=-1) {
-      unsigned int idx = Photon_jetIdx[iGam]; assert(idx<nJet);
+    if (iGam!=-1 && Photon_jetIdx[iGam]!=-1 &&
+	Photon_jetIdx[iGam]<(int)nJet) { // 2023B: 65536
+      int idx = Photon_jetIdx[iGam];
+      if (!(idx<(int)nJet)) {
+	cout << "idx = " << idx << " nJet = " << nJet << endl << flush;
+	assert(idx<(int)nJet);
+      }
       phoj.SetPtEtaPhiM(Jet_pt[idx], Jet_eta[idx], Jet_phi[idx], Jet_mass[idx]);
       phoj *= (1-Jet_rawFactor[idx]);
       phoj -= rawgam;
@@ -1060,6 +1268,7 @@ void GamHistosFill::Loop()
       jecl1rc->setJetA(Jet_area[idx]);
       jecl1rc->setRho(fixedGridRhoFastjetAll);
       double corrl1rc = jecl1rc->getCorrection();
+      if (is22 || is23) corrl1rc = 1.; // How to do this for PUPPI?
       phoj *= corrl1rc;
 
       // Calculate L1RC correction without "zero suppression"
@@ -1069,6 +1278,7 @@ void GamHistosFill::Loop()
       jecl1rc->setJetA(Jet_area[idx]);
       jecl1rc->setRho(fixedGridRhoFastjetAll);
       double corrl1rc0 = jecl1rc->getCorrection();
+      if (is22 || is23) corrl1rc0 = 1.; // How to do this for PUPPI
       double off0 = (corrl1rc0 - 1) * refpt; // corr*ptref = (ptref-off)
       phoj0off.SetPtEtaPhiM(off0,phoj0.Eta(),phoj0.Phi(),0.);
       phoj0 -= phoj0off;
@@ -1087,7 +1297,7 @@ void GamHistosFill::Loop()
       iFox = (jentry%2); // "random" selection from two leading jets
       // Jet_genJetIdx would be great, but only there for UL18 nAOD? Maybe there
       int k = Jet_genJetIdx[iFox];
-      if (k>=0 && k<nGenJet) {
+      if (k>=0 && k<(int)nGenJet) {
 	gam.SetPtEtaPhiM(GenJet_pt[k], GenJet_eta[k], GenJet_phi[k],
 			 GenJet_mass[k]);
 	// NB: should remove UE clustered into gam. In Minsuk's rho_ZB_new.pdf
@@ -1121,6 +1331,23 @@ void GamHistosFill::Loop()
     //bool isMC = (run==1);
     assert((isMC && run==1) || (!isMC && run!=1));
     double w = (isMC ? genWeight : 1);
+    if (isMG) {
+      int iht = hxsec->FindBin(LHE_HT);
+      double xsec = hxsec->GetBinContent(iht);
+      //double nevt = hnevt->GetBinContent(iht);
+      //double wht = (nevt ? xsec / nevt : 1);
+      double sumw = hsumw->GetBinContent(iht);
+      double wht = (sumw ? xsec / sumw : 1);
+      w *= wht;
+      hLHE_HT->Fill(LHE_HT); // cross-check hnevt afterwards
+      hHT->Fill(LHE_HT, w); // cross-check HT spectrum smoothness afterwards
+    }
+
+    //bool doPtHatFilter = true;
+    //if (doPtHatFilter && isMC) {
+    //if ( isMG && 2.*Pileup_pthatmax>LHE_HT) continue;
+    //if (!isMG && Pileup_pthatmax>Generator_binvar) continue;
+    //}
     
     // Pileup
     double TruePUrms(0);
@@ -1173,9 +1400,20 @@ void GamHistosFill::Loop()
 	 //(HLT_Photon33                     && pt>=35  && pt<60 ) ||
 	 (HLT_Photon30_HoverELoose         && pt>=35  && pt<60  && (itrg=30)) ||
 	 (HLT_Photon20_HoverELoose         && pt>=20  && pt<35  && (itrg=20)) ||
-	 //(HLT_Photon20                     && pt>=20  && pt<35 )
-	 (isMC                             && pt>=35  && pt<60  && (itrg=30)) ||
-	 (isMC                             && pt>=20  && pt<35  && (itrg=20))
+	 //(HLT_Photon20                   && pt>=20  && pt<35 )
+	 (isMC                           && pt>=35  && pt<60  && (itrg=30)) ||
+	 (isMC                           && pt>=20  && pt<35  && (itrg=20))
+	 )) ||
+       // Push triggers to the limit for 22-23 (2022C bad 75,90)
+       ((is22 || is23) &&
+	((HLT_Photon200                 && pt>=230            && (itrg=200)) ||
+	 (HLT_Photon110EB_TightID_TightIso && pt>=110&&pt<230 && (itrg=110)) ||
+	 (HLT_Photon90_R9Id90_HE10_IsoM && pt>=90  && pt<110  && (itrg=90))  ||
+	 (HLT_Photon75_R9Id90_HE10_IsoM && pt>=75  && pt<90   && (itrg=75))  ||
+	 (HLT_Photon50_R9Id90_HE10_IsoM && pt>=50  && pt<75   && (itrg=50))  ||
+       //(HLT_Photon50_R9Id90_HE10_IsoM && pt>=50  && pt<130  && (itrg=50))  ||
+	 (HLT_Photon30EB_TightID_TightIso  && pt>=30&&pt<50   && (itrg=30))  ||
+	 (HLT_Photon20_HoverELoose      && pt>=20  && pt<30   && (itrg=20))
 	 ))
        );
   
@@ -1218,10 +1456,13 @@ void GamHistosFill::Loop()
 
     assert(itrg>0 || !pass_trig);
 
-    // Reweight MC pileup
-    if (isMC && pass_trig) {
+    // Reweight MC pileup (except for 22-23)
+    if (isMC && pass_trig && !(is22 || is23)) {
       TH1D *hm = _pu[dataset][1]; assert(hm);
-      TH1D *hd = _pu[sera][itrg]; assert(hd);
+      TH1D *hd = _pu[sera][itrg];
+      if (!hd) cout << "Missing _pu[sera="<<sera<<"][itrg="<<itrg<<"]"
+		    << endl << flush;
+      assert(hd);
       assert(hm->GetNbinsX()==hd->GetNbinsX());
       int k = hm->FindBin(Pileup_nTrueInt);
       assert(hm->GetBinLowEdge(k)==hd->GetBinLowEdge(k));
@@ -1231,9 +1472,10 @@ void GamHistosFill::Loop()
       double wt = (nm>0 ? nd / nm : 0);
       w *= wt;
     }
-    // Normalize data luminosity
-    if (!isMC && pass_trig) {
-      double lumi = _lumi[sera][itrg]; assert(lumi>0);
+    // Normalize data luminosity (except for 22-23)
+    if (!isMC && pass_trig && !(is22 || is23)) {
+      double lumi = _lumi[sera][itrg];
+      assert(lumi>0);
       w *= 1./lumi;
     }
 
@@ -1251,7 +1493,7 @@ void GamHistosFill::Loop()
       
       // Check that jet is not photon and pTcorr>15 GeV
       if (Jet_pt[i]>15 && (iGam==-1 || (int)i != Photon_jetIdx[iGam]) &&
-	  (!isQCD || i!=iFox)) {
+	  (!isQCD || (int)i != iFox)) {
 	
 	++nJets;
 	jeti.SetPtEtaPhiM(Jet_pt[i], Jet_eta[i], Jet_phi[i], Jet_mass[i]);
@@ -1290,7 +1532,7 @@ void GamHistosFill::Loop()
     genjet.SetPtEtaPhiM(0,0,0,0);
     genjet2.SetPtEtaPhiM(0,0,0,0);
     if (isMC) {
-      for (int i = 0; i != nGenJet; ++i) {
+      for (UInt_t i = 0; i != nGenJet; ++i) {
 	geni.SetPtEtaPhiM(GenJet_pt[i],GenJet_eta[i],GenJet_phi[i],
 			  GenJet_mass[i]);
 	if (iJet!=-1 && geni.DeltaR(jet)<0.4 && iGenJet==-1) {
@@ -1386,8 +1628,9 @@ void GamHistosFill::Loop()
       
       hgam0 ->Fill(ptgam, w);
       // Backup high pT
-      if (HLT_Photon300_NoHE) hgam300->Fill(ptgam, w);
-      if (HLT_Photon165_HE10) hgam165h->Fill(ptgam, w);
+      if (HLT_Photon300_NoHE)  hgam300->Fill(ptgam, w);
+      if (HLT_Photon165_HE10)  hgam165h->Fill(ptgam, w);
+      if (HLT_Photon100EBHE10) hgam100h->Fill(ptgam, w);
       // Main unprescaled trigger in 2018
       if (HLT_Photon200) hgam200->Fill(ptgam, w);
       // Run 1 style prescaled triggers
@@ -1406,6 +1649,7 @@ void GamHistosFill::Loop()
       if (HLT_Photon120EB_TightID_TightIso) hgam120t->Fill(ptgam, w);
       if (HLT_Photon110EB_TightID_TightIso) hgam110t->Fill(ptgam, w);
       if (HLT_Photon100EB_TightID_TightIso) hgam100t->Fill(ptgam, w);
+      if (HLT_Photon30EB_TightID_TightIso) hgam30t->Fill(ptgam, w);
       // 60-105 GeV with medium triggers. NB: conflicting ID?
       if (HLT_Photon165_R9Id90_HE10_IsoM) hgam165m->Fill(ptgam, w);
       if (HLT_Photon120_R9Id90_HE10_IsoM) hgam120m->Fill(ptgam, w);
@@ -1454,7 +1698,7 @@ void GamHistosFill::Loop()
 	 (is16 || Flag_ecalBadCalibFilter) && //new in UL, not for UL16
 	 //(isMC || Flag_eeBadScFilter) // data only
 	 Flag_eeBadScFilter // MC added 7 July 2021
-	 ); // pass_filt
+	 ) || (is22 || is23); // pass_filt
       
       bool pass_ngam = (nGam>=1);
       bool pass_njet = (nJets>=1);
@@ -1470,7 +1714,7 @@ void GamHistosFill::Loop()
 	  pass_veto = false;
 	}
       } // jet veto
-      bool pass_leak = (phoj.Pt()<0.06*ptgam);
+      bool pass_leak = (phoj.Pt()<0.06*ptgam || (is22 || is23));
       bool pass_basic = (pass_trig && pass_filt && pass_ngam && pass_njet &&
 			 pass_gameta && pass_dphi && pass_jetid && pass_veto &&
 			 pass_leak); // add pass_gameta v19 / 202111122 !
@@ -1482,6 +1726,41 @@ void GamHistosFill::Loop()
       bool pass_alpha100 = (pt2 < ptgam || pt2 < pt2min);      
       bool pass_basic_ext = (pass_basic && pass_bal && pass_mpf);
       bool pass_gen = (iGenJet!=-1);
+
+      if (_gh_debug100 && jentry<100) {
+	cout << "Event " << jentry << " decisions" << endl;
+	cout << Form("pass_ngam = %d, pass_njet = %d, pass_gameta = %d "
+		     "pass_dphi = %d, pass_jetid = %d\n"
+		     "pass_veto = %d, pass_leak = %d, pass_basic = %d "
+		     "pass_bal = %d, pass_mpf = %d, \n"
+		     "pass_jeteta = %d, pass_alpha100 = %d, "
+		     "pass_basic_ext = %d, "
+		     "pass_gen = %d,\n"
+		     "pass_trig = %d, pass_filt = %d",
+		     pass_ngam, pass_njet, pass_gameta,
+		     pass_dphi, pass_jetid,
+		     pass_veto, pass_leak, pass_basic,
+		     pass_bal, pass_mpf, pass_jeteta,
+		     pass_alpha100, pass_basic_ext,
+		     pass_gen, pass_trig, pass_filt) << endl << flush;
+	cout << Form("Flags/Filters: goodVertices = %d, "
+		     "globalSuperTightHalo2016 = %d,\n"
+		     "HBHENoise = %d, "
+		     "HBHENoiseIso = %d, "
+		     "EcalDeadCellTriggerPrimitive = %d,\n"
+		     "BadPFMuon = %d, "
+		     "ecalBadCalib = %d, "
+		     "eeBadSc = %d.\n",  
+		     Flag_goodVertices,
+		     Flag_globalSuperTightHalo2016Filter,
+		     Flag_HBHENoiseFilter,
+		     Flag_HBHENoiseIsoFilter,
+		     Flag_EcalDeadCellTriggerPrimitiveFilter,
+		     Flag_BadPFMuonFilter,
+		     Flag_ecalBadCalibFilter,
+		     Flag_eeBadScFilter) << endl << flush;
+      }
+
       if (pass_basic && pass_jeteta && pass_alpha100) {
 	h2bal->Fill(ptgam, bal, w);
 	h2mpf->Fill(ptgam, mpf, w);
@@ -1514,6 +1793,12 @@ void GamHistosFill::Loop()
 	  mvar["gjet"] = (ptgam!=0 ? genjet.Pt() / ptgam : 0);
 	  mvar["rgen"] = (genjet.Pt()!=0 ? jet.Pt() / genjet.Pt() : 0);
 
+	  if (is22 || is23) { // temporary patch
+	    Jet_btagDeepB[iJet] = Jet_btagDeepFlavB[iJet];
+	    Jet_btagDeepC[iJet] = 0.5*(Jet_btagDeepFlavCvB[iJet] +
+				       Jet_btagDeepFlavCvL[iJet]);
+	    Jet_qgl[iJet] = Jet_btagDeepFlavQG[iJet];
+	  }
 	  bool isb = (Jet_btagDeepB[iJet] > bthr);
 	  bool isc = (Jet_btagDeepC[iJet] > cthr && !isb);
 	  bool isq = (Jet_qgl[iJet]>=0.5 && Jet_qgl[iJet] && !isb && !isc);
@@ -1677,6 +1962,7 @@ void GamHistosFill::Loop()
 	  pnef->Fill(ptgam, Jet_neEmEF[iJet], w);
 	  pcef->Fill(ptgam, Jet_chEmEF[iJet], w);
 	  pmuf->Fill(ptgam, Jet_muEF[iJet], w);
+	  if (is22 || is23) Jet_chFPV0EF[iJet] = 0;
 	  ppuf->Fill(ptgam, Jet_chFPV0EF[iJet], w);
 	  
 	  // 2D composition and response
@@ -1877,18 +2163,22 @@ void GamHistosFill::LoadPU() {
   cout << endl << "GamHistosFill::LoadPU" << endl << flush;
   TDirectory *curdir = gDirectory;
 
-  string eras[] = {"2016P8","2016APVP8","2017P8", "2018P8",
-		   "2016QCD","2016APVQCD","2017QCD", "2018QCD",
-		   "2016APV","2016FGH","2017","2018"};
-		   //"2016BCD","2016EF","2016FGH",
-		   //"2017B","2017C","2017D","2017E","2017F",
-		   //"2018A","2018B","2018C","2018D"};
+  string eras[] =
+    {"2016P8",/*"2016APVP8",*/"2016P8APV","2017P8", "2018P8",
+     "2016QCD",/*"2016APVQCD",*/"2016QCDAPV","2017QCD", "2018QCD",
+     "2016APV","2016FGH","2017","2018",
+     "2022P8", "2022EEP8"};
+  //"2016BCD","2016EF","2016FGH",
+  //"2017B","2017C","2017D","2017E","2017F",
+  //"2018A","2018B","2018C","2018D"};
   const int neras = sizeof(eras)/sizeof(eras[0]);
   map<string, vector<string> > trigs;
   trigs["2016P8"].push_back("mc");
   trigs["2016APVP8"] = trigs["2017P8"] = trigs["2018P8"] = 
     trigs["2016QCD"] =  trigs["2016APVQCD"] = trigs["2017QCD"] =
-    trigs["2018QCD"] = trigs["2018P8"] = trigs["2016P8"];
+    trigs["2018QCD"] = trigs["2018P8"] =
+    trigs["2022P8"] = trigs["2022EEP8"] =
+    trigs["2016P8"];
 
   trigs["2016APV"].push_back("HLT_Photon22_R9Id90_HE10_IsoM");
   trigs["2016APV"].push_back("HLT_Photon30_R9Id90_HE10_IsoM");
@@ -1920,6 +2210,16 @@ void GamHistosFill::LoadPU() {
   trigs["2018"].push_back("HLT_Photon110EB_TightID_TightIso");
   trigs["2018"].push_back("HLT_Photon200");
 
+  trigs["2022"].push_back("HLT_Photon20_HoverELoose");
+  trigs["2022"].push_back("HLT_Photon30_HoverELoose");
+  trigs["2022"].push_back("HLT_Photon30EB_TightID_TightIso");
+  trigs["2022"].push_back("HLT_Photon50_R9Id90_HE10_IsoM");
+  trigs["2022"].push_back("HLT_Photon75_R9Id90_HE10_IsoM");
+  trigs["2022"].push_back("HLT_Photon90_R9Id90_HE10_IsoM");
+  trigs["2022"].push_back("HLT_Photon100EBHE10");
+  trigs["2022"].push_back("HLT_Photon110EB_TightID_TightIso");
+  trigs["2022"].push_back("HLT_Photon200");
+
   // files/pileup.root updated with tchain.C on Hefaistos
   TFile *fmc = new TFile("files/pileup.root","READ");
   assert(fmc && !fmc->IsZombie());
@@ -1938,6 +2238,7 @@ void GamHistosFill::LoadPU() {
       TH1D *h(0);
       if (st=="mc") {
 	h = (TH1D*)fmc->Get(Form("pileup_%s",ce));
+	if (!h) cout << "Failed to find pileup_"<<ce<<endl<<flush;
 	assert(h);
       }
       else {

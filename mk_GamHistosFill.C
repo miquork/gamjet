@@ -16,19 +16,35 @@
 #include <fstream>
 #include <string>
 
-#define LOCAL
+#define GPU
+//#define LOCAL
 
 #ifdef LOCAL
 // Compile these libraries into *.so first with root -l -b -q mk_CondFormats.C
+// (works for 6.18.04?)
+/*
 R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/JetCorrectorParameters.cc+)
 R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/SimpleJetCorrector.cc+)
 R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/FactorizedJetCorrector.cc+)
 
 R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/SimpleJetCorrectionUncertainty.cc+)
 R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/JetCorrectionUncertainty.cc+)
+*/
+//R__LOAD_LIBRARY(GamHistosFill.C+g)
+// As in jetphys/mk2_histosFill.C:
+R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/JetCorrectorParameters_cc)
+R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/SimpleJetCorrector_cc)
+R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/FactorizedJetCorrector_cc)
 
-R__LOAD_LIBRARY(GamHistosFill.C+g)
+R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/SimpleJetCorrectionUncertainty_cc)
+R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/JetCorrectionUncertainty_cc)
+
+R__LOAD_LIBRARY(GamHistosFill_C)
+#else
+// (works for 6.26/10)
+R__LOAD_LIBRARY(GamHistosFill_C.so)
 #endif
+
 
 void mk_GamHistosFill(string dataset = "2018P8") {
 
@@ -45,10 +61,22 @@ void mk_GamHistosFill(string dataset = "2018P8") {
 		  dataset=="2018C"  || dataset=="2018D" ||
 		  dataset=="2018A1" || dataset=="2018A2" ||
 		  dataset=="2018D1" || dataset=="2018D2" ||
-		  dataset=="2018D3" || dataset=="2018D4");
+		  dataset=="2018D3" || dataset=="2018D4" ||
                   //dataset=="2018ABCD");
+		  dataset=="2022C"  || dataset=="2022D" || dataset=="2022E" ||
+		  dataset=="2022F"  || dataset=="2022G" ||
+		  dataset=="2023B" || dataset=="2023Cv123" ||
+		  dataset=="2023Cv4" || dataset=="2023D");
   bool addMC = (dataset=="2016P8" || dataset=="2017P8" || dataset=="2018P8" ||
-		dataset=="2016P8APV");
+		dataset=="2016APVP8" ||
+		dataset=="2022P8" || dataset=="2022QCD" ||
+		dataset=="2022EEP8" || dataset=="2022EEQCD" ||
+		dataset=="2023P8" || dataset=="2023QCD");
+
+  bool addQCD = (dataset=="2016QCD" || dataset=="2016APVQCD" || 
+		 dataset=="2017QCD" || dataset=="2018QCD" ||
+		 dataset=="2022QCD" || dataset=="2022EEQCD" ||
+		 dataset=="2023QCD");
 
   //cout << "Clean old shared objects and link files" << endl << flush;
   //gSystem->Exec("rm *.d");
@@ -82,8 +110,12 @@ void mk_GamHistosFill(string dataset = "2018P8") {
   
   // Automatically figure out where we are running the job
   bool runGPU = (path=="/media/storage/gamjet");
-  bool runLocal = (path=="/Users/voutila/Dropbox/Cern/gamjet");
+  bool runLocal = (path=="/Users/voutila/Dropbox/Cern/gamjet" ||
+		   path=="/Users/manvouti/Dropbox/Cern/gamjet");
   if (!runLocal) assert(runGPU);
+
+  if (runGPU) cout << "Running on Hefaistos (runGPU)" << endl;
+  if (runLocal) cout << "Running on iMac (runLocal)" << endl;
   
   if (addData) {
     ifstream fin(runLocal ? Form("dataFiles_local_%s.txt",dataset.c_str()) : 
@@ -102,11 +134,27 @@ void mk_GamHistosFill(string dataset = "2018P8") {
   }
   
   if (addMC) {
-    ifstream fin(runLocal ? "mcFiles_local.txt" :
+    ifstream fin(runLocal ? Form("mcFiles_local_%s.txt",dataset.c_str()) :
 		 Form("mcFiles_%s.txt",dataset.c_str()), ios::in);
     string filename;
     cout << "Chaining MC files:" << endl << flush;
-    int nFiles(0), nFilesMax(8);
+    int nFiles(0), nFilesMax(1437);//100);
+    while (fin >> filename && nFiles<nFilesMax) {
+      ++nFiles;
+      c->AddFile(filename.c_str());
+    }
+    cout << "Chained " << nFiles <<  " files" << endl << flush;
+  
+    GamHistosFill filler(c,1,dataset);
+    filler.Loop();
+  }
+
+  if (addQCD) {
+    ifstream fin(runLocal ? "mcFiles_qcd_local.txt" :
+		 Form("mcFiles_%s.txt",dataset.c_str()), ios::in);
+    string filename;
+    cout << "Chaining QCD MC files:" << endl << flush;
+    int nFiles(0), nFilesMax(100);
     while (fin >> filename && nFiles<nFilesMax) {
       ++nFiles;
       c->AddFile(filename.c_str());

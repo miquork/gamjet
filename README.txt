@@ -22,8 +22,25 @@ HOW TO RUN on Hefaistos:
 - root -l -b GamHistosRatio.C+g
 
 
+TIMING estimates, one at a time
+-------------------------------
+2023C 5762->4851s* (9650s)
+2023D 1466->1323s (3816s)
+2022E 2670->2355s (6691s)
+2023F 8104->7116s*** (23000s, or 6.3h)
+2022G 1746->1215s (4304s)
+2023B 843->687s (2482s)
+2023Cv123 3556->2920s (10462s)
+2023Cv4 6172->5109s** (15983s, or 4.4h)
+2023D empty
+2022P8 (14866s, or 4.1h)
+2022EEP8 (scaled 52943s or 14.7h)
+
 CHANGELOG (latest first):
 ----------------------------
+v21 - Start implementing Run3. Add new JSON files. Add new jetvetomaps. Add new L1RC (and switch it off). Add new triggers. Disable _pu and PU reweighing for 22-23 (temporarily). Disable pass_leak and pass_filt for 22-23 (temporarily). Add code for MadGraph HT bins from dijet and add G-4Jet xsec.
+=> HLT_Photon20 often missing, lots of errors on it
+
 v20a - Rename 2016QCDAPV and 2016P8APV to 2016APVQCD and 2016APVP8
 v20 - add pileup and PS reweighing for MC and lumi normalization for data
 19f - comment out branches not available for 2017QCD => fixed in v20
@@ -129,12 +146,15 @@ brilcalc lumi --byls --normtag /cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/nor
 
 Luminosity recommendations:
 https://twiki.cern.ch/twiki/bin/view/CMS/TWikiLUM#SummaryTable
+https://twiki.cern.ch/twiki/bin/viewauth/CMS/BrilcalcQuickStart
 
 Plan:
 - fix running over 2018A so get complete sample => done
   - increased nPhotonMax to 200, crashed with one event having 191
 - implement JSON, rerun v3
   - /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/13TeV/Legacy_2018/Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt
+  - /eos/home-c/cmsdqm/www/CAF/certification/Collisions22/Cert_Collisions2022_355100_362760_Golden.json
+  - /eos/home-c/cmsdqm/www/CAF/certification/Collisions23/Cert_Collisions2023_366442_370790_Golden.json
 - implement hotzones, rerun v4,v5
 - implement JER SF, rerun v6 (MC only?)
 

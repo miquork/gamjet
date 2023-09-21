@@ -10,4 +10,8 @@
   
   gROOT->ProcessLine(".L CondFormats/JetMETObjects/src/SimpleJetCorrectionUncertainty.cc+");
   gROOT->ProcessLine(".L CondFormats/JetMETObjects/src/JetCorrectionUncertainty.cc+");
+
+  // For Gamjet code (v6.26.06)
+  gROOT->ProcessLine(".L GamHistosFill.C+g");
+
 }

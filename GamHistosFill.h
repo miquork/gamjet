@@ -39,7 +39,10 @@ public :
    bool            is16apv, is16fgh, is16;
    bool            is17;
    bool            is18;
+   bool            is22;
+   bool            is23;
    bool            isQCD;
+   bool            isMG;
    string          dataset;
    string          _filename; // file name for debugging purposes
 
@@ -81,11 +84,11 @@ public :
    Float_t         Jet_btagDeepC[nJetMax];   //[nJet]
    //Float_t         Jet_btagDeepCvB[nJetMax];   //[nJet]
    //Float_t         Jet_btagDeepCvL[nJetMax];   //[nJet]
-   //Float_t         Jet_btagDeepFlavB[nJetMax];   //[nJet]
-   //Float_t         Jet_btagDeepFlavC[nJetMax];   //[nJet]
-   //Float_t         Jet_btagDeepFlavCvB[nJetMax];   //[nJet]
-   //Float_t         Jet_btagDeepFlavCvL[nJetMax];   //[nJet]
-   //Float_t         Jet_btagDeepFlavQG[nJetMax];   //[nJet]
+   Float_t         Jet_btagDeepFlavB[nJetMax];   //[nJet]
+  //Float_t         Jet_btagDeepFlavC[nJetMax];   //[nJet]
+   Float_t         Jet_btagDeepFlavCvB[nJetMax];   //[nJet]
+   Float_t         Jet_btagDeepFlavCvL[nJetMax];   //[nJet]
+   Float_t         Jet_btagDeepFlavQG[nJetMax];   //[nJet]
    Float_t         Jet_chEmEF[nJetMax];   //[nJet]
    Float_t         Jet_chFPV0EF[nJetMax];   //[nJet]
    //Float_t         Jet_chFPV1EF[nJetMax];   //[nJet]
@@ -107,7 +110,7 @@ public :
    Int_t           Jet_nConstituents[nJetMax];   //[nJet]
    Int_t           Jet_nElectrons[nJetMax];   //[nJet]
    Int_t           Jet_nMuons[nJetMax];   //[nJet]
-   Int_t           Jet_puId[nJetMax];   //[nJet]
+  //Int_t           Jet_puId[nJetMax];   //[nJet]
 
    Int_t           Jet_genJetIdx[nJetMax];   //[nJet]
 
@@ -124,19 +127,19 @@ public :
    Float_t         Photon_mass[nPhotonMax];   //[nPhoton]
    Float_t         Photon_mvaID[nPhotonMax];   //[nPhoton]
    //Float_t         Photon_mvaID_Fall17V1p1[nPhotonMax];   //[nPhoton]
-   Float_t         Photon_pfRelIso03_all[nPhotonMax];   //[nPhoton]
-   Float_t         Photon_pfRelIso03_chg[nPhotonMax];   //[nPhoton]
+   //Float_t         Photon_pfRelIso03_all[nPhotonMax];   //[nPhoton]
+   //Float_t         Photon_pfRelIso03_chg[nPhotonMax];   //[nPhoton]
    Float_t         Photon_phi[nPhotonMax];   //[nPhoton]
    Float_t         Photon_pt[nPhotonMax];   //[nPhoton]
    Float_t         Photon_r9[nPhotonMax];   //[nPhoton]
    Float_t         Photon_sieie[nPhotonMax];   //[nPhoton]
-   Int_t           Photon_charge[nPhotonMax];   //[nPhoton]
+  //Int_t           Photon_charge[nPhotonMax];   //[nPhoton]
    Int_t           Photon_cutBased[nPhotonMax];   //[nPhoton]
    Int_t           Photon_cutBasedBitmap[nPhotonMax];   // EXTRA
-   Int_t           Photon_cutBased_Fall17V1Bitmap[nPhotonMax];   //[nPhoton]
+  //Int_t           Photon_cutBased_Fall17V1Bitmap[nPhotonMax];   //[nPhoton]
    Int_t           Photon_electronIdx[nPhotonMax];   //[nPhoton]
    Int_t           Photon_jetIdx[nPhotonMax];   //[nPhoton]
-   Int_t           Photon_pdgId[nPhotonMax];   //[nPhoton]
+  //Int_t           Photon_pdgId[nPhotonMax];   //[nPhoton]
    Int_t           Photon_vidNestedWPBitmap[nPhotonMax];   //[nPhoton]
    Bool_t          Photon_electronVeto[nPhotonMax];   //[nPhoton]
    Bool_t          Photon_isScEtaEB[nPhotonMax];   //[nPhoton]
@@ -151,10 +154,10 @@ public :
    Float_t         RawMET_sumEt;
 
    Float_t         fixedGridRhoFastjetAll;
-   Float_t         fixedGridRhoFastjetCentral;
-   Float_t         fixedGridRhoFastjetCentralCalo;
-   Float_t         fixedGridRhoFastjetCentralChargedPileUp;
-   Float_t         fixedGridRhoFastjetCentralNeutral;
+   //Float_t         fixedGridRhoFastjetCentral;
+   //Float_t         fixedGridRhoFastjetCentralCalo;
+   //Float_t         fixedGridRhoFastjetCentralChargedPileUp;
+   //Float_t         fixedGridRhoFastjetCentralNeutral;
 
    UInt_t          nTrigObj;
    Float_t         TrigObj_pt[nTrigObjMax];   //[nTrigObj]
@@ -239,6 +242,10 @@ public :
    //Bool_t          HLT_Photon500;
    //Bool_t          HLT_Photon600;
 
+   // Triggers and branches from 22-23
+   Bool_t          HLT_Photon100EBHE10;
+   Bool_t          HLT_Photon30EB_TightID_TightIso;
+  
    // Triggers and branches from 2018
    Float_t         Photon_eCorr[nPhotonMax];
    Bool_t          HLT_Photon100EB_TightID_TightIso;
@@ -270,6 +277,8 @@ public :
    Float_t         GenIsolatedPhoton_phi[nPhotonMax];
    Float_t         GenIsolatedPhoton_mass[nPhotonMax];
 
+   Float_t         LHE_HT;
+  
    Float_t         genWeight;
    Float_t         Pileup_nTrueInt;
    UInt_t          nPSWeight;
@@ -290,11 +299,11 @@ public :
    TBranch        *b_Jet_btagDeepC;   //!
    //TBranch        *b_Jet_btagDeepCvB;   //!
    //TBranch        *b_Jet_btagDeepCvL;   //!
-   //TBranch        *b_Jet_btagDeepFlavB;   //!
-   //TBranch        *b_Jet_btagDeepFlavC;   //!
-   //TBranch        *b_Jet_btagDeepFlavCvB;   //!
-   //TBranch        *b_Jet_btagDeepFlavCvL;   //!
-   //TBranch        *b_Jet_btagDeepFlavQG;   //!
+   TBranch        *b_Jet_btagDeepFlavB;   //!
+  //TBranch        *b_Jet_btagDeepFlavC;   //!
+   TBranch        *b_Jet_btagDeepFlavCvB;   //!
+   TBranch        *b_Jet_btagDeepFlavCvL;   //!
+   TBranch        *b_Jet_btagDeepFlavQG;   //!
    TBranch        *b_Jet_chEmEF;   //!
    TBranch        *b_Jet_chFPV0EF;   //!
    //TBranch        *b_Jet_chFPV1EF;   //!
@@ -316,7 +325,7 @@ public :
    TBranch        *b_Jet_nConstituents;   //!
    TBranch        *b_Jet_nElectrons;   //!
    TBranch        *b_Jet_nMuons;   //!
-   TBranch        *b_Jet_puId;   //!
+  //TBranch        *b_Jet_puId;   //!
 
    TBranch        *b_Jet_genJetIdx;   //!
 
@@ -333,19 +342,19 @@ public :
    TBranch        *b_Photon_mass;   //!
    TBranch        *b_Photon_mvaID;   //!
    TBranch        *b_Photon_mvaID_Fall17V1p1;   //!
-   TBranch        *b_Photon_pfRelIso03_all;   //!
-   TBranch        *b_Photon_pfRelIso03_chg;   //!
+  //TBranch        *b_Photon_pfRelIso03_all;   //!
+  //TBranch        *b_Photon_pfRelIso03_chg;   //!
    TBranch        *b_Photon_phi;   //!
    TBranch        *b_Photon_pt;   //!
    TBranch        *b_Photon_r9;   //!
    TBranch        *b_Photon_sieie;   //!
-   TBranch        *b_Photon_charge;   //!
+  //TBranch        *b_Photon_charge;   //!
    TBranch        *b_Photon_cutBased;   //!
    TBranch        *b_Photon_cutBasedBitmap;   // EXTRA
-   TBranch        *b_Photon_cutBased_Fall17V1Bitmap;   //!
+  //TBranch        *b_Photon_cutBased_Fall17V1Bitmap;   //!
    TBranch        *b_Photon_electronIdx;   //!
    TBranch        *b_Photon_jetIdx;   //!
-   TBranch        *b_Photon_pdgId;   //!
+  //TBranch        *b_Photon_pdgId;   //!
    TBranch        *b_Photon_vidNestedWPBitmap;   //!
    TBranch        *b_Photon_electronVeto;   //!
    TBranch        *b_Photon_isScEtaEB;   //!
@@ -360,10 +369,10 @@ public :
    TBranch        *b_RawMET_sumEt;   //!
 
    TBranch        *b_fixedGridRhoFastjetAll;   //!
-   TBranch        *b_fixedGridRhoFastjetCentral;   //!
-   TBranch        *b_fixedGridRhoFastjetCentralCalo;   //!
-   TBranch        *b_fixedGridRhoFastjetCentralChargedPileUp;   //!
-   TBranch        *b_fixedGridRhoFastjetCentralNeutral;   //!
+  //TBranch        *b_fixedGridRhoFastjetCentral;   //!
+  //TBranch        *b_fixedGridRhoFastjetCentralCalo;   //!
+  //TBranch        *b_fixedGridRhoFastjetCentralChargedPileUp;   //!
+  //TBranch        *b_fixedGridRhoFastjetCentralNeutral;   //!
 
    TBranch        *b_nTrigObj;   //!
    TBranch        *b_TrigObj_pt;   //!
@@ -431,6 +440,8 @@ public :
    TBranch        *b_GenIsolatedPhoton_phi;   //!
    TBranch        *b_GenIsolatedPhoton_pt;   //!
 
+   TBranch        *b_LHE_HT;   //!
+
    // Triggers from 2016
    TBranch        *b_HLT_Photon250_NoHE;   //!
    TBranch        *b_HLT_Photon300_NoHE;   //!
@@ -464,6 +475,10 @@ public :
    //TBranch        *b_HLT_Photon500;   //!
    //TBranch        *b_HLT_Photon600;   //!
 
+  // Triggers (and branches) from 22-23
+   TBranch        *b_HLT_Photon100EBHE10;
+   TBranch        *b_HLT_Photon30EB_TightID_TightIso;
+  
    // Triggers (and branches) from 2018
    TBranch        *b_Photon_eCorr;
    TBranch        *b_HLT_Photon100EB_TightID_TightIso;
@@ -521,9 +536,15 @@ GamHistosFill::GamHistosFill(TTree *tree, int itype, string datasetname)
 	  ds=="2018A1" || ds=="2018A2" ||
 	  ds=="2018D1" || ds=="2018D2" || ds=="2018D3" || ds=="2018D4" ||
 	  ds=="2018ABCD" || ds=="2018P8" || ds=="2018QCD");
+  is22 = (ds=="2022C" || ds=="2022D" || ds=="2022E" || ds=="2022F" ||
+	  ds=="2022G" || ds=="2022P8" || ds=="2022QCD" || ds=="2022EEP8" ||
+	  ds=="2022EEQCD");
+  is23 = (ds=="2023B" || ds=="2023Cv123" || ds=="2023Cv4" || ds=="2023D" ||
+	  ds=="2023P8" || ds=="2023QCD");
   isQCD = (ds=="2016QCD" || ds=="2016QCDAPV" || ds=="2017QCD" ||
 	   ds=="2018QCD");
-  assert(is16 || is17 || is18);
+  isMG = (ds=="2022P8" || ds=="2022EEP8");
+  assert(is16 || is17 || is18 || is22 || is23);
   
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
@@ -602,17 +623,19 @@ void GamHistosFill::Init(TTree *tree)
 
    fChain->SetBranchAddress("nJet", &nJet, &b_nJet);
    fChain->SetBranchAddress("Jet_area", Jet_area, &b_Jet_area);
-   fChain->SetBranchAddress("Jet_btagDeepB", Jet_btagDeepB, &b_Jet_btagDeepB);
-   fChain->SetBranchAddress("Jet_btagDeepC", Jet_btagDeepC, &b_Jet_btagDeepC);
+   if (!(is22 || is23)) fChain->SetBranchAddress("Jet_btagDeepB", Jet_btagDeepB, &b_Jet_btagDeepB);
+   if (!(is22 || is23)) fChain->SetBranchAddress("Jet_btagDeepC", Jet_btagDeepC, &b_Jet_btagDeepC);
    //fChain->SetBranchAddress("Jet_btagDeepCvB", Jet_btagDeepCvB, &b_Jet_btagDeepCvB);
    //fChain->SetBranchAddress("Jet_btagDeepCvL", Jet_btagDeepCvL, &b_Jet_btagDeepCvL);
-   //fChain->SetBranchAddress("Jet_btagDeepFlavB", Jet_btagDeepFlavB, &b_Jet_btagDeepFlavB);
-   //fChain->SetBranchAddress("Jet_btagDeepFlavC", Jet_btagDeepFlavC, &b_Jet_btagDeepFlavC);
-   //fChain->SetBranchAddress("Jet_btagDeepFlavCvB", Jet_btagDeepFlavCvB, &b_Jet_btagDeepFlavCvB);
-   //fChain->SetBranchAddress("Jet_btagDeepFlavCvL", Jet_btagDeepFlavCvL, &b_Jet_btagDeepFlavCvL);
-   //fChain->SetBranchAddress("Jet_btagDeepFlavQG", Jet_btagDeepFlavQG, &b_Jet_btagDeepFlavQG);
+   if (is22 || is23) {
+     fChain->SetBranchAddress("Jet_btagDeepFlavB", Jet_btagDeepFlavB, &b_Jet_btagDeepFlavB);
+     //fChain->SetBranchAddress("Jet_btagDeepFlavC", Jet_btagDeepFlavC, &b_Jet_btagDeepFlavC);
+     fChain->SetBranchAddress("Jet_btagDeepFlavCvB", Jet_btagDeepFlavCvB, &b_Jet_btagDeepFlavCvB);
+     fChain->SetBranchAddress("Jet_btagDeepFlavCvL", Jet_btagDeepFlavCvL, &b_Jet_btagDeepFlavCvL);
+     fChain->SetBranchAddress("Jet_btagDeepFlavQG", Jet_btagDeepFlavQG, &b_Jet_btagDeepFlavQG);
+   }
    fChain->SetBranchAddress("Jet_chEmEF", Jet_chEmEF, &b_Jet_chEmEF);
-   fChain->SetBranchAddress("Jet_chFPV0EF", Jet_chFPV0EF, &b_Jet_chFPV0EF);
+   if (!(is22 || is23)) fChain->SetBranchAddress("Jet_chFPV0EF", Jet_chFPV0EF, &b_Jet_chFPV0EF);
    //fChain->SetBranchAddress("Jet_chFPV1EF", Jet_chFPV1EF, &b_Jet_chFPV1EF);
    //fChain->SetBranchAddress("Jet_chFPV2EF", Jet_chFPV2EF, &b_Jet_chFPV2EF);
    //fChain->SetBranchAddress("Jet_chFPV3EF", Jet_chFPV3EF, &b_Jet_chFPV3EF);
@@ -626,13 +649,13 @@ void GamHistosFill::Init(TTree *tree)
    fChain->SetBranchAddress("Jet_phi", Jet_phi, &b_Jet_phi);
    fChain->SetBranchAddress("Jet_pt", Jet_pt, &b_Jet_pt);
    //fChain->SetBranchAddress("Jet_puIdDisc", Jet_puIdDisc, &b_Jet_puIdDisc);
-   fChain->SetBranchAddress("Jet_qgl", Jet_qgl, &b_Jet_qgl);
+   if (!(is22 || is23)) fChain->SetBranchAddress("Jet_qgl", Jet_qgl, &b_Jet_qgl);
    fChain->SetBranchAddress("Jet_rawFactor", Jet_rawFactor, &b_Jet_rawFactor);
    fChain->SetBranchAddress("Jet_jetId", Jet_jetId, &b_Jet_jetId);
    fChain->SetBranchAddress("Jet_nConstituents", Jet_nConstituents, &b_Jet_nConstituents);
    fChain->SetBranchAddress("Jet_nElectrons", Jet_nElectrons, &b_Jet_nElectrons);
    fChain->SetBranchAddress("Jet_nMuons", Jet_nMuons, &b_Jet_nMuons);
-   fChain->SetBranchAddress("Jet_puId", Jet_puId, &b_Jet_puId);
+   //fChain->SetBranchAddress("Jet_puId", Jet_puId, &b_Jet_puId);
 
    if (isMC)
      fChain->SetBranchAddress("Jet_genJetIdx", Jet_genJetIdx, &b_Jet_genJetIdx);
@@ -644,31 +667,34 @@ void GamHistosFill::Init(TTree *tree)
    //fChain->SetBranchAddress("MET_sumPtUnclustered", &MET_sumPtUnclustered, &b_MET_sumPtUnclustered);
 
    fChain->SetBranchAddress("nPhoton", &nPhoton, &b_nPhoton);
-   //if (!is16) 
-   fChain->SetBranchAddress("Photon_eCorr", Photon_eCorr, &b_Photon_eCorr);
+   //if (!is16)
+   if (!(is16 || is22 || is23)) 
+     fChain->SetBranchAddress("Photon_eCorr", Photon_eCorr, &b_Photon_eCorr);
+   else
+     b_Photon_eCorr = 0;
    fChain->SetBranchAddress("Photon_energyErr", Photon_energyErr, &b_Photon_energyErr);
    fChain->SetBranchAddress("Photon_eta", Photon_eta, &b_Photon_eta);
    fChain->SetBranchAddress("Photon_hoe", Photon_hoe, &b_Photon_hoe);
-   fChain->SetBranchAddress("Photon_mass", Photon_mass, &b_Photon_mass);
+   if (!(is22 || is23)) fChain->SetBranchAddress("Photon_mass", Photon_mass, &b_Photon_mass);
    fChain->SetBranchAddress("Photon_mvaID", Photon_mvaID, &b_Photon_mvaID);
    //fChain->SetBranchAddress("Photon_mvaID_Fall17V1p1", Photon_mvaID_Fall17V1p1, &b_Photon_mvaID_Fall17V1p1);
-   fChain->SetBranchAddress("Photon_pfRelIso03_all", Photon_pfRelIso03_all, &b_Photon_pfRelIso03_all);
-   fChain->SetBranchAddress("Photon_pfRelIso03_chg", Photon_pfRelIso03_chg, &b_Photon_pfRelIso03_chg);
+   //fChain->SetBranchAddress("Photon_pfRelIso03_all", Photon_pfRelIso03_all, &b_Photon_pfRelIso03_all);
+   //fChain->SetBranchAddress("Photon_pfRelIso03_chg", Photon_pfRelIso03_chg, &b_Photon_pfRelIso03_chg);
    fChain->SetBranchAddress("Photon_phi", Photon_phi, &b_Photon_phi);
    fChain->SetBranchAddress("Photon_pt", Photon_pt, &b_Photon_pt);
    fChain->SetBranchAddress("Photon_r9", Photon_r9, &b_Photon_r9);
    fChain->SetBranchAddress("Photon_sieie", Photon_sieie, &b_Photon_sieie);
-   fChain->SetBranchAddress("Photon_charge", Photon_charge, &b_Photon_charge);
+   //fChain->SetBranchAddress("Photon_charge", Photon_charge, &b_Photon_charge);
    if (is17 && isMC && isQCD)
      fChain->SetBranchAddress("Photon_cutBasedBitmap", Photon_cutBased, &b_Photon_cutBasedBitmap);
    else 
      fChain->SetBranchAddress("Photon_cutBased", Photon_cutBased, &b_Photon_cutBased);
    //fChain->SetBranchAddress("Photon_cutBasedBitmap", Photon_cutBased, &b_Photon_cutBasedBitmap);
 
-   fChain->SetBranchAddress("Photon_cutBased_Fall17V1Bitmap", Photon_cutBased_Fall17V1Bitmap, &b_Photon_cutBased_Fall17V1Bitmap);
+   //fChain->SetBranchAddress("Photon_cutBased_Fall17V1Bitmap", Photon_cutBased_Fall17V1Bitmap, &b_Photon_cutBased_Fall17V1Bitmap);
    fChain->SetBranchAddress("Photon_electronIdx", Photon_electronIdx, &b_Photon_electronIdx);
    fChain->SetBranchAddress("Photon_jetIdx", Photon_jetIdx, &b_Photon_jetIdx);
-   fChain->SetBranchAddress("Photon_pdgId", Photon_pdgId, &b_Photon_pdgId);
+   //fChain->SetBranchAddress("Photon_pdgId", Photon_pdgId, &b_Photon_pdgId);
    fChain->SetBranchAddress("Photon_vidNestedWPBitmap", Photon_vidNestedWPBitmap, &b_Photon_vidNestedWPBitmap);
    fChain->SetBranchAddress("Photon_electronVeto", Photon_electronVeto, &b_Photon_electronVeto);
    fChain->SetBranchAddress("Photon_isScEtaEB", Photon_isScEtaEB, &b_Photon_isScEtaEB);
@@ -682,11 +708,14 @@ void GamHistosFill::Init(TTree *tree)
    fChain->SetBranchAddress("RawMET_pt", &RawMET_pt, &b_RawMET_pt);
    fChain->SetBranchAddress("RawMET_sumEt", &RawMET_sumEt, &b_RawMET_sumEt);
 
-   fChain->SetBranchAddress("fixedGridRhoFastjetAll", &fixedGridRhoFastjetAll, &b_fixedGridRhoFastjetAll);
-   fChain->SetBranchAddress("fixedGridRhoFastjetCentral", &fixedGridRhoFastjetCentral, &b_fixedGridRhoFastjetCentral);
-   fChain->SetBranchAddress("fixedGridRhoFastjetCentralCalo", &fixedGridRhoFastjetCentralCalo, &b_fixedGridRhoFastjetCentralCalo);
-   fChain->SetBranchAddress("fixedGridRhoFastjetCentralChargedPileUp", &fixedGridRhoFastjetCentralChargedPileUp, &b_fixedGridRhoFastjetCentralChargedPileUp);
-   fChain->SetBranchAddress("fixedGridRhoFastjetCentralNeutral", &fixedGridRhoFastjetCentralNeutral, &b_fixedGridRhoFastjetCentralNeutral);
+   if (!(is22 || is23))
+     fChain->SetBranchAddress("fixedGridRhoFastjetAll", &fixedGridRhoFastjetAll, &b_fixedGridRhoFastjetAll);
+   if (is22 || is23)
+     fChain->SetBranchAddress("Rho_fixedGridRhoAll", &fixedGridRhoFastjetAll, &b_fixedGridRhoFastjetAll);
+   //fChain->SetBranchAddress("fixedGridRhoFastjetCentral", &fixedGridRhoFastjetCentral, &b_fixedGridRhoFastjetCentral);
+   //fChain->SetBranchAddress("fixedGridRhoFastjetCentralCalo", &fixedGridRhoFastjetCentralCalo, &b_fixedGridRhoFastjetCentralCalo);
+   //fChain->SetBranchAddress("fixedGridRhoFastjetCentralChargedPileUp", &fixedGridRhoFastjetCentralChargedPileUp, &b_fixedGridRhoFastjetCentralChargedPileUp);
+   //fChain->SetBranchAddress("fixedGridRhoFastjetCentralNeutral", &fixedGridRhoFastjetCentralNeutral, &b_fixedGridRhoFastjetCentralNeutral);
 
    fChain->SetBranchAddress("nTrigObj", &nTrigObj, &b_nTrigObj);
    fChain->SetBranchAddress("TrigObj_pt", TrigObj_pt, &b_TrigObj_pt);
@@ -750,6 +779,9 @@ void GamHistosFill::Init(TTree *tree)
      fChain->SetBranchAddress("GenJet_pt", GenJet_pt, &b_GenJet_pt);
      fChain->SetBranchAddress("GenJet_partonFlavour", GenJet_partonFlavour, &b_GenJet_partonFlavour);
 
+     if (is22 || is23)
+       fChain->SetBranchAddress("LHE_HT", &LHE_HT, &b_LHE_HT);
+
      if (!isQCD) {
        fChain->SetBranchAddress("nGenIsolatedPhoton", &nGenIsolatedPhoton, &b_nGenIsolatedPhoton);
        fChain->SetBranchAddress("GenIsolatedPhoton_eta", GenIsolatedPhoton_eta, &b_GenIsolatedPhoton_eta);
@@ -798,6 +830,8 @@ void GamHistosFill::Init(TTree *tree)
    b_HLT_Photon110EB_TightID_TightIso = 0;
    b_HLT_Photon120EB_TightID_TightIso = 0;
 
+   b_HLT_Photon100EBHE10 = 0;
+   b_HLT_Photon30EB_TightID_TightIso = 0;
 
    if (is16) {
 
@@ -855,7 +889,7 @@ void GamHistosFill::Init(TTree *tree)
 
    } // is16
 
-   if (is17 || is18) {
+   if (is17 || is18 || is22 || is23) {
 
    // also in 2016
    fChain->SetBranchAddress("HLT_Photon300_NoHE", &HLT_Photon300_NoHE, &b_HLT_Photon300_NoHE);
@@ -883,7 +917,7 @@ void GamHistosFill::Init(TTree *tree)
    fChain->SetBranchAddress("HLT_Photon20_HoverELoose", &HLT_Photon20_HoverELoose, &b_HLT_Photon20_HoverELoose);
    fChain->SetBranchAddress("HLT_Photon30_HoverELoose", &HLT_Photon30_HoverELoose, &b_HLT_Photon30_HoverELoose);
 
-   } // is17 || is18
+   } // is17 || is18 || is22 || is23
    if (is17 && !isMC) {
 
      fChain->SetBranchAddress("HLT_Photon40_HoverELoose", &HLT_Photon40_HoverELoose, &b_HLT_Photon40_HoverELoose);
@@ -902,6 +936,15 @@ void GamHistosFill::Init(TTree *tree)
    fChain->SetBranchAddress("HLT_Photon120EB_TightID_TightIso", &HLT_Photon120EB_TightID_TightIso, &b_HLT_Photon120EB_TightID_TightIso);
 
    } // is18
+   if (is22 || is23) {
+
+     //fChain->SetBranchAddress("HLT_Photon20", &HLT_Photon20, &b_HLT_Photon20);
+   
+   fChain->SetBranchAddress("HLT_Photon30EB_TightID_TightIso", &HLT_Photon30EB_TightID_TightIso, &b_HLT_Photon30EB_TightID_TightIso);
+   fChain->SetBranchAddress("HLT_Photon100EBHE10", &HLT_Photon100EBHE10, &b_HLT_Photon100EBHE10);
+   fChain->SetBranchAddress("HLT_Photon110EB_TightID_TightIso", &HLT_Photon110EB_TightID_TightIso, &b_HLT_Photon110EB_TightID_TightIso);
+
+   } // is22 is23
    Notify();
 }
 
@@ -929,6 +972,7 @@ void GamHistosFill::Show(Long64_t entry)
 }
 Int_t GamHistosFill::Cut(Long64_t entry)
 {
+  if (entry) {}; // suppress compiler error
 // This function may be called from Loop.
 // returns  1 if entry is accepted.
 // returns -1 otherwise.
