@@ -62,27 +62,27 @@ void GamHistosRatios(string ver, string iov) {
   TFile *fd(0), *fm(0), *fr(0);
   if (iov=="2016BCDEF") {
     // Merge files, if not already done (delete combination file to redo)
+    //if (ps=="")
     gSystem->Exec(Form("hadd files/GamHistosFill_data_2016BCDEF_%s.root "
 		       "files/GamHistosFill_data_2016BCD_%s.root "
 		       "files/GamHistosFill_data_2016EF_%s.root ",
 		       cv,cvo,cvo));
 
     fd = new TFile(Form("files/GamHistosFill_data_%s_%s.root",ci,cv),"READ");
-    //fm = new TFile(Form("files/GamHistosFill_mc_2016P8APV_%s.root",cv),"READ");
-    //fr = new TFile(Form("files/GamHistosRatio_%s_P8APV_%s.root",ci,cv),"RECREATE");
     fm = new TFile(Form("files/GamHistosMix_mc_2016APVP8QCD_%s.root",cv),"READ");
-    fr = new TFile(Form("files/GamHistosRatio_%s_P8QCDAPV_%s.root",ci,cv),"RECREATE");
+    fr = new TFile(Form("files/GamHistosRatio_%s_P8QCDAPV_%s.root",ci,cv),
+		   "RECREATE");//ps=="" ? "RECREATE" : "UPDATE");
   }
   if (iov=="2016FGH") {
 
     fd = new TFile(Form("files/GamHistosFill_data_%s_%s.root",ci,cvo),"READ");
-    //fm = new TFile(Form("files/GamHistosFill_mc_2016P8_%s.root",cv),"READ");
-    //fr = new TFile(Form("files/GamHistosRatio_%s_P8_%s.root",ci,cv),"RECREATE");
     fm = new TFile(Form("files/GamHistosMix_mc_2016P8QCD_%s.root",cv),"READ");
-    fr = new TFile(Form("files/GamHistosRatio_%s_P8QCD_%s.root",ci,cv),"RECREATE");
+    fr = new TFile(Form("files/GamHistosRatio_%s_P8QCD_%s.root",ci,cv),
+		   "RECREATE");//ps=="" ? "RECREATE" : "UPDATE");
   }
   if (iov=="2017BCDEF") {
     // Merge files, if not already done (delete combination file to redo)
+    //if (ps=="")
     gSystem->Exec(Form("hadd files/GamHistosFill_data_2017BCDEF_%s.root "
 		       "files/GamHistosFill_data_2017B_%s.root "
 		       "files/GamHistosFill_data_2017C_%s.root "
@@ -92,14 +92,14 @@ void GamHistosRatios(string ver, string iov) {
 		       cv, cvo,cvo,cvo,cvo,cvo));
 
     fd = new TFile(Form("files/GamHistosFill_data_%s_%s.root",ci,cv),"READ");
-    //fm = new TFile(Form("files/GamHistosFill_mc_2017P8_%s.root",cv),"READ");
-    //fr = new TFile(Form("files/GamHistosRatio_%s_P8_%s.root",ci,cv),"RECREATE");
     fm = new TFile(Form("files/GamHistosMix_mc_2017P8QCD_%s.root",cv),"READ");
-    fr = new TFile(Form("files/GamHistosRatio_%s_P8QCD_%s.root",ci,cv),"RECREATE");
+    fr = new TFile(Form("files/GamHistosRatio_%s_P8QCD_%s.root",ci,cv),
+		   "RECREATE");//ps=="" ? "RECREATE" : "UPDATE");
   }
   if (iov=="2018ABCD") {
 
     // Merge files, if not already done (delete combination file to redo)
+    //if (ps=="")
     gSystem->Exec(Form("hadd files/GamHistosFill_data_2018ABCD_%s.root "
 		       "files/GamHistosFill_data_2018A1_%s.root "
 		       "files/GamHistosFill_data_2018A2_%s.root "
@@ -109,15 +109,12 @@ void GamHistosRatios(string ver, string iov) {
 		       "files/GamHistosFill_data_2018D2_%s.root "
 		       "files/GamHistosFill_data_2018D3_%s.root "
 		       "files/GamHistosFill_data_2018D4_%s.root",
-		       //"files/GamHistosFill_data_2018D_%s.root",
-		       //cv,cv,cv,cv,cv,cv));
 		       cv, cvo,cvo,cvo,cvo, cvo,cvo,cvo,cvo));
     
     fd = new TFile(Form("files/GamHistosFill_data_%s_%s.root",ci,cv),"READ");
-    //fm = new TFile(Form("files/GamHistosFill_mc_2018P8_%s.root",cv),"READ");
-    //fr = new TFile(Form("files/GamHistosRatio_%s_P8_%s.root",ci,cv),"RECREATE");
     fm = new TFile(Form("files/GamHistosMix_mc_2018P8QCD_%s.root",cv),"READ");
-    fr = new TFile(Form("files/GamHistosRatio_%s_P8QCD_%s.root",ci,cv),"RECREATE");
+    fr = new TFile(Form("files/GamHistosRatio_%s_P8QCD_%s.root",ci,cv),
+		   "RECREATE");//ps=="" ? "RECREATE" : "UPDATE");
   }
 
   assert(fd && !fd->IsZombie());
@@ -148,6 +145,10 @@ void GamHistosRatios(string ver, string iov) {
       TString mcname = obj->GetName();
       TString dataname = mcname;
       dataname.ReplaceAll("MC","DATA");
+      dataname.ReplaceAll("_ps0",""); // v20
+      dataname.ReplaceAll("_ps1",""); // v20
+      dataname.ReplaceAll("_ps2",""); // v20
+      dataname.ReplaceAll("_ps3",""); // v20
       TProfile *pd = (TProfile*)fd->Get(dataname.Data());
       if (!pd && dataname.Contains("Rho")) continue; // v19
       if (!pd && dataname.Contains("_ps")) continue; // v19
@@ -250,9 +251,9 @@ void GamHistosRatios(string ver, string iov) {
       gd->SetLineColor(kBlue);
       gr->SetLineColor(kBlack);
       
-      gm->Write(); 
-      gd->Write();
-      gr->Write();
+      gm->Write(gm->GetName(),TObject::kOverwrite); 
+      gd->Write(gd->GetName(),TObject::kOverwrite); 
+      gr->Write(gr->GetName(),TObject::kOverwrite); 
     } // TProfile
     else if (obj->InheritsFrom("TH1D")) {
 
@@ -262,6 +263,10 @@ void GamHistosRatios(string ver, string iov) {
 
       TString dataname = mcname;
       dataname.ReplaceAll("MC","DATA");
+      dataname.ReplaceAll("_ps0",""); // v20
+      dataname.ReplaceAll("_ps1",""); // v20
+      dataname.ReplaceAll("_ps2",""); // v20
+      dataname.ReplaceAll("_ps3",""); // v20
       TH1D *hd = (TProfile*)fd->Get(dataname.Data());
       if (!hd && dataname.Contains("Xsec")) continue; // v19
       if (!hd && dataname.Contains("_ps")) continue; // v19
@@ -276,9 +281,9 @@ void GamHistosRatios(string ver, string iov) {
       //hm->SetDirectory(gDirectory);
       //hd->SetDirectory(gDirectory);
       //hr->SetDirectory(gDirectory);
-      hm->Write();
-      hd->Write();
-      hr->Write();
+      hm->Write(hm->GetName(),TObject::kOverwrite); 
+      hd->Write(hd->GetName(),TObject::kOverwrite); 
+      hr->Write(hr->GetName(),TObject::kOverwrite); 
     } // TH1D
   } // while key in itkey
 
