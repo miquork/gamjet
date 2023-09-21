@@ -45,12 +45,23 @@ void replacePt(TGraphErrors *g, TH1 *h) {
 }
 
 void GamHistosRatios(string ver, string iov);
-void GamHistosRatio(string ver = "v20") {
-  GamHistosRatios(ver,"2016BCDEF");
-  GamHistosRatios(ver,"2016FGH");
-  GamHistosRatios(ver,"2017BCDEF");
-  GamHistosRatios(ver,"2018ABCD");
+void GamHistosRatio(string ver = "v21") {
+  //GamHistosRatios(ver,"2016BCDEF");
+  //GamHistosRatios(ver,"2016FGH");
+  //GamHistosRatios(ver,"2017BCDEF");
+  //GamHistosRatios(ver,"2018ABCD");
   //GamHistosRatios(ver,"Run2");
+
+  //GamHistosRatios(ver,"2022C");
+  //GamHistosRatios(ver,"2022D");
+  //GamHistosRatios(ver,"2022E");
+  //GamHistosRatios(ver,"2022CDE");
+  //GamHistosRatios(ver,"2022F");
+  //GamHistosRatios(ver,"2022G");
+  //GamHistosRatios(ver,"2022FG");
+  //GamHistosRatios(ver,"2023Cv123");
+  //GamHistosRatios(ver,"2023Cv4");
+  GamHistosRatios(ver,"Run3");
 }
 
 void GamHistosRatios(string ver, string iov) {
@@ -95,6 +106,7 @@ void GamHistosRatios(string ver, string iov) {
     fm = new TFile(Form("files/GamHistosMix_mc_2017P8QCD_%s.root",cv),"READ");
     fr = new TFile(Form("files/GamHistosRatio_%s_P8QCD_%s.root",ci,cv),
 		   "RECREATE");//ps=="" ? "RECREATE" : "UPDATE");
+  
   }
   if (iov=="2018ABCD") {
 
@@ -116,7 +128,63 @@ void GamHistosRatios(string ver, string iov) {
     fr = new TFile(Form("files/GamHistosRatio_%s_P8QCD_%s.root",ci,cv),
 		   "RECREATE");//ps=="" ? "RECREATE" : "UPDATE");
   }
+  //
+  if (iov=="2022C" || iov=="2022D" || iov=="2022CDE") {
 
+    // Merge files, if not already done (delete combination file to redo)
+    if (iov=="2022CDE")    
+      gSystem->Exec(Form("hadd files/GamHistosFill_data_2022CDE_%s.root "
+			 "files/GamHistosFill_data_2022C_%s.root "
+			 "files/GamHistosFill_data_2022D_%s.root "
+			 "files/GamHistosFill_data_2022E_%s.root",
+			 cv, cv,cv,cv));
+
+    fd = new TFile(Form("files/GamHistosFill_data_%s_%s.root",ci,cv),"READ");
+    //fm = new TFile(Form("files/GamHistosMix_mc_2018P8QCD_%s.root",cv),"READ");
+    fm = new TFile(Form("files/GamHistosFill_mc_2022P8_%s.root",cv),"READ");
+    //fr = new TFile(Form("files/GamHistosRatio_%s_P8QCD_%s.root",ci,cv),
+    fr = new TFile(Form("files/GamHistosRatio_%s_P8_%s.root",ci,cv),"RECREATE");
+  }
+  if (iov=="2022E" || iov=="2022F" || iov=="2022G" || iov=="2022FG") {
+
+    // Merge files, if not already done (delete combination file to redo)
+    if (iov=="2022FG")    
+      gSystem->Exec(Form("hadd files/GamHistosFill_data_2022FG_%s.root "
+			 "files/GamHistosFill_data_2022F_%s.root "
+			 "files/GamHistosFill_data_2022G_%s.root",
+			 cv, cv,cv));
+    
+    fd = new TFile(Form("files/GamHistosFill_data_%s_%s.root",ci,cv),"READ");
+    fm = new TFile(Form("files/GamHistosFill_mc_2022EEP8_%s.root",cv),"READ");
+    fr = new TFile(Form("files/GamHistosRatio_%s_P8_%s.root",ci,cv),"RECREATE");
+  }
+  if (iov=="2023Cv123" || iov=="2023Cv4") {
+    fd = new TFile(Form("files/GamHistosFill_data_%s_%s.root",ci,cv),"READ");
+    fm = new TFile(Form("files/GamHistosFill_mc_2022P8_%s.root",cv),"READ");
+    fr = new TFile(Form("files/GamHistosRatio_%s_P8_%s.root",ci,cv),"RECREATE");
+  }
+  if (iov=="Run3") {
+
+    // Merge files, if not already done (delete combination file to redo)
+    gSystem->Exec(Form("hadd files/GamHistosFill_data_Run3_%s.root "
+		       "files/GamHistosFill_data_2022C_%s.root "
+		       "files/GamHistosFill_data_2022D_%s.root "
+		       "files/GamHistosFill_data_2022E_%s.root "
+		       "files/GamHistosFill_data_2022F_%s.root "
+		       "files/GamHistosFill_data_2022G_%s.root "
+		       "files/GamHistosFill_data_2023Cv123_%s.root "
+		       "files/GamHistosFill_data_2023Cv4_%s.root",
+		       cv, cv,cv,cv, cv,cv, cv,cv));
+    gSystem->Exec(Form("hadd files/GamHistosFill_mc_2022XP8_%s.root "
+		       "files/GamHistosFill_mc_2022EEP8_%s.root "
+		       "files/GamHistosFill_mc_2022P8_%s.root",
+		       cv, cv,cv));
+
+    fd = new TFile(Form("files/GamHistosFill_data_%s_%s.root",ci,cv),"READ");
+    fm = new TFile(Form("files/GamHistosFill_mc_2022XP8_%s.root",cv),"READ");
+    fr = new TFile(Form("files/GamHistosRatio_%s_P8_%s.root",ci,cv),"RECREATE");
+  }
+  
   assert(fd && !fd->IsZombie());
   assert(fm && !fm->IsZombie());
   assert(fr && !fr->IsZombie());
@@ -270,6 +338,14 @@ void GamHistosRatios(string ver, string iov) {
       TH1D *hd = (TProfile*)fd->Get(dataname.Data());
       if (!hd && dataname.Contains("Xsec")) continue; // v19
       if (!hd && dataname.Contains("_ps")) continue; // v19
+      if (!hd) {
+	cout << "Missing " << dataname << endl << flush;
+	if (dataname=="hxsec") continue; // run3 MC extra
+	if (dataname=="hnevt") continue; // run3 MC extra
+	if (dataname=="hsumw") continue; // run3 MC extra
+	if (dataname=="hLHE_HT") continue; // run3 MC extra
+	if (dataname=="hHT") continue; // run3 MC extra
+      }
       assert(hd);
 
       TString rationame = mcname;

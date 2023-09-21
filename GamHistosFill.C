@@ -119,7 +119,7 @@ void GamHistosFill::Loop()
     fChain->SetBranchStatus("*",0);  // disable all branches
     
     // Baseline triggers with very high prescale except Photon200
-    if (is18 || is22 || is23) {
+    if (is18) {// || is22 || is23) {
       fChain->SetBranchStatus("HLT_Photon20",1);
     }
     if (is16) {
@@ -507,7 +507,8 @@ void GamHistosFill::Loop()
   //		 300, 400, 500, 600, 700, 850, 1000, 1200, 1450, 1750};
   // 22-23 binning
   double vx[] = {15, 20, 25, 30, 35, 40, 50, 60, 75, 90, 110, 130, 175, 230,
-  		 300, 400, 500, 600, 700, 850, 1000, 1200, 1450, 1750};
+  		 300, 400, 500, 600, 700, 850, 1000, 1200, 1450, 1750,
+		 2100, 2500, 3000};
   const int nx = sizeof(vx)/sizeof(vx[0])-1;
   
   // L2L3Res eta binning
@@ -1238,8 +1239,10 @@ void GamHistosFill::Loop()
 
     // Correct photon for gain1 and MPF for "footprint" (photon vs PFgamma)
     rawgam = gam;
-    if (iGam!=-1 && Photon_seedGain[iGam]==1 && !isMC) gam *= 1./1.01;
-    if (iGam!=-1) {
+    if (iGam!=-1 && Photon_seedGain[iGam]==1 && !isMC && !(is22 || is23)) {
+      gam *= 1./1.01;
+    }
+    if (iGam!=-1 && !(is22 || is23)) {
       // [0]+log(x)*([1]+log(x)*[2]) in range [15,1750] to MC pphoj0
       //1  p0           4.57516e-02   3.91871e-04   1.09043e-07   4.17033e-05
       //2  p1          -1.27462e-02   1.50968e-04   2.08432e-08   3.92715e-03
@@ -1315,6 +1318,7 @@ void GamHistosFill::Loop()
 	jecl1rc->setJetA(Jet_area[iFox]);
 	jecl1rc->setRho(fixedGridRhoFastjetAll);
 	double corrl1rc = jecl1rc->getCorrection();
+	if (is22 || is23) corrl1rc = 1; // How to do this for PUPPI?
 	fox *= corrl1rc;
 	// NB2: should also remove UE clustered into fox. In Minsuk's plot
 	// QCD_CP5 has about 2.5 GeV/A of UE offset at FullSim level
@@ -1414,6 +1418,7 @@ void GamHistosFill::Loop()
        //(HLT_Photon50_R9Id90_HE10_IsoM && pt>=50  && pt<130  && (itrg=50))  ||
 	 (HLT_Photon30EB_TightID_TightIso  && pt>=30&&pt<50   && (itrg=30))  ||
 	 (HLT_Photon20_HoverELoose      && pt>=20  && pt<30   && (itrg=20))
+	 //|| (true && (itrg=1))// trigger bypass for EGamma on photonTrigs.C
 	 ))
        );
   
@@ -1517,6 +1522,7 @@ void GamHistosFill::Loop()
 	jecl1rc->setJetA(Jet_area[i]);
 	jecl1rc->setRho(fixedGridRhoFastjetAll);
 	double corrl1rc = jecl1rc->getCorrection();
+	if (is22 || is23) corrl1rc = 1; // How to do this for PUPPI?
 	rcjet = corrl1rc * rawjet;
 	
 	// Corrected type-I chsMET calculation

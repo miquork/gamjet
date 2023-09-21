@@ -31,9 +31,16 @@ void drawPhotonJetVsPtVsIOV() {
   //drawPhotonJetVsPtVsIOVs("control/pcorrvspt","Correction","Correction",0.99,1.01,-0.001,0.001);//0.5,2.5);
   //drawPhotonJetVsPtVsIOVs("control/phoevspt","H/E","HoE",0.,0.01,0.7,1.6);
   //drawPhotonJetVsPtVsIOVs("control/pr9vspt","R9","R9",0.83,1.03,0.9,1.14);
-  drawPhotonJetVsPtVsIOVs("control/pgain1vspt","Gain1","Gain1",0.,1.2,0.5,1.5);
-  drawPhotonJetVsPtVsIOVs("control/pgain6vspt","Gain6","Gain6",0.,1.2,0.5,1.5);
-  drawPhotonJetVsPtVsIOVs("control/pgain12vspt","Gain12","Gain12",0.,1.2,0.5,1.5);
+
+  //drawPhotonJetVsPtVsIOVs("control/pgain1vspt","Gain1","Gain1",0.,1.2,0.5,1.5);
+  //drawPhotonJetVsPtVsIOVs("control/pgain6vspt","Gain6","Gain6",0.,1.2,0.5,1.5);
+  //drawPhotonJetVsPtVsIOVs("control/pgain12vspt","Gain12","Gain12",0.,1.2,0.5,1.5);
+
+  //drawPhotonJetVsPtVsIOVs("resp_MPFchs_%s_a100_eta00_13","MPF","MPF",0.88,1.23,0.88,1.08);
+  drawPhotonJetVsPtVsIOVs("resp_MPFchs_%s_a100_eta00_13","MPF","MPF",0.90,1.15,0.89,1.09);//1.06);
+  //drawPhotonJetVsPtVsIOVs("resp_DBchs_%s_a100_eta00_13","DB","DB",0.75,1.20,0.80,1.10);
+  //drawPhotonJetVsPtVsIOVs("resp_DBchs_%s_a100_eta00_13","DB","DB",0.75,1.20,0.89,1.09);
+  
   //drawPhotonJetVsPtVsIOVs("resp_MPFchs_%s_a100_eta00_13","MPF","MPF",0.94,1.08,0.95,1.03);
   //drawPhotonJetVsPtVsIOVs("resp_MPFR1chs_%s_a100_eta00_13","MPF1","MPF1",0.8,1.10,0.95,1.05);
   //drawPhotonJetVsPtVsIOVs("resp_MPFRnchs_%s_a100_eta00_13","MPFn","MPFn",-0.1,0.2,-0.03,0.03);
@@ -47,8 +54,15 @@ void drawPhotonJetVsPtVsIOVs(string so, string var, string name,
 
   //string iovs[] = {"2016BCDEF","2016FGH","2017BCDEF","2018ABCD","Run2"};
   //string mcs[] = {"2016APVP8","2016P8","2017P8","2018P8","Run2P8"};
-  string iovs[] = {"2016BCDEF","2016FGH","2017BCDEF","2018ABCD"};
-  string mcs[] = {"2016APVP8","2016P8","2017P8","2018P8"};
+  //string iovs[] = {"2016BCDEF","2016FGH","2017BCDEF","2018ABCD"};
+  //string mcs[] = {"2016APVP8","2016P8","2017P8","2018P8"};
+  string iovs[] = {"2018ABCD","Run3",
+		   //"2022C","2022D","2022E","2022F","2022G",
+		   "2022CDE","2022FG",
+		   "2023Cv123","2023Cv4"};
+  string mcs[] = {"2018P8","2022XP8",
+		  "2022P8","2022EEP8",
+		  "2022P8","2022P8"};
   const int niov = sizeof(iovs)/sizeof(iovs[0]);
   const int nmc = sizeof(mcs)/sizeof(mcs[0]);
   assert(niov==nmc);
@@ -57,15 +71,27 @@ void drawPhotonJetVsPtVsIOVs(string so, string var, string name,
   mcolor["2016BCDEF"] = kBlue;
   mcolor["2016FGH"] = kCyan+2;
   mcolor["2017BCDEF"] = kGreen+2;
-  mcolor["2018ABCD"] = kRed;
+  mcolor["2018ABCD"] = kGray+2;//kRed;
   mcolor["Run2"] = kBlack;
+  //
+  mcolor["2022C"] = kBlue;
+  mcolor["2022D"] = kCyan+1;
+  mcolor["2022E"] = kCyan+2;
+  mcolor["2022CDE"] = kBlue;
+  mcolor["2022F"] = kRed;
+  mcolor["2022G"] = kOrange+2;
+  mcolor["2022FG"] = kRed;
+  mcolor["2023Cv123"] = kYellow+2;
+  mcolor["2023Cv4"] = kGreen+2;
+  mcolor["Run3"] = kBlack;
 
   const char *cvar = var.c_str();
   const char *cname = name.c_str();
 
   TH1D *h = tdrHist("h",cvar,y1,y2);
   TH1D *h2 = tdrHist("h2","Data/MC",z1,z2);
-  lumi_13TeV = "Run2 v16";
+  //lumi_13TeV = "Run2 v16";
+  lumi_13TeV = "Run3 v21";
   TCanvas *c1 = tdrDiCanvas(Form("c1_%s",cname),h,h2,4,11);
 
 
@@ -76,7 +102,8 @@ void drawPhotonJetVsPtVsIOVs(string so, string var, string name,
   l->DrawLine(h->GetXaxis()->GetXmin(),0,h->GetXaxis()->GetXmax(),0);
   gPad->SetLogx();
 
-  TLegend *leg = tdrLeg(0.60,0.90-niov*0.06,0.80,0.90);
+  //TLegend *leg = tdrLeg(0.60,0.90-niov*0.06,0.80,0.90);
+  TLegend *leg = tdrLeg(0.60,0.90-niov*0.045,0.80,0.90);
 
   c1->cd(2);
   gPad->SetLogx();
@@ -89,11 +116,17 @@ void drawPhotonJetVsPtVsIOVs(string so, string var, string name,
     const char *cmc = mcs[i].c_str();
 
     TFile *fd(0), *fm(0);
+    if (iovs[i]=="2018ABCD")
     //fd = new TFile(Form("files/GamHistosFill_data_%s_v16.root",ciov));
-    fd = new TFile(Form("files/GamHistosFill_data_%s_v20.root",ciov));
+      fd = new TFile(Form("files/GamHistosFill_data_%s_v20.root",ciov));
+    else
+      fd = new TFile(Form("files/GamHistosFill_data_%s_v21.root",ciov));
     assert(fd && !fd->IsZombie());
-    //fm = new TFile(Form("files/GamHistosFill_mc_%s_v16.root",cmc));
-    fm = new TFile(Form("files/GamHistosFill_mc_%s_v20.root",cmc));
+    if (iovs[i]=="2018ABCD")
+      //fm = new TFile(Form("files/GamHistosFill_mc_%s_v16.root",cmc));      
+      fm = new TFile(Form("files/GamHistosFill_mc_%s_v20.root",cmc));
+    else
+      fm = new TFile(Form("files/GamHistosFill_mc_%s_v21.root",cmc));
     assert(fm && !fm->IsZombie());
 
     curdir->cd();

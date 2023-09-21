@@ -37,33 +37,38 @@ void photonTrigs(string year = "2018") {
   TFile *f0(0), *f1(0);
 
   if (year=="2023Cv4") {
+    f0 = new TFile("files/GamHistosFill_data_2023Cv4_v21e.root","READ");
     f1 = new TFile("files/GamHistosFill_data_2023Cv4_v21.root","READ");
-    f0 = f1;
     lumi_13TeV = "2023Cv4";
   }
   if (year=="2023Cv123") {
+    f0 = new TFile("files/GamHistosFill_data_2023Cv123_v21e.root","READ");
     f1 = new TFile("files/GamHistosFill_data_2023Cv123_v21.root","READ");
-    f0 = f1;
     lumi_13TeV = "2023Cv123";
   }
   if (year=="2022G") {
-    f1 = new TFile("files/GamHistosFill_data_2022G_v21.root","READ"); f0 = f1;
+    f0 = new TFile("files/GamHistosFill_data_2022G_v21e.root","READ");
+    f1 = new TFile("files/GamHistosFill_data_2022G_v21.root","READ");
     lumi_13TeV = "2022G";
   }
   if (year=="2022F") {
-    f1 = new TFile("files/GamHistosFill_data_2022F_v21.root","READ"); f0 = f1;
+    f0 = new TFile("files/GamHistosFill_data_2022F_v21e.root","READ");
+    f1 = new TFile("files/GamHistosFill_data_2022F_v21.root","READ");
     lumi_13TeV = "2022F";
   }
   if (year=="2022E") {
-    f1 = new TFile("files/GamHistosFill_data_2022E_v21.root","READ"); f0 = f1;
+    f0 = new TFile("files/GamHistosFill_data_2022E_v21e.root","READ");
+    f1 = new TFile("files/GamHistosFill_data_2022E_v21.root","READ");
     lumi_13TeV = "2022E";
   }
   if (year=="2022D") {
-    f1 = new TFile("files/GamHistosFill_data_2022D_v21.root","READ"); f0 = f1;
+    f0 = new TFile("files/GamHistosFill_data_2022D_v21e.root","READ");
+    f1 = new TFile("files/GamHistosFill_data_2022D_v21.root","READ");
     lumi_13TeV = "2022D";
   }
   if (year=="2022C") {
-    f1 = new TFile("files/GamHistosFill_data_2022C_v21.root","READ"); f0 = f1;
+    f0 = new TFile("files/GamHistosFill_data_2022C_v21e.root","READ");
+    f1 = new TFile("files/GamHistosFill_data_2022C_v21.root","READ");
     lumi_13TeV = "2022C";
   }
   if (year=="2018") { // 2018
@@ -89,6 +94,9 @@ void photonTrigs(string year = "2018") {
   assert(f0 && !f0->IsZombie());
   assert(f1 && !f1->IsZombie());
 
+  f0->cd("control"); 
+  TDirectory *d0 = gDirectory;
+
   f1->cd("control"); 
   TDirectory *d1 = gDirectory;
 
@@ -99,7 +107,7 @@ void photonTrigs(string year = "2018") {
   gPad->SetLogx();
   gPad->SetLogy();
 
-  TH1D *had = (TH1D*)f0->Get("hgam0_data"); assert(had);
+  TH1D *had = (TH1D*)d0->Get("hgam0_data"); assert(had);
   TH1D *htd = (TH1D*)d1->Get("hgamtrig_data"); assert(htd);
 
   TH1D *h200 = (TH1D*)d1->Get("hgam200"); assert(h200);
