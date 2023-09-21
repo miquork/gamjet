@@ -31,7 +31,8 @@ void drawPhotonJetVsPtVsIOV() {
   //drawPhotonJetVsPtVsIOVs("control/pcorrvspt","Correction","Correction",0.99,1.01,-0.001,0.001);//0.5,2.5);
   //drawPhotonJetVsPtVsIOVs("control/phoevspt","H/E","HoE",0.,0.01,0.7,1.6);
   //drawPhotonJetVsPtVsIOVs("control/pr9vspt","R9","R9",0.83,1.03,0.9,1.14);
-  //drawPhotonJetVsPtVsIOVs("control/pgain1vspt","Gain1","Gain1",0.,1.2,0.5,1.5);
+  drawPhotonJetVsPtVsIOVs("control/pgain1vspt","Gain1","Gain1",0.,1.2,0.5,1.5);
+  drawPhotonJetVsPtVsIOVs("control/pgain6vspt","Gain6","Gain6",0.,1.2,0.5,1.5);
   drawPhotonJetVsPtVsIOVs("control/pgain12vspt","Gain12","Gain12",0.,1.2,0.5,1.5);
   //drawPhotonJetVsPtVsIOVs("resp_MPFchs_%s_a100_eta00_13","MPF","MPF",0.94,1.08,0.95,1.03);
   //drawPhotonJetVsPtVsIOVs("resp_MPFR1chs_%s_a100_eta00_13","MPF1","MPF1",0.8,1.10,0.95,1.05);
@@ -44,8 +45,10 @@ void drawPhotonJetVsPtVsIOVs(string so, string var, string name,
   setTDRStyle();
   TDirectory *curdir = gDirectory;
 
-  string iovs[] = {"2016BCDEF","2016FGH","2017BCDEF","2018ABCD","Run2"};
-  string mcs[] = {"2016P8APV","2016P8","2017P8","2018P8","Run2P8"};
+  //string iovs[] = {"2016BCDEF","2016FGH","2017BCDEF","2018ABCD","Run2"};
+  //string mcs[] = {"2016APVP8","2016P8","2017P8","2018P8","Run2P8"};
+  string iovs[] = {"2016BCDEF","2016FGH","2017BCDEF","2018ABCD"};
+  string mcs[] = {"2016APVP8","2016P8","2017P8","2018P8"};
   const int niov = sizeof(iovs)/sizeof(iovs[0]);
   const int nmc = sizeof(mcs)/sizeof(mcs[0]);
   assert(niov==nmc);
@@ -86,9 +89,11 @@ void drawPhotonJetVsPtVsIOVs(string so, string var, string name,
     const char *cmc = mcs[i].c_str();
 
     TFile *fd(0), *fm(0);
-    fd = new TFile(Form("files/GamHistosFill_data_%s_v16.root",ciov));
+    //fd = new TFile(Form("files/GamHistosFill_data_%s_v16.root",ciov));
+    fd = new TFile(Form("files/GamHistosFill_data_%s_v20.root",ciov));
     assert(fd && !fd->IsZombie());
-    fm = new TFile(Form("files/GamHistosFill_mc_%s_v16.root",cmc));
+    //fm = new TFile(Form("files/GamHistosFill_mc_%s_v16.root",cmc));
+    fm = new TFile(Form("files/GamHistosFill_mc_%s_v20.root",cmc));
     assert(fm && !fm->IsZombie());
 
     curdir->cd();
