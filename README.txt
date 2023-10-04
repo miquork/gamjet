@@ -38,6 +38,15 @@ TIMING estimates, one at a time
 
 CHANGELOG (latest first):
 ----------------------------
+To-do later: recreate Dijet2/TProfile2D (+trigger bins?) structure from dijet package. This will allow for efficient combination with dijet for L2Res.
+
+v23. Fix rawmet to use RawPuppiMET. Patch rawgam in PuppiJet in 2022 data and MC for phoj0 (MET ok). Return pass_leak. Add re-JEC + pdjes (DeltaJES). Add Gamjet2 folder (doGamJet2). Extend h2gametaphi to EC, although may not help with just 110EB trigger active. Remove h2gametaphi3,4 as redundant.
+
+to-do v23: determine footprint? Enlarge h2gametaphi(2) in eta (EC also) to match with jetvetomaps. Can drop 3,4. Return pass_leak and/or pass_filt (or on already)? Add storing of jes and l2l3res so easier and more precise to undo in global fit.
+
+v22 - Switch HLT_Photon20 off for Run3. Switch 1% scaling to gain1 off for 22-23. Switch footprint correction off for 22-23. Switch off L1RC (corrl1rc was for AK4PFchs). Todo: override 75m,90m with 50m for 2023C. Override 50m with 30t for others. Next round: determine footprint from control/pphoj0.
+
+v21e - Bybass data trigger to check trigger menu
 v21 - Start implementing Run3. Add new JSON files. Add new jetvetomaps. Add new L1RC (and switch it off). Add new triggers. Disable _pu and PU reweighing for 22-23 (temporarily). Disable pass_leak and pass_filt for 22-23 (temporarily). Add code for MadGraph HT bins from dijet and add G-4Jet xsec.
 => HLT_Photon20 often missing, lots of errors on it
 

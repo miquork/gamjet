@@ -38,7 +38,7 @@ IOV_list= ['2022P8','2022C','2022D',
            '2022EEP8','2022E','2022F','2022G',
            '2023B','2023Cv123','2023Cv4']
 #           '2023B','2023Cv123','2023Cv4','2023D']
-version = 'v22'
+version = 'v23'
 
 for iov in IOV_list:
     os.system("mv -i files/GamHistosFill_mc_"+iov+".root files/GamHistosFill_mc_"+iov+"_"+version+".root")

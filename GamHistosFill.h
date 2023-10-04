@@ -41,6 +41,7 @@ public :
    bool            is18;
    bool            is22;
    bool            is23;
+   bool            isRun2, isRun3;
    bool            isQCD;
    bool            isMG;
    string          dataset;
@@ -152,6 +153,10 @@ public :
    Float_t         RawMET_phi;
    Float_t         RawMET_pt;
    Float_t         RawMET_sumEt;
+
+   Float_t         RawPuppiMET_phi;
+   Float_t         RawPuppiMET_pt;
+   Float_t         RawPuppiMET_sumEt;
 
    Float_t         fixedGridRhoFastjetAll;
    //Float_t         fixedGridRhoFastjetCentral;
@@ -368,6 +373,10 @@ public :
    TBranch        *b_RawMET_pt;   //!
    TBranch        *b_RawMET_sumEt;   //!
 
+   TBranch        *b_RawPuppiMET_phi;   //!
+   TBranch        *b_RawPuppiMET_pt;   //!
+   TBranch        *b_RawPuppiMET_sumEt;   //!
+
    TBranch        *b_fixedGridRhoFastjetAll;   //!
   //TBranch        *b_fixedGridRhoFastjetCentral;   //!
   //TBranch        *b_fixedGridRhoFastjetCentralCalo;   //!
@@ -544,6 +553,8 @@ GamHistosFill::GamHistosFill(TTree *tree, int itype, string datasetname)
   isQCD = (ds=="2016QCD" || ds=="2016QCDAPV" || ds=="2017QCD" ||
 	   ds=="2018QCD");
   isMG = (ds=="2022P8" || ds=="2022EEP8");
+  isRun3 = (is22 || is23);
+  isRun2 = (is16  || is17 || is18);
   assert(is16 || is17 || is18 || is22 || is23);
   
 // if parameter tree is not specified (or zero), connect the file
@@ -617,9 +628,11 @@ void GamHistosFill::Init(TTree *tree)
    fChain->SetBranchAddress("luminosityBlock", &luminosityBlock, &b_luminosityBlock);
    fChain->SetBranchAddress("event", &event, &b_event);
 
-   fChain->SetBranchAddress("ChsMET_phi", &ChsMET_phi, &b_ChsMET_phi);
-   fChain->SetBranchAddress("ChsMET_pt", &ChsMET_pt, &b_ChsMET_pt);
-   fChain->SetBranchAddress("ChsMET_sumEt", &ChsMET_sumEt, &b_ChsMET_sumEt);
+   if (isRun2) {
+     fChain->SetBranchAddress("ChsMET_phi", &ChsMET_phi, &b_ChsMET_phi);
+     fChain->SetBranchAddress("ChsMET_pt", &ChsMET_pt, &b_ChsMET_pt);
+     fChain->SetBranchAddress("ChsMET_sumEt", &ChsMET_sumEt, &b_ChsMET_sumEt);
+   }
 
    fChain->SetBranchAddress("nJet", &nJet, &b_nJet);
    fChain->SetBranchAddress("Jet_area", Jet_area, &b_Jet_area);
@@ -708,9 +721,15 @@ void GamHistosFill::Init(TTree *tree)
    fChain->SetBranchAddress("RawMET_pt", &RawMET_pt, &b_RawMET_pt);
    fChain->SetBranchAddress("RawMET_sumEt", &RawMET_sumEt, &b_RawMET_sumEt);
 
-   if (!(is22 || is23))
+   if (isRun3) {
+     fChain->SetBranchAddress("RawPuppiMET_phi", &RawPuppiMET_phi, &b_RawPuppiMET_phi);
+     fChain->SetBranchAddress("RawPuppiMET_pt", &RawPuppiMET_pt, &b_RawPuppiMET_pt);
+     fChain->SetBranchAddress("RawPuppiMET_sumEt", &RawPuppiMET_sumEt, &b_RawPuppiMET_sumEt);
+   }
+
+   if (!isRun3)
      fChain->SetBranchAddress("fixedGridRhoFastjetAll", &fixedGridRhoFastjetAll, &b_fixedGridRhoFastjetAll);
-   if (is22 || is23)
+   if (isRun3)
      fChain->SetBranchAddress("Rho_fixedGridRhoAll", &fixedGridRhoFastjetAll, &b_fixedGridRhoFastjetAll);
    //fChain->SetBranchAddress("fixedGridRhoFastjetCentral", &fixedGridRhoFastjetCentral, &b_fixedGridRhoFastjetCentral);
    //fChain->SetBranchAddress("fixedGridRhoFastjetCentralCalo", &fixedGridRhoFastjetCentralCalo, &b_fixedGridRhoFastjetCentralCalo);
