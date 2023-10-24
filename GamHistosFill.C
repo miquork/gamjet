@@ -247,7 +247,8 @@ void GamHistosFill::Loop()
     if (!isRun3)
       fChain->SetBranchStatus("fixedGridRhoFastjetAll",1);
     if (isRun3)
-      fChain->SetBranchStatus("Rho_fixedGridRhoAll",1);
+      fChain->SetBranchStatus("Rho_fixedGridRhoFastjetAll",1);
+      //fChain->SetBranchStatus("Rho_fixedGridRhoAll",1);
     fChain->SetBranchStatus("PV_npvs",1);
     fChain->SetBranchStatus("PV_npvsGood",1);
 
@@ -404,61 +405,72 @@ void GamHistosFill::Loop()
   // Copied from https://github.com/Iitatuom/dijet2/blob/master/DijetHistosFill.C#L623-L685
   //2022
   if (ds=="2022C") {
-    jec = getFJC("",//Winter22Run3_RunC_V2_DATA_L1FastJet_AK4PFPuppi",
-		 "Winter22Run3_RunC_V2_DATA_L2Relative_AK4PFPuppi",
-		 "Winter22Run3_RunC_V2_DATA_L2L3Residual_AK4PFPuppi");
+    //jec = getFJC("",//Winter22Run3_RunC_V2_DATA_L1FastJet_AK4PFPuppi",
+    //		 "Winter22Run3_RunC_V2_DATA_L2Relative_AK4PFPuppi",
+    //		 "Winter22Run3_RunC_V2_DATA_L2L3Residual_AK4PFPuppi");
+    jec = getFJC("", "Summer22Run3_V1_MC_L2Relative_AK4PUPPI", "");//Mikel
   }
   if (ds=="2022D") {
-    jec = getFJC("",//Winter22Run3_RunD_V2_DATA_L1FastJet_AK4PFPuppi",
-		 "Winter22Run3_RunD_V2_DATA_L2Relative_AK4PFPuppi",
-		 "Winter22Run3_RunD_V2_DATA_L2L3Residual_AK4PFPuppi");
+    //jec = getFJC("",//Winter22Run3_RunD_V2_DATA_L1FastJet_AK4PFPuppi",
+    //		 "Winter22Run3_RunD_V2_DATA_L2Relative_AK4PFPuppi",
+    //		 "Winter22Run3_RunD_V2_DATA_L2L3Residual_AK4PFPuppi");
+    jec = getFJC("", "Summer22Run3_V1_MC_L2Relative_AK4PUPPI", "");//Mikel
   }
   if (ds=="2022E") {
-    jec = getFJC("",//Summer22EEPrompt22_RunF_V1_DATA_L1FastJet_AK4PFPuppi",
-		 "Summer22EEPrompt22_RunF_V1_DATA_L2Relative_AK4PFPuppi",
-		 "Summer22EEPrompt22_RunF_V1_DATA_L2L3Residual_AK4PFPuppi");
+    //jec = getFJC("",//Summer22EEPrompt22_RunF_V1_DATA_L1FastJet_AK4PFPuppi",
+    //		 "Summer22EEPrompt22_RunF_V1_DATA_L2Relative_AK4PFPuppi",
+    //		 "Summer22EEPrompt22_RunF_V1_DATA_L2L3Residual_AK4PFPuppi");
+    jec = getFJC("", "Summer22EEVetoRun3_V1_MC_L2Relative_AK4PUPPI", "");//Mikel
   }
   if (ds=="2022F") {
-    jec = getFJC("",//Summer22EEPrompt22_RunF_V1_DATA_L1FastJet_AK4PFPuppi",
-		 "Summer22EEPrompt22_RunF_V1_DATA_L2Relative_AK4PFPuppi",
-		 "Summer22EEPrompt22_RunF_V1_DATA_L2L3Residual_AK4PFPuppi");
+    //jec = getFJC("",//Summer22EEPrompt22_RunF_V1_DATA_L1FastJet_AK4PFPuppi",
+    //		 "Summer22EEPrompt22_RunF_V1_DATA_L2Relative_AK4PFPuppi",
+    //		 "Summer22EEPrompt22_RunF_V1_DATA_L2L3Residual_AK4PFPuppi");
+    jec = getFJC("", "Summer22EEVetoRun3_V1_MC_L2Relative_AK4PUPPI", "");//Mikel
   }
   if (ds=="2022G") {
-    jec = getFJC("",//Summer22EEPrompt22_RunG_V1_DATA_L1FastJet_AK4PFPuppi",
-		 "Summer22EEPrompt22_RunG_V1_DATA_L2Relative_AK4PFPuppi",
-		 "Summer22EEPrompt22_RunG_V1_DATA_L2L3Residual_AK4PFPuppi");
+    //jec = getFJC("",//Summer22EEPrompt22_RunG_V1_DATA_L1FastJet_AK4PFPuppi",
+    //		 "Summer22EEPrompt22_RunG_V1_DATA_L2Relative_AK4PFPuppi",
+    //		 "Summer22EEPrompt22_RunG_V1_DATA_L2L3Residual_AK4PFPuppi");
+    jec = getFJC("", "Summer22EEVetoRun3_V1_MC_L2Relative_AK4PUPPI", "");//Mikel
   }
   //22/23 MC
   if (ds=="2022P8") { //ds=="Summer22") {
-    jec = getFJC("",//Winter22Run3_V2_MC_L1FastJet_AK4PFPuppi",
-		 "Winter22Run3_V2_MC_L2Relative_AK4PFPuppi",
-		 "");//Winter22Run3_V2_MC_L2L3Residual_AK4PFPuppi");
+    //jec = getFJC("",//Winter22Run3_V2_MC_L1FastJet_AK4PFPuppi",
+    //		 "Winter22Run3_V2_MC_L2Relative_AK4PFPuppi",
+    //		 "");//Winter22Run3_V2_MC_L2L3Residual_AK4PFPuppi");
+    jec = getFJC("", "Summer22Run3_V1_MC_L2Relative_AK4PUPPI", "");//Mikel
   }
   if (ds=="2022EEP8") { //ds=="Summer22EE") {
-    jec = getFJC("",//Summer22EEPrompt22_V1_MC_L1FastJet_AK4PFPuppi",
-		 "Summer22EEPrompt22_V1_MC_L2Relative_AK4PFPuppi",
-		 "");//Summer22EEPrompt22_V1_MC_L2L3Residual_AK4PFPuppi");
+    //jec = getFJC("",//Summer22EEPrompt22_V1_MC_L1FastJet_AK4PFPuppi",
+    //		 "Summer22EEPrompt22_V1_MC_L2Relative_AK4PFPuppi",
+    //		 "");//Summer22EEPrompt22_V1_MC_L2L3Residual_AK4PFPuppi");
+    jec = getFJC("", "Summer22EEVetoRun3_V1_MC_L2Relative_AK4PUPPI", "");//Mikel
   }
   if (dataset=="Summer23") {
     jec = getFJC("",//Winter23Prompt23_V2_MC_L1FastJet_AK4PFPuppi",
 		 "Winter23Prompt23_V2_MC_L2Relative_AK4PFPuppi",
 		 "");//Winter23Prompt23_V2_MC_L2L3Residual_AK4PFPuppi");
+    assert(false); // not yet available
   }
   //2023
   if (ds=="2023B") {
-    jec = getFJC("",//Winter23Prompt23_RunC_V2_DATA_L1FastJet_AK4PFPuppi",
-		 "Winter23Prompt23_RunC_V2_DATA_L2Relative_AK4PFPuppi",
-		 "Winter23Prompt23_RunC_V2_DATA_L2L3Residual_AK4PFPuppi");
+    //jec = getFJC("",//Winter23Prompt23_RunC_V2_DATA_L1FastJet_AK4PFPuppi",
+    //		 "Winter23Prompt23_RunC_V2_DATA_L2Relative_AK4PFPuppi",
+    //		 "Winter23Prompt23_RunC_V2_DATA_L2L3Residual_AK4PFPuppi");
+    jec = getFJC("", "Summer22Run3_V1_MC_L2Relative_AK4PUPPI", "");//Mikel
   }
   if (ds=="2023B" || ds=="2023Cv123" || ds=="2023Cv4") {
-    jec = getFJC("",//Winter23Prompt23_RunC_V2_DATA_L1FastJet_AK4PFPuppi",
-		 "Winter23Prompt23_RunC_V2_DATA_L2Relative_AK4PFPuppi",
-		 "Winter23Prompt23_RunC_V2_DATA_L2L3Residual_AK4PFPuppi");
+    //jec = getFJC("",//Winter23Prompt23_RunC_V2_DATA_L1FastJet_AK4PFPuppi",
+    //		 "Winter23Prompt23_RunC_V2_DATA_L2Relative_AK4PFPuppi",
+    //		 "Winter23Prompt23_RunC_V2_DATA_L2L3Residual_AK4PFPuppi");
+    jec = getFJC("", "Summer22Run3_V1_MC_L2Relative_AK4PUPPI", "");//Mikel
   }
   if (ds=="2023D") {
-    jec = getFJC("",//Winter23Prompt23_RunC_V2_DATA_L1FastJet_AK4PFPuppi",
-		 "Winter23Prompt23_RunC_V2_DATA_L2Relative_AK4PFPuppi",
-		 "Winter23Prompt23_RunC_V2_DATA_L2L3Residual_AK4PFPuppi");
+    //jec = getFJC("",//Winter23Prompt23_RunC_V2_DATA_L1FastJet_AK4PFPuppi",
+    //		 "Winter23Prompt23_RunC_V2_DATA_L2Relative_AK4PFPuppi",
+    //		 "Winter23Prompt23_RunC_V2_DATA_L2L3Residual_AK4PFPuppi");
+    jec = getFJC("", "Summer22Run3_V1_MC_L2Relative_AK4PUPPI", "");//Mikel
   }
   
   string sera("");
@@ -592,8 +604,9 @@ void GamHistosFill::Loop()
   // Create histograms. Copy format from existing files from Lyon
   // Keep only histograms actually used by global fit (reprocess.C)
   TDirectory *curdir = gDirectory;
-  TFile *fout = new TFile(Form("files/GamHistosFill_%s_%s.root",
-			       isMC ? "mc" : "data", dataset.c_str()),
+  TFile *fout = new TFile(Form("rootfiles/GamHistosFill_%s_%s_%s.root",
+			       isMC ? "mc" : "data",
+			       dataset.c_str(), version.c_str()),
 			  "RECREATE");
   assert(fout && !fout->IsZombie());
   
@@ -1389,6 +1402,10 @@ void GamHistosFill::Loop()
     nb = fChain->GetEntry(jentry);   nbytes += nb;
     // if (Cut(ientry) < 0) continue;
 
+    // Safety check for rho being NaN
+    if (!(fixedGridRhoFastjetAll>=0 && fixedGridRhoFastjetAll<150))
+      fixedGridRhoFastjetAll = 34; // average conditions
+    
     // Sanity check PS weights
     if (!isMC) { nPSWeight = 0; }
     //if (!isMC || is22 || is23) { nPSWeight = 0; }

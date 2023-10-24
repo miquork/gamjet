@@ -45,6 +45,7 @@ public :
    bool            isQCD;
    bool            isMG;
    string          dataset;
+   string          version;
    string          _filename; // file name for debugging purposes
 
 // Fixed size dimensions of array or collections stored in the TTree if any.
@@ -505,7 +506,8 @@ public :
    TBranch        *b_HLT_Photon50_HoverELoose;
    TBranch        *b_HLT_Photon60_HoverELoose;
 
-   GamHistosFill(TTree *tree=0, int itype=1, string datasetname="2016P8");
+  GamHistosFill(TTree *tree=0, int itype=1, string datasetname="X",
+		string versionname="vX");
    virtual ~GamHistosFill();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);
@@ -527,8 +529,8 @@ public :
 #endif
 
 #ifdef GamHistosFill_cxx
-GamHistosFill::GamHistosFill(TTree *tree, int itype, string datasetname)
-: fChain(0), isMC(itype), dataset(datasetname)
+GamHistosFill::GamHistosFill(TTree *tree, int itype, string datasetname, string versionname)
+  : fChain(0), isMC(itype), dataset(datasetname), version(versionname)
 {
 
   // Use data set to decide on active branches
@@ -730,7 +732,8 @@ void GamHistosFill::Init(TTree *tree)
    if (!isRun3)
      fChain->SetBranchAddress("fixedGridRhoFastjetAll", &fixedGridRhoFastjetAll, &b_fixedGridRhoFastjetAll);
    if (isRun3)
-     fChain->SetBranchAddress("Rho_fixedGridRhoAll", &fixedGridRhoFastjetAll, &b_fixedGridRhoFastjetAll);
+     fChain->SetBranchAddress("Rho_fixedGridRhoFastjetAll", &fixedGridRhoFastjetAll, &b_fixedGridRhoFastjetAll);
+     //fChain->SetBranchAddress("Rho_fixedGridRhoAll", &fixedGridRhoFastjetAll, &b_fixedGridRhoFastjetAll);
    //fChain->SetBranchAddress("fixedGridRhoFastjetCentral", &fixedGridRhoFastjetCentral, &b_fixedGridRhoFastjetCentral);
    //fChain->SetBranchAddress("fixedGridRhoFastjetCentralCalo", &fixedGridRhoFastjetCentralCalo, &b_fixedGridRhoFastjetCentralCalo);
    //fChain->SetBranchAddress("fixedGridRhoFastjetCentralChargedPileUp", &fixedGridRhoFastjetCentralChargedPileUp, &b_fixedGridRhoFastjetCentralChargedPileUp);

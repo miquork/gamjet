@@ -37,16 +37,16 @@ import os
 IOV_list= ['2022P8','2022C','2022D',
            '2022EEP8','2022E','2022F','2022G',
            '2023B','2023Cv123','2023Cv4','2023D']
-version = 'v23'
+version = 'v24'
 
 #os.system("rm *.so *.d *.pcm")
 os.system("root -l -b -q mk_CondFormats.C")
 for iov in IOV_list:
     print "Process GamHistFill.C+g for IOV "+iov
-    os.system("ls -ltrh files/GamHistosFill_mc_"+iov+".root")
-    os.system("ls -ltrh files/GamHistosFill_data_"+iov+".root")
-    os.system("ls -ltrh log_"+iov+"_"+version+".txt")
-    os.system("root -l -b -q 'mk_GamHistosFill.C(\""+iov+"\")' > log_"+iov+"_"+version+".txt &")
+    os.system("ls -ltrh rootfiles/GamHistosFill_mc_"+iov+".root")
+    os.system("ls -ltrh rootfiles/GamHistosFill_data_"+iov+".root")
+    os.system("ls -ltrh logs/log_"+iov+"_"+version+".txt")
+    os.system("nohup root -l -b -q 'mk_GamHistosFill.C(\""+iov+"\",\""+version+"\")' > logs/log_"+iov+"_"+version+".txt &")
 #    os.system("fs flush")
 #    wait()
 #    time.sleep(sleep_time)

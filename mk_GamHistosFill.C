@@ -46,7 +46,7 @@ R__LOAD_LIBRARY(GamHistosFill_C.so)
 #endif
 
 
-void mk_GamHistosFill(string dataset = "2018P8") {
+void mk_GamHistosFill(string dataset = "X", string version = "X") {
 
   // Settings
   bool addData = (dataset=="2016B"  || dataset=="2016C" || dataset=="2016D" || 
@@ -118,8 +118,8 @@ void mk_GamHistosFill(string dataset = "2018P8") {
   if (runLocal) cout << "Running on iMac (runLocal)" << endl;
   
   if (addData) {
-    ifstream fin(runLocal ? Form("dataFiles_local_%s.txt",dataset.c_str()) : 
-		 Form("dataFiles_Run%s.txt",dataset.c_str()), ios::in);
+    ifstream fin(runLocal ? Form("input_files/dataFiles_local_%s.txt",dataset.c_str()) : 
+		 Form("input_files/dataFiles_Run%s.txt",dataset.c_str()), ios::in);
     string filename;
     cout << "Chaining data files:" << endl << flush;
     int nFiles(0), nFilesMax(827);//9999);
@@ -129,13 +129,13 @@ void mk_GamHistosFill(string dataset = "2018P8") {
     }
     cout << "Chained " << nFiles <<  " files" << endl << flush;
     
-    GamHistosFill filler(c,0,dataset);
+    GamHistosFill filler(c,0,dataset,version);
     filler.Loop();
   }
   
   if (addMC) {
-    ifstream fin(runLocal ? Form("mcFiles_local_%s.txt",dataset.c_str()) :
-		 Form("mcFiles_%s.txt",dataset.c_str()), ios::in);
+    ifstream fin(runLocal ? Form("input_files/mcFiles_local_%s.txt",dataset.c_str()) :
+		 Form("input_files/mcFiles_%s.txt",dataset.c_str()), ios::in);
     string filename;
     cout << "Chaining MC files:" << endl << flush;
     int nFiles(0), nFilesMax(1437);//100);
@@ -145,13 +145,13 @@ void mk_GamHistosFill(string dataset = "2018P8") {
     }
     cout << "Chained " << nFiles <<  " files" << endl << flush;
   
-    GamHistosFill filler(c,1,dataset);
+    GamHistosFill filler(c,1,dataset,version);
     filler.Loop();
   }
 
   if (addQCD) {
-    ifstream fin(runLocal ? "mcFiles_qcd_local.txt" :
-		 Form("mcFiles_%s.txt",dataset.c_str()), ios::in);
+    ifstream fin(runLocal ? "input_files/mcFiles_qcd_local.txt" :
+		 Form("input_files/mcFiles_%s.txt",dataset.c_str()), ios::in);
     string filename;
     cout << "Chaining QCD MC files:" << endl << flush;
     int nFiles(0), nFilesMax(100);
@@ -161,7 +161,7 @@ void mk_GamHistosFill(string dataset = "2018P8") {
     }
     cout << "Chained " << nFiles <<  " files" << endl << flush;
   
-    GamHistosFill filler(c,1,dataset);
+    GamHistosFill filler(c,1,dataset,version);
     filler.Loop();
   }
 }
