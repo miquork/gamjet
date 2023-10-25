@@ -16,10 +16,15 @@ HOW TO RUN on Hefaistos:
    => code TStopWatch to ignore this startup time, or skip GetEntries
       (1M entries is just 0.1% ?! => 1.39B entries, about 3.4h runtime)
 
+Local analysis:
 - rsync -rutP files from Hefaistos
-  - rename GamHistosFill_mc_2016*APV to mc_2016APV* (automatize later)
-- root -l -b GamHistosMix.C+g
+[  - rename GamHistosFill_mc_2016*APV to mc_2016APV* (automatize later)]
+- python addAllIOVs.py
+[- root -l -b GamHistosMix.C+g]
 - root -l -b GamHistosRatio.C+g
+
+Extra plotting
+- root -l -b -q drawPhotonJetVsPtVsIOV.C
 
 
 TIMING estimates, one at a time
@@ -38,11 +43,12 @@ TIMING estimates, one at a time
 
 CHANGELOG (latest first):
 ----------------------------
-To-do later: recreate Dijet2/TProfile2D (+trigger bins?) structure from dijet package. This will allow for efficient combination with dijet for L2Res.
+To-do later: add MET filters back (pass_filt). Find corrupt data at eta,gamma=0
 
-v23. Fix rawmet to use RawPuppiMET. Patch rawgam in PuppiJet in 2022 data and MC for phoj0 (MET ok). Return pass_leak. Add re-JEC + pdjes (DeltaJES). Add Gamjet2 folder (doGamJet2). Extend h2gametaphi to EC, although may not help with just 110EB trigger active. Remove h2gametaphi3,4 as redundant.
+v24(patch) - Add is22v10 to apply phoj patch to only 2022 prompt data and MC in v10/v11, not to new 2022(C)DE re-reco samples (NanoV12).
+v24 - Fix fixedGridRho->fixedGridRhoFastjetAll, add safety for NaN. Add versioning to files. Sync JEC to Mikel (L2Relative only). Update 2022D, 2022E file lists to 22Sep2023 partial re-reco
 
-to-do v23: determine footprint? Enlarge h2gametaphi(2) in eta (EC also) to match with jetvetomaps. Can drop 3,4. Return pass_leak and/or pass_filt (or on already)? Add storing of jes and l2l3res so easier and more precise to undo in global fit.
+v23 - Fix rawmet to use RawPuppiMET. Patch rawgam in PuppiJet in 2022 data and MC for phoj0 (MET ok). Return pass_leak. Add re-JEC + pdjes (DeltaJES). Add Gamjet2 folder (doGamJet2). Extend h2gametaphi to EC, although may not help with just 110EB trigger active. Remove h2gametaphi3,4 as redundant.
 
 v22 - Switch HLT_Photon20 off for Run3. Switch 1% scaling to gain1 off for 22-23. Switch footprint correction off for 22-23. Switch off L1RC (corrl1rc was for AK4PFchs). Todo: override 75m,90m with 50m for 2023C. Override 50m with 30t for others. Next round: determine footprint from control/pphoj0.
 

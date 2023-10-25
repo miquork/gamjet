@@ -1501,7 +1501,7 @@ void GamHistosFill::Loop()
 	// 2022 data is missing proper Puppi photon protection for jets
 	// (but MET ok?)
 	double r22 = max(0.15,min(1.0,(rawgam.Pt()-20.)/180.));
-	phoj -= (is22 ? r22*rawgam : rawgam);
+	phoj -= (is22v10 ? r22*rawgam : rawgam);
       }
       else
 	phoj.SetPtEtaPhiM(0,0,0,0);
