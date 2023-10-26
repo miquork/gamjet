@@ -154,7 +154,7 @@ void mk_GamHistosFill(string dataset = "X", string version = "vX") {
 		 Form("input_files/mcFiles_%s.txt",dataset.c_str()), ios::in);
     string filename;
     cout << "Chaining QCD MC files:" << endl << flush;
-    int nFiles(0), nFilesMax(100);
+    int nFiles(0), nFilesMax(5097);
     while (fin >> filename && nFiles<nFilesMax) {
       ++nFiles;
       c->AddFile(filename.c_str());
