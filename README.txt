@@ -46,6 +46,7 @@ CHANGELOG (latest first):
 ----------------------------
 To-do later: add MET filters back (pass_filt). Find corrupt data at eta,gamma=0
 
+v23(patch3) - Fix MC weighing for MadGraph QCD and add it
 v24(patch1,2) - Add is22v10 to apply phoj patch to only 2022 prompt data and MC in v10/v11, not to new 2022CDE re-reco samples (NanoV12).
 v24 - Fix fixedGridRho->fixedGridRhoFastjetAll, add safety for NaN. Add versioning to files. Sync JEC to Mikel (L2Relative only). Update 2022D, 2022E file lists to 22Sep2023 partial re-reco
 

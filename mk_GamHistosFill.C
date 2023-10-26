@@ -46,7 +46,7 @@ R__LOAD_LIBRARY(GamHistosFill_C.so)
 #endif
 
 
-void mk_GamHistosFill(string dataset = "X", string version = "X") {
+void mk_GamHistosFill(string dataset = "X", string version = "vX") {
 
   // Settings
   bool addData = (dataset=="2016B"  || dataset=="2016C" || dataset=="2016D" || 
@@ -69,9 +69,9 @@ void mk_GamHistosFill(string dataset = "X", string version = "X") {
 		  dataset=="2023Cv4" || dataset=="2023D");
   bool addMC = (dataset=="2016P8" || dataset=="2017P8" || dataset=="2018P8" ||
 		dataset=="2016APVP8" ||
-		dataset=="2022P8" || dataset=="2022QCD" ||
-		dataset=="2022EEP8" || dataset=="2022EEQCD" ||
-		dataset=="2023P8" || dataset=="2023QCD");
+		dataset=="2022P8" || //dataset=="2022QCD" ||
+		dataset=="2022EEP8" || //dataset=="2022EEQCD" ||
+		dataset=="2023P8");// || dataset=="2023QCD");
 
   bool addQCD = (dataset=="2016QCD" || dataset=="2016APVQCD" || 
 		 dataset=="2017QCD" || dataset=="2018QCD" ||
@@ -150,7 +150,7 @@ void mk_GamHistosFill(string dataset = "X", string version = "X") {
   }
 
   if (addQCD) {
-    ifstream fin(runLocal ? "input_files/mcFiles_qcd_local.txt" :
+    ifstream fin(runLocal ? Form("input_files/mcFiles_local_%s.txt",dataset.c_str()) :
 		 Form("input_files/mcFiles_%s.txt",dataset.c_str()), ios::in);
     string filename;
     cout << "Chaining QCD MC files:" << endl << flush;

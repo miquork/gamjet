@@ -557,8 +557,8 @@ GamHistosFill::GamHistosFill(TTree *tree, int itype, string datasetname, string 
   is23 = (ds=="2023B" || ds=="2023Cv123" || ds=="2023Cv4" || ds=="2023D" ||
 	  ds=="2023P8" || ds=="2023QCD");
   isQCD = (ds=="2016QCD" || ds=="2016QCDAPV" || ds=="2017QCD" ||
-	   ds=="2018QCD");
-  isMG = (ds=="2022P8" || ds=="2022EEP8");
+	   ds=="2018QCD" || ds=="2022QCD" || ds=="2022EEQCD");
+  isMG = (ds=="2022P8" || ds=="2022EEP8" || ds=="2022QCD" || ds=="2022EEQCD");
   isRun3 = (is22 || is23);
   isRun2 = (is16  || is17 || is18);
   assert(is16 || is17 || is18 || is22 || is23);

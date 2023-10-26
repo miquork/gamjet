@@ -532,11 +532,14 @@ void GamHistosFill::Loop()
   if (TString(ds.c_str()).Contains("2022")) {
     if (TString(ds.c_str()).Contains("2022C") || 
 	TString(ds.c_str()).Contains("2022D") ||
-	TString(ds.c_str()).Contains("2022P8"))
+	TString(ds.c_str()).Contains("2022P8") ||
+      	TString(ds.c_str()).Contains("2022QCD"))
       fjv = new TFile("files/jetveto2022CD.root","READ");
     if (TString(ds.c_str()).Contains("2022E") || // incl. EEP8 
 	TString(ds.c_str()).Contains("2022F") || 
-	TString(ds.c_str()).Contains("2022G"))
+	TString(ds.c_str()).Contains("2022G") ||
+      	TString(ds.c_str()).Contains("2022EEP8") ||
+	TString(ds.c_str()).Contains("2022EEQCD") )
       fjv = new TFile("files/jetveto2022EFG.root","READ");
   }
   if (TString(ds.c_str()).Contains("2023")) {
@@ -644,16 +647,18 @@ void GamHistosFill::Loop()
 
   // Setup HT bin weighting and monitoring
   TH1D *hxsec(0), *hnevt(0), *hsumw(0), *hLHE_HT(0), *hHT(0);
-  //double vht[] = {0, 25, 50, 100, 200, 300, 500, 700, 1000, 1500, 2000, 6500};
-  double vht[] = {0, 40, 70, 100, 200, 400, 600, 6500}; // G-4Jets
-  const int nht = sizeof(vht)/sizeof(vht[0])-1;
-  int nMG(0);
-  double wMG(0);
-  if (isMG) {
-    hxsec = new TH1D("hxsec",";H_{T} (GeV);pb",nht,vht);
-    hnevt = new TH1D("hnevt",";H_{T} (GeV);N_{evt}",nht,vht);
-    hsumw = new TH1D("hsumw",";H_{T} (GeV);Sum(weights)",nht,vht);
-    hLHE_HT = new TH1D("hLHE_HT",";H_{T} (GeV);N_{evt} (unweighted)",nht,vht);
+  //double vht_gam[] = {0, 25, 50, 100, 200, 300, 500, 700, 1000, 1500, 2000, 6500};
+  double vht_gam[] = {0, 40, 70, 100, 200, 400, 600, 6500}; // G-4Jets
+  const int nht_gam = sizeof(vht_gam)/sizeof(vht_gam[0])-1;
+  int nMG_gam(0);
+  double wMG_gam(0);
+  if (isMG && !isQCD) {
+
+    hxsec = new TH1D("hxsec",";H_{T} (GeV);pb",nht_gam,vht_gam);
+    hnevt = new TH1D("hnevt",";H_{T} (GeV);N_{evt}",nht_gam,vht_gam);
+    hsumw = new TH1D("hsumw",";H_{T} (GeV);Sum(weights)",nht_gam,vht_gam);
+    hLHE_HT = new TH1D("hLHE_HT",";H_{T} (GeV);N_{evt} (unweighted)",
+		       nht_gam,vht_gam);
     hHT = new TH1D("hHT",";H_{T} (GeV);N_{evt} (weighted)",2485,15,2500);
 
     // Reference number of events, retrieved manuallay with
@@ -663,14 +668,14 @@ void GamHistosFill::Loop()
     //		      13473185, 4365993, 2944561, 1836165};
     int vnevt[7] = {1, 6862, 7213, 5825, 6575, 3185, 2815}; // 2022EEP8 (local)
     double vsumw[7] = {0, 5.277e+08, 3.126e+08, 2.698e+08, 7.937e+07, 4.976e+06, 1.596e+06}; // 2022EEP8 (local)
-    for (int i = 0; i != nht; ++i) {
+    for (int i = 0; i != nht_gam; ++i) {
       hnevt->SetBinContent(i+1, vnevt[i]);
-      nMG += vnevt[i];
+      nMG_gam += vnevt[i];
       hsumw->SetBinContent(i+1, vsumw[i]);
-      wMG += vsumw[i];
+      wMG_gam += vsumw[i];
     }
     cout << "Loaded (local) MadGraph event numbers ("
-	 << nMG << ", sumw=" << wMG << ")" << endl << flush;
+	 << nMG_gam << ", sumw=" << wMG_gam << ")" << endl << flush;
     
     // xsec from jetphys/settings.h_template
     //double vxsec[nht] = {0, 0, 246300000.*23700000./28060000., 23700000,
@@ -693,16 +698,82 @@ void GamHistosFill::Loop()
 
     // Values from Laurent Thomas, 20 Sep 2023, based on
     // https://twiki.cern.ch/twiki/bin/viewauth/CMS/HowToGenXSecAnalyzer#Running_the_GenXSecAnalyzer_on_a
-    double vxsec[nht] = {0, 1.524e+04, 8.111e+03, 7.327e+03, 1.541e+03,
-			 1.676e+02, 5.439e+01}; // xsec in pb
-    cout << Form("double vxsec[%d] = {",nht);
-    for (int i = 0; i != nht; ++i) {
+    double vxsec[nht_gam] = {0, 1.524e+04, 8.111e+03, 7.327e+03, 1.541e+03,
+			     1.676e+02, 5.439e+01}; // xsec in pb
+    cout << Form("double vxsec[%d] = {",nht_gam);
+    for (int i = 0; i != nht_gam; ++i) {
       //vxsec[i] *= 1.7893701e-4; // match 4to70 to 2.727 for 2022C test file
       hxsec->SetBinContent(i+1, vxsec[i]);
       cout << Form("%s%1.4g",i==0 ? "" : ", ", vxsec[i]);
     }
     cout << "}; // 2022EEP8 hand-adjusted" << endl << flush;
   }
+
+  // Setup HT bin weighting and monitoring for QCD
+  double vht_qcd2[] =
+    {0, 25, 50, 100, 200, 300, 500, 700, 1000, 1500, 2000, 6500};
+  const int nht_qcd2 = sizeof(vht_qcd2)/sizeof(vht_qcd2[0])-1;
+  double vht_qcd3[] =
+    {0, 40, 70, 100, 200, 400, 600, 800, 1000, 1200, 1500, 2000, 6800};
+  const int nht_qcd3 = sizeof(vht_qcd3)/sizeof(vht_qcd3[0])-1;
+  const double *vht_qcd = (isRun3 ? &vht_qcd3[0] : &vht_qcd2[0]);
+  const int nht_qcd = (isRun3 ? nht_qcd3 : nht_qcd2);
+  int nMG_qcd(0);
+  double wMG_qcd(0);
+  if (isMG && isQCD) {
+     
+     hxsec = new TH1D("hxsec",";H_{T} (GeV);pb",nht_qcd,vht_qcd);
+     hnevt = new TH1D("hnevt",";H_{T} (GeV);N_{evt}",nht_qcd,vht_qcd);
+     hsumw = new TH1D("hsumw",";H_{T} (GeV);Sum of weights",nht_qcd,vht_qcd);
+     hLHE_HT = new TH1D("hLHE_HT",";H_{T} (GeV);N_{evt} (unweighted)",
+			nht_qcd,vht_qcd);
+     //hLHE_HTw = new TH1D("hLHE_HTw",";H_{T} (GeV);N_{evt} (weighted)",
+     //			 nht_qcd,vht_qcd);
+     hHT = new TH1D("hHT",";H_{T} (GeV);N_{evt} (weighted)",2485,15,2500);
+
+     // Reference number of events, retrieved manuallay with
+     // TChain c("Events"); c.AddFile("<path to files>/*.root"); c.GetEntries();
+     // Also re-calculated this code before event loop when needed
+     int vnevt2[nht_qcd2] =
+       {0, 0, 11197186, 23002929, 17512439, 16405924, 14359110,
+	13473185, 4365993, 2944561, 1836165};
+     //int vnevt3[nht3] = {0, 9929, 26573, 16411, 10495, 8260, 7929, 10082, 14390, 6548, 6250}; // Summer22MG, local files
+     int vnevt3[nht_qcd3] =
+       {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}; // Summer22MG, local files
+     int vnwgt3[nht_qcd3] =
+       {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}; // Summer22MG, local files
+     const int *vnevt = (isRun3 ? &vnevt3[0] : &vnevt2[0]);
+     const int *vnwgt = (isRun3 ? &vnwgt3[0] : &vnevt2[0]);
+     for (int i = 0; i != nht_qcd; ++i) {
+       hnevt->SetBinContent(i+1, vnevt[i]);
+       hsumw->SetBinContent(i+1, vnwgt[i]);
+       nMG_qcd += vnevt[i];
+       wMG_qcd += vnwgt[i];
+     }
+     cout << "Loaded Hefaistos MadGraph event numbers ("
+	  << nMG_qcd << ")" << endl << flush;
+     
+     // xsec from jetphys/settings.h_template
+     double vxsec2[nht_qcd2] =
+       {0, 0, 246300000.*23700000./28060000., 23700000,
+	1547000, 322600, 29980, 6334, 1088, 99.11, 20.23};
+     // Run3 xsec from Mikel Mendizabal, MatterMost 16 Oct 2023
+     double vxsec3[nht_qcd3] =
+       {0, 3.136e+08,
+	5.883e+07, //5.807e+07 * 3478241.4 / 5305581.5, // HT 70to100
+	2.520e+07, 1.936e+06, 9.728e+04,
+	1.323e+04, //3.044e+04, //HT 60to800
+	3.027e+03, 8.883e+02, 3.834e+02, 1.253e+02, 2.629e+01};
+     const double *vxsec = (isRun3 ? &vxsec3[0] : &vxsec2[0]);
+     for (int i = 0; i != nht_qcd; ++i) {
+       hxsec->SetBinContent(i+1, vxsec[i]);
+     }
+   } // isMG && isQCD
+
+  const double *vht = (isMG ? (isQCD ? &vht_qcd[0] : &vht_gam[0]) : 0);
+  const int nht = (isMG ? (isQCD ? nht_qcd : nht_gam) : 0);
+  int nMG = (isMG ? (isQCD ? nMG_qcd : nMG_gam) : 0);
+  const int wMG = (isMG ? (isQCD ? wMG_qcd : wMG_gam) : 0);
   
   // PF composition plots stored in a separate directory
   fout->mkdir("pf");
@@ -2509,7 +2580,7 @@ void GamHistosFill::LoadPU() {
     {"2016P8",/*"2016APVP8",*/"2016P8APV","2017P8", "2018P8",
      "2016QCD",/*"2016APVQCD",*/"2016QCDAPV","2017QCD", "2018QCD",
      "2016APV","2016FGH","2017","2018",
-     "2022P8", "2022EEP8"};
+     "2022P8", "2022EEP8","2022QCD", "2022EEQCD"};
   //"2016BCD","2016EF","2016FGH",
   //"2017B","2017C","2017D","2017E","2017F",
   //"2018A","2018B","2018C","2018D"};
@@ -2520,6 +2591,7 @@ void GamHistosFill::LoadPU() {
     trigs["2016QCD"] =  trigs["2016APVQCD"] = trigs["2017QCD"] =
     trigs["2018QCD"] = trigs["2018P8"] =
     trigs["2022P8"] = trigs["2022EEP8"] =
+    trigs["2022QCD"] = trigs["2022EEQCD"] =
     trigs["2016P8"];
 
   trigs["2016APV"].push_back("HLT_Photon22_R9Id90_HE10_IsoM");
