@@ -2,7 +2,8 @@ HOW TO RUN on Hefaistos:
 ------------------------
 (try mosh to not drop connection)
 - from local: 'rsync -rutP GamHistosFill.C GamHistosFill.h Hefaistos:/media/storage/gamjet/'
-- source /work/data/root/bin/thisroot.sh
+[- source /work/data/root/bin/thisroot.sh]
+- source /work/data/rootbinaries/root/bin/thisroot.sh
 - (rm *.d *.so *.pcm)
 - root -l -b -q mk_CondFormats.C
 - #define GPU in mk_GamHistosFill.C
@@ -45,7 +46,7 @@ CHANGELOG (latest first):
 ----------------------------
 To-do later: add MET filters back (pass_filt). Find corrupt data at eta,gamma=0
 
-v24(patch) - Add is22v10 to apply phoj patch to only 2022 prompt data and MC in v10/v11, not to new 2022(C)DE re-reco samples (NanoV12).
+v24(patch1,2) - Add is22v10 to apply phoj patch to only 2022 prompt data and MC in v10/v11, not to new 2022CDE re-reco samples (NanoV12).
 v24 - Fix fixedGridRho->fixedGridRhoFastjetAll, add safety for NaN. Add versioning to files. Sync JEC to Mikel (L2Relative only). Update 2022D, 2022E file lists to 22Sep2023 partial re-reco
 
 v23 - Fix rawmet to use RawPuppiMET. Patch rawgam in PuppiJet in 2022 data and MC for phoj0 (MET ok). Return pass_leak. Add re-JEC + pdjes (DeltaJES). Add Gamjet2 folder (doGamJet2). Extend h2gametaphi to EC, although may not help with just 110EB trigger active. Remove h2gametaphi3,4 as redundant.
