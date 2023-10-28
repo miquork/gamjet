@@ -214,7 +214,12 @@ void GamHistosFill::Loop()
     fChain->SetBranchStatus("run",1);
     if (!isMC) fChain->SetBranchStatus("luminosityBlock",1);
     //if (!isMC) fChain->SetBranchStatus("event",1);
-    
+
+    if (isRun3) {
+      // Same cut as for dijet sample
+      fChain->SetBranchStatus("Flag_METFilters",1);
+    }
+    else {    
     // Event filters listing from Sami:
     // twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2
     // #2018_2017_data_and_MC_UL
@@ -236,7 +241,8 @@ void GamHistosFill::Loop()
     //if (!isMC) {
     fChain->SetBranchStatus("Flag_eeBadScFilter",1); // MC added 7 July 2021
     //}
-    
+    }    
+
     // MC weights
     if (isMC)  fChain->SetBranchStatus("genWeight",1);
     if (isMC)  fChain->SetBranchStatus("nPSWeight",1);
@@ -1055,8 +1061,11 @@ void GamHistosFill::Loop()
     // Current L2Res |eta| binning from Jindrich
     // https://indico.cern.ch/event/1263476/contributions/5311425/attachments/2612023/4513129/L2Res+HDM-March15.pdf
     double vxd[] =
-      {0, 0.261, 0.522, 0.783, 1.044, 1.305, 1.479, 1.653, 1.93, 2.172, 2.322,
-       2.5, 2.65, 2.853, 2.964, 3.139, 3.489, 3.839, 5.191};
+    //{0, 0.261, 0.522, 0.783, 1.044, 1.305, 1.479, 1.653, 1.93, 2.172, 2.322,
+    // 2.5, 2.65, 2.853, 2.964, 3.139, 3.489, 3.839, 5.191};
+    // Newer L2Res |eta| binning from Mikel
+    // https://indico.cern.ch/event/1335203/#7-update-on-l2res-for-2022-rer
+      {0., 0.261, 0.522, 0.783, 1.044, 1.305, 1.479, 1.653, 1.93, 2.172, 2.322, 2.5, 2.65, 2.853, 2.964, 3.139, 3.314, 3.489, 3.839, 4.013, 4.583, 5.191};
     const int nxd = sizeof(vxd)/sizeof(vxd[0])-1;
 
     if (debug) cout << "Setup doGamjet2 " << endl << flush;
@@ -2063,7 +2072,9 @@ void GamHistosFill::Loop()
       // Event filters for 2016 and 2017+2018 data and MC
       // UL lists are separate, but all filter recommendations looked the same
       bool pass_filt = 
-	(Flag_goodVertices &&
+	((isRun3 && Flag_METFilters>0) ||
+	 (!isRun3 &&
+	 Flag_goodVertices &&
 	 Flag_globalSuperTightHalo2016Filter &&
 	 Flag_HBHENoiseFilter &&
 	 Flag_HBHENoiseIsoFilter &&
@@ -2076,7 +2087,8 @@ void GamHistosFill::Loop()
 	 (is16 || Flag_ecalBadCalibFilter) && //new in UL, not for UL16
 	 //(isMC || Flag_eeBadScFilter) // data only
 	 Flag_eeBadScFilter // MC added 7 July 2021
-	 ) || isRun3; // pass_filt
+	 ));
+      //) || isRun3; // pass_filt
       
       bool pass_ngam = (nGam>=1);
       bool pass_njet = (nJets>=1);

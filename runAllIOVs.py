@@ -34,10 +34,10 @@ import os
 # Run 3 IOV list #
 ##################
 #IOV_list= ['2022C','2022D',
-IOV_list= ['2022P8','2022C','2022D',
-           '2022EEP8','2022E','2022F','2022G',
+IOV_list= ['2022P8','2022QCD','2022C','2022D',
+           '2022EEP8','2022EEQCD','2022E','2022F','2022G',
            '2023B','2023Cv123','2023Cv4','2023D']
-version = 'v24'
+version = 'v25'
 
 #os.system("rm *.so *.d *.pcm")
 os.system("root -l -b -q mk_CondFormats.C")
