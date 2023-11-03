@@ -217,7 +217,16 @@ void GamHistosFill::Loop()
 
     if (isRun3) {
       // Same cut as for dijet sample
-      fChain->SetBranchStatus("Flag_METFilters",1);
+      //fChain->SetBranchStatus("Flag_METFilters",1);
+      // https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2#Run_3_recommendations
+      fChain->SetBranchStatus("Flag_goodVertices");
+      fChain->SetBranchStatus("Flag_globalSuperTightHalo2016Filter");
+      fChain->SetBranchStatus("Flag_EcalDeadCellTriggerPrimitiveFilter");
+      fChain->SetBranchStatus("Flag_BadPFMuonFilter");
+      fChain->SetBranchStatus("Flag_BadPFMuonDzFilter");
+      fChain->SetBranchStatus("Flag_hfNoisyHitsFilter");
+      fChain->SetBranchStatus("Flag_eeBadScFilter");
+      fChain->SetBranchStatus("Flag_ecalBadCalibFilter");
     }
     else {    
     // Event filters listing from Sami:
@@ -824,6 +833,40 @@ void GamHistosFill::Loop()
   fout->mkdir("control");
   fout->cd("control");
   
+  // Time stability of JEC
+  TProfile *pr30b = new TProfile("pr30b",";Run;BAL;",16000,355000.5,371000.5);
+  TProfile *pr110b = new TProfile("pr110b",";Run;BAL;",16000,355000.5,371000.5);
+  TProfile *pr230b = new TProfile("pr230b",";Run;BAL;",16000,355000.5,371000.5);
+  TProfile *prg1b = new TProfile("prg1b",";Run;BAL;",16000,355000.5,371000.5);
+  TProfile *pr30m = new TProfile("pr30m",";Run;MPF;",16000,355000.5,371000.5);
+  TProfile *pr110m = new TProfile("pr110m",";Run;MPF;",16000,355000.5,371000.5);
+  TProfile *pr230m = new TProfile("pr230m",";Run;MPF;",16000,355000.5,371000.5);
+  TProfile *prg1m = new TProfile("prg1m",";Run;MPF;",16000,355000.5,371000.5);
+
+  // Cut flow controls
+  TProfile *pcutflow1 = new TProfile("pcutflow1",";Cut;Pass",20,-0.5,19.5);
+  TProfile *pcutflow2 = new TProfile("pcutflow2",";Cut;Pass",20,-0.5,19.5);
+  TProfile *pcutflow3 = new TProfile("pcutflow3",";Cut;Pass",20,-0.5,19.5);
+
+  const int nc = 18;
+  string cuts[nc] = {"pass_trig", "pass_ngam", "pass_njet", "pass_gameta",
+		     "pass_dphi", "pass_jetid", "pass_veto", "pass_leak",
+		     "pass_basic", "pass_bal", "pass_mpf", "pass_basic_ext",
+		     "pass_jeteta", "pass_alpha100", "pass_all", "pass_gen"};
+  for (int i = 0; i != nc; ++i) {
+    pcutflow1->GetXaxis()->SetBinLabel(i+1, cuts[i].c_str());
+    pcutflow2->GetXaxis()->SetBinLabel(i+1, cuts[i].c_str());
+    pcutflow3->GetXaxis()->SetBinLabel(i+1, cuts[i].c_str());
+  }
+
+  // Follow up on problematic cuts
+  TH1D *hdphi = new TH1D("hdphi",";#Delta#phi;N_{events}",
+			 126,-TMath::TwoPi(),TMath::TwoPi());
+  TH1D *hdr = new TH1D("hdr",";#DeltaR;N_{events}",100,0,10);
+		       
+
+  
+
   // 1D plots for mu per trigger
   //hmusmc,20,30,50,75,90,100,110,200
   TH1D *hmus  = new TH1D("hmus","",100,0,100);
@@ -1553,8 +1596,11 @@ void GamHistosFill::Loop()
 
     // Correct photon for gain1 and MPF for "footprint" (photon vs PFgamma)
     rawgam = gam;
-    if (iGam!=-1 && Photon_seedGain[iGam]==1 && !isMC && !isRun3) {
-      gam *= 1./1.01;
+    if (iGam!=-1 && Photon_seedGain[iGam]==1 && !isMC) {
+      //gam *= 1./1.01;
+      // minitools/drawGainVsPt.C (add R_6/12+R_1/6, take MPF+statTowardsDB)
+      if (!isRun3) gam *= 1./1.011; // MPF=1.13+/-0.04%, DB=1.05+/-0.08%
+      if ( isRun3) gam *= 1./1.017; // MPF=1.74+/-0.07%, DB=1.41+/-0.16%
     }
     if (iGam!=-1 && !isRun3) {
       // [0]+log(x)*([1]+log(x)*[2]) in range [15,1750] to MC pphoj0
@@ -1783,6 +1829,15 @@ void GamHistosFill::Loop()
 	   (pt>=60  && pt<85  && (itrg=50)) ||
 	   (pt>=35  && pt<60  && (itrg=30)) ||
 	   (pt>=20  && pt<35  && (itrg=20))
+	   )) ||
+	 (isRun3 &&
+	  ((pt>=230            && (itrg=200)) ||
+	   (pt>=110&&pt<230 && (itrg=110)) ||
+	   (pt>=90  && pt<110  && (itrg=90))  ||
+	   (pt>=75  && pt<90   && (itrg=75))  ||
+	   (pt>=50  && pt<75   && (itrg=50))  ||
+	   (pt>=30&&pt<50   && (itrg=30))  ||
+	   (pt>=20  && pt<30   && (itrg=20))
 	   ))
 	 );
     } // isQCD
@@ -1860,9 +1915,11 @@ void GamHistosFill::Loop()
       if (Jet_pt[i]>15 && (iGam==-1 || (int)i != Photon_jetIdx[iGam]) &&
 	  (!isQCD || (int)i != iFox)) {
 	
-	++nJets;
+	//++nJets;
 	jeti.SetPtEtaPhiM(Jet_pt[i], Jet_eta[i], Jet_phi[i], Jet_mass[i]);
- 	
+ 	if (gam.DeltaR(jeti)<0.2) continue; // should not happen, but does?
+	++nJets;
+
 	if (iJet==-1) { // Leading jet for balance
 	  iJet = i;
 	  jet = jeti;
@@ -2071,8 +2128,18 @@ void GamHistosFill::Loop()
       
       // Event filters for 2016 and 2017+2018 data and MC
       // UL lists are separate, but all filter recommendations looked the same
+      // Run3: https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2#Run_3_recommendations
       bool pass_filt = 
-	((isRun3 && Flag_METFilters>0) ||
+	(//(isRun3 && Flag_METFilters>0) ||
+	 (isRun3 &&
+	  Flag_goodVertices &&
+	  Flag_globalSuperTightHalo2016Filter &&
+	  Flag_EcalDeadCellTriggerPrimitiveFilter &&
+	  Flag_BadPFMuonFilter &&
+	  Flag_BadPFMuonDzFilter &&
+	  Flag_hfNoisyHitsFilter &&
+	  Flag_eeBadScFilter &&
+	  Flag_ecalBadCalibFilter) ||
 	 (!isRun3 &&
 	 Flag_goodVertices &&
 	 Flag_globalSuperTightHalo2016Filter &&
@@ -2093,7 +2160,7 @@ void GamHistosFill::Loop()
       bool pass_ngam = (nGam>=1);
       bool pass_njet = (nJets>=1);
       bool pass_gameta = (fabs(gam.Eta()) < 1.3);
-      bool pass_dphi = (gam.DeltaPhi(jet) > 2.7); // pi-0.44 as in KIT Z+jet
+      bool pass_dphi = (fabs(gam.DeltaPhi(jet)) > 2.7); // pi-0.44 as in KIT Z+j
       bool pass_jetid = (iJet!=-1 && Jet_jetId[iJet]>=4); // tightLepVeto
       bool pass_veto = true;
       if (true) { // jet veto
@@ -2115,7 +2182,45 @@ void GamHistosFill::Loop()
       bool pass_jeteta = (abseta < 1.3);
       bool pass_alpha100 = (pt2 < ptgam || pt2 < pt2min);      
       bool pass_basic_ext = (pass_basic && pass_bal && pass_mpf);
+      bool pass_all = (pass_basic_ext && pass_jeteta && pass_alpha100);
       bool pass_gen = (iGenJet!=-1);
+
+      //const int nc = 18;
+      bool cut[nc] = {pass_trig, pass_ngam, pass_njet, pass_gameta,
+		      pass_dphi, pass_jetid, pass_veto, pass_leak,
+		      pass_basic, pass_bal, pass_mpf, pass_basic_ext,
+		      pass_jeteta, pass_alpha100, pass_all, pass_gen};
+      bool passcuts(true);
+      for (int i = 0; i != nc; ++i) {
+	pcutflow1->Fill(i, cut[i] ? 1 : 0, w);
+	if (passcuts) {
+	  pcutflow2->Fill(i, cut[i] ? 1 : 0, w);
+	  passcuts = cut[i];
+	}
+	pcutflow3->Fill(i, passcuts ? 1 : 0, w);
+      }
+      if (pass_trig && pass_ngam && pass_njet && pass_gameta) {
+	hdphi->Fill(gam.DeltaPhi(jet), w);
+	hdr->Fill(gam.DeltaR(jet), w);
+      }
+      if (pass_all) {
+	if (itrg==30 && ptgam>30) {
+	  pr30b->Fill(run, bal, w); 
+	  pr30m->Fill(run, mpf, w); 
+	}
+	if (itrg==110 && ptgam>110) {
+	  pr110b->Fill(run, bal, w); 
+	  pr110m->Fill(run, mpf, w); 
+	}
+	if (itrg==200 && ptgam>230) {
+	  pr230b->Fill(run, bal, w); 
+	  pr230m->Fill(run, mpf, w); 
+	}
+	if (iGam!=-1 && Photon_seedGain[iGam]==1) {
+	  prg1b->Fill(run, bal, w); 
+	  prg1m->Fill(run, mpf, w); 
+	}
+      }
 
       if (_gh_debug100 && jentry<100) {
 	cout << "Event " << jentry << " decisions" << endl;
@@ -2305,7 +2410,8 @@ void GamHistosFill::Loop()
 	h2phoj->Fill(ptgam, phoj.Pt()/ptgam, w);
 	pphoj->Fill(ptgam, phoj.Pt()/ptgam, w);
 
-	double footprint = (gam.DeltaPhi(phoj0)<0.4 ? 1 : -1)*phoj0.Pt()/ptgam;
+	double footprint =
+	  (fabs(gam.DeltaPhi(phoj0))<0.4 ? 1 : -1)*phoj0.Pt()/ptgam;
 	h2phoj0->Fill(ptgam, footprint, w);
 	pphoj0->Fill(ptgam, footprint, w);
 

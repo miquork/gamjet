@@ -46,7 +46,11 @@ CHANGELOG (latest first):
 ----------------------------
 To-do later: add MET filters back (pass_filt). Find corrupt data at eta,gamma=0
 
-v25 - Flag_METFilters on (pass_filt) for Run3. Update doGamJet2 L2Res binning. Update 2023D file list. Add QCD to runAllIOVs.py.
+v27 - Scale Gain1 path by 1.7% based on new minitools/drawGainVsPt.C. Add control/pr230b, prg1b etc.
+
+v26 - Fix Run3 trigger for QCD bkg EM-jets. Add gam.DeltaR(jeti) for 2022CDE re-reco safety. Fix deltaPhi>2.7 to |deltaPhi|>2.7. Update MET filters list. Update doGamJet2 L2Res binning. Add control/pcutflow. Add control/pr110b etc. Update 2022F to 22Sep2023.v12. (Summer22(EE) MC still downloading, same with 2023 DATA.)
+
+v25 - Flag_METFilters on (pass_filt) for Run3. Update 2023D file list. Add QCD to runAllIOVs.py.
 
 v24(patch3) - Fix MC weighing for MadGraph QCD and add it
 v24(patch1,2) - Add is22v10 to apply phoj patch to only 2022 prompt data and MC in v10/v11, not to new 2022CDE re-reco samples (NanoV12).

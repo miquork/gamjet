@@ -208,6 +208,8 @@ public :
    Bool_t          Flag_muonBadTrackFilter;
    Bool_t          Flag_BadChargedCandidateFilter;
    Bool_t          Flag_BadPFMuonFilter;
+   Bool_t          Flag_BadPFMuonDzFilter;
+   Bool_t          Flag_hfNoisyHitsFilter;
    Bool_t          Flag_BadChargedCandidateSummer16Filter;
    Bool_t          Flag_BadPFMuonSummer16Filter;
    Bool_t          Flag_trkPOG_manystripclus53X;
@@ -427,6 +429,8 @@ public :
    TBranch        *b_Flag_muonBadTrackFilter;   //!
    TBranch        *b_Flag_BadChargedCandidateFilter;   //!
    TBranch        *b_Flag_BadPFMuonFilter;   //!
+   TBranch        *b_Flag_BadPFMuonDzFilter;   //!
+   TBranch        *b_Flag_hfNoisyHitsFilter;   //!
    TBranch        *b_Flag_BadChargedCandidateSummer16Filter;   //!
    TBranch        *b_Flag_BadPFMuonSummer16Filter;   //!
    TBranch        *b_Flag_trkPOG_manystripclus53X;   //!
@@ -551,7 +555,8 @@ GamHistosFill::GamHistosFill(TTree *tree, int itype, string datasetname, string 
   is22 = (ds=="2022C" || ds=="2022D" || ds=="2022E" || ds=="2022F" ||
 	  ds=="2022G" || ds=="2022P8" || ds=="2022QCD" || ds=="2022EEP8" ||
 	  ds=="2022EEQCD");
-  is22v10 = (ds=="2022F" || ds=="2022G" ||
+  //is22v10 = (ds=="2022F" || ds=="2022G" ||
+  is22v10 = (ds=="2022G" ||
 	     ds=="2022P8" || ds=="2022QCD" ||
 	     ds=="2022EEP8" || ds=="2022EEQCD");
   is23 = (ds=="2023B" || ds=="2023Cv123" || ds=="2023Cv4" || ds=="2023D" ||
@@ -785,6 +790,8 @@ void GamHistosFill::Init(TTree *tree)
    fChain->SetBranchAddress("Flag_muonBadTrackFilter", &Flag_muonBadTrackFilter, &b_Flag_muonBadTrackFilter);
    fChain->SetBranchAddress("Flag_BadChargedCandidateFilter", &Flag_BadChargedCandidateFilter, &b_Flag_BadChargedCandidateFilter);
    fChain->SetBranchAddress("Flag_BadPFMuonFilter", &Flag_BadPFMuonFilter, &b_Flag_BadPFMuonFilter);
+   if (isRun3) fChain->SetBranchAddress("Flag_BadPFMuonDzFilter", &Flag_BadPFMuonDzFilter, &b_Flag_BadPFMuonDzFilter);
+   if (isRun3) fChain->SetBranchAddress("Flag_hfNoisyHitsFilter", &Flag_hfNoisyHitsFilter, &b_Flag_hfNoisyHitsFilter);
    fChain->SetBranchAddress("Flag_BadChargedCandidateSummer16Filter", &Flag_BadChargedCandidateSummer16Filter, &b_Flag_BadChargedCandidateSummer16Filter);
    fChain->SetBranchAddress("Flag_BadPFMuonSummer16Filter", &Flag_BadPFMuonSummer16Filter, &b_Flag_BadPFMuonSummer16Filter);
    fChain->SetBranchAddress("Flag_trkPOG_manystripclus53X", &Flag_trkPOG_manystripclus53X, &b_Flag_trkPOG_manystripclus53X);
