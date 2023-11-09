@@ -46,6 +46,10 @@ CHANGELOG (latest first):
 ----------------------------
 To-do later: add MET filters back (pass_filt). Find corrupt data at eta,gamma=0
 
+v28 - Add prgamorigqcd[2]. Move METfilters earlier befor trigger plots (try to clean 700 GeV bump out in 2022FG). Update all but 22G (23B) to 22Sep2023-NanoV12.
+
+v27c => should clean also 2022C and 2022F more, same for 2022EEQCD.
+v27b - 2022F failed due to bad files, clean and try again.
 v27 - Scale Gain1 path by 1.7% based on new minitools/drawGainVsPt.C. Add control/pr230b, prg1b etc.
 
 v26 - Fix Run3 trigger for QCD bkg EM-jets. Add gam.DeltaR(jeti) for 2022CDE re-reco safety. Fix deltaPhi>2.7 to |deltaPhi|>2.7. Update MET filters list. Update doGamJet2 L2Res binning. Add control/pcutflow. Add control/pr110b etc. Update 2022F to 22Sep2023.v12. (Summer22(EE) MC still downloading, same with 2023 DATA.)

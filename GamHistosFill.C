@@ -958,6 +958,8 @@ void GamHistosFill::Loop()
   TProfile *prgam = new TProfile("prgam","",nx,vx);
   TProfile *prgamqcd = new TProfile("prgamqcd","",nx,vx); // for QCD bkg
   TProfile *prgamqcd2 = new TProfile("prgamqcd2","",nx,vx); // for QCD bkg
+  TProfile *prgamorigqcd = new TProfile("prgamorigqcd","",nx,vx); // fpr QCD bkg
+  TProfile *prgamorigqcd2 = new TProfile("prgamorigqcd2","",nx,vx); // QCD
   TH2D *h2cgam = new TH2D("h2cgam","",nx,vx,100,0.90,1.10);
   TProfile *pcgam = new TProfile("pcgam","",nx,vx);
 
@@ -1257,7 +1259,7 @@ void GamHistosFill::Loop()
   
   curdir->cd();
   
-  TLorentzVector gam, gami, lhe, gen, phoj, phoj0, phoj0off, jet, jet2, jetn;
+  TLorentzVector gam, gami, lhe, gengam, phoj, phoj0, phoj0off, jet, jet2, jetn;
   TLorentzVector gamorig; // for QCD bkg
   TLorentzVector met, met1, metn, metu, metnu, rawmet, corrmet, rawgam;
   TLorentzVector jeti, corrjets, rawjet, rawjets, rcjet, rcjets, rcoffsets;
@@ -1558,7 +1560,7 @@ void GamHistosFill::Loop()
     // Temporary: select photon based on LHE photon match
     int iGamGen(-1), iGam(-1), nGam(0);
     int iGamOrig(-1); // for QCD bkg
-    gen.SetPtEtaPhiM(0,0,0,0);
+    gengam.SetPtEtaPhiM(0,0,0,0);
     gam.SetPtEtaPhiM(0,0,0,0);
     rawgam.SetPtEtaPhiM(0,0,0,0);
     phoj.SetPtEtaPhiM(0,0,0,0);
@@ -1566,8 +1568,8 @@ void GamHistosFill::Loop()
 
     // Gen-photon
     if (isMC && nGenIsolatedPhoton>0) {
-      gen.SetPtEtaPhiM(GenIsolatedPhoton_pt[0],GenIsolatedPhoton_eta[0],
-		       GenIsolatedPhoton_phi[0],GenIsolatedPhoton_mass[0]);
+      gengam.SetPtEtaPhiM(GenIsolatedPhoton_pt[0],GenIsolatedPhoton_eta[0],
+			  GenIsolatedPhoton_phi[0],GenIsolatedPhoton_mass[0]);
     }
 
     // Select tight photons and photon matching gen photon
@@ -1578,7 +1580,7 @@ void GamHistosFill::Loop()
 			Photon_phi[i], Photon_mass[i]);
       
       // Photon matching gen photon
-      if (gen.Pt()>0 && gen.DeltaR(gami)<0.2 && iGamGen==-1) {
+      if (gengam.Pt()>0 && gengam.DeltaR(gami)<0.2 && iGamGen==-1) {
 	iGamGen = i;
       } 
       
@@ -2036,15 +2038,46 @@ void GamHistosFill::Loop()
 	   << " in file " << _filename << endl << flush;
       continue;
     }
+
+    // Event filters for 2016 and 2017+2018 data and MC
+    // UL lists are separate, but all filter recommendations looked the same
+    // Run3: https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2#Run_3_recommendations
+    bool pass_filt = 
+      (//(isRun3 && Flag_METFilters>0) ||
+       (isRun3 &&
+	Flag_goodVertices &&
+	Flag_globalSuperTightHalo2016Filter &&
+	Flag_EcalDeadCellTriggerPrimitiveFilter &&
+	Flag_BadPFMuonFilter &&
+	Flag_BadPFMuonDzFilter &&
+	Flag_hfNoisyHitsFilter &&
+	Flag_eeBadScFilter &&
+	Flag_ecalBadCalibFilter) ||
+       (!isRun3 &&
+	Flag_goodVertices &&
+	Flag_globalSuperTightHalo2016Filter &&
+	Flag_HBHENoiseFilter &&
+	Flag_HBHENoiseIsoFilter &&
+	Flag_EcalDeadCellTriggerPrimitiveFilter &&
+	Flag_BadPFMuonFilter &&
+	//Flag_BadPFMuonDzFilter && // new in UL, but not in nAOD?
+	//Flag_BadChargedCandidateFilter && // not recommended
+	//Flag_globalTightHalo2016Filter && // obsolete?
+	//Flag_CSCTightHaloFilter // obsolete?
+	(is16 || Flag_ecalBadCalibFilter) && //new in UL, not for UL16
+	//(isMC || Flag_eeBadScFilter) // data only
+	Flag_eeBadScFilter // MC added 7 July 2021
+	));
+    //) || isRun3; // pass_filt
     
     // Photon control plots
     h2ngam->Fill(ptgam, nGam, w);
-    if (gen.Pt()>0 && fabs(gen.Eta()) < 1.3) {
-      hgen->Fill(gen.Pt(), w);
-      peffgr->Fill(gen.Pt(), iGamGen!=-1 ? 1 : 0, w);
-      peffid->Fill(gen.Pt(), iGam==iGamGen ? 1 : 0, w);
+    if (gengam.Pt()>0 && fabs(gengam.Eta()) < 1.3) {
+      hgen->Fill(gengam.Pt(), w);
+      peffgr->Fill(gengam.Pt(), iGamGen!=-1 ? 1 : 0, w);
+      peffid->Fill(gengam.Pt(), iGam==iGamGen ? 1 : 0, w);
     }
-    if (ptgam>0 && fabs(gam.Eta()) < 1.3) {
+    if (ptgam>0 && fabs(gam.Eta()) < 1.3 && pass_filt) {
       hgam->Fill(ptgam, w);
       if (isMC) pfake->Fill(ptgam, iGam!=iGamGen ? 1 : 0, w);
       if (isQCD) {
@@ -2056,13 +2089,15 @@ void GamHistosFill::Loop()
 	  h2rgamqcd->Fill(ptgam, gamorig.Pt() / ptgam, w);
 	  prgamqcd->Fill(ptgam, gamorig.Pt() / ptgam, w);
 	  if (inwindow) prgamqcd2->Fill(ptgam, gamorig.Pt() / ptgam, w);
+	  prgamorigqcd->Fill(gamorig.Pt(), ptgam / gamorig.Pt(), w);
+	  if (inwindow) prgamorigqcd2->Fill(gamorig.Pt(), ptgam / gamorig.Pt(), w);
 	} // hasorig
       }
-      if (iGam==iGamGen && gen.Pt()>0) {
-	h2rgam->Fill(gen.Pt(), ptgam / gen.Pt(), w);
-	prgam->Fill(gen.Pt(), ptgam / gen.Pt(), w);
-	h2cgam->Fill(ptgam, gen.Pt() / ptgam, w);
-	pcgam->Fill(ptgam, gen.Pt() / ptgam, w);
+      if (iGam==iGamGen && gengam.Pt()>0) {
+	h2rgam->Fill(gengam.Pt(), ptgam / gengam.Pt(), w);
+	prgam->Fill(gengam.Pt(), ptgam / gengam.Pt(), w);
+	h2cgam->Fill(ptgam, gengam.Pt() / ptgam, w);
+	pcgam->Fill(ptgam, gengam.Pt() / ptgam, w);
       }
 
       // Plots for photon trigger efficiencies
@@ -2125,37 +2160,6 @@ void GamHistosFill::Loop()
 	//h2gametaphi3->Fill(gam.Eta(), gam.Phi(), w);
 	//h2gametaphi4->Fill(gam.Eta(), gam.Phi(), w);
       }
-      
-      // Event filters for 2016 and 2017+2018 data and MC
-      // UL lists are separate, but all filter recommendations looked the same
-      // Run3: https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2#Run_3_recommendations
-      bool pass_filt = 
-	(//(isRun3 && Flag_METFilters>0) ||
-	 (isRun3 &&
-	  Flag_goodVertices &&
-	  Flag_globalSuperTightHalo2016Filter &&
-	  Flag_EcalDeadCellTriggerPrimitiveFilter &&
-	  Flag_BadPFMuonFilter &&
-	  Flag_BadPFMuonDzFilter &&
-	  Flag_hfNoisyHitsFilter &&
-	  Flag_eeBadScFilter &&
-	  Flag_ecalBadCalibFilter) ||
-	 (!isRun3 &&
-	 Flag_goodVertices &&
-	 Flag_globalSuperTightHalo2016Filter &&
-	 Flag_HBHENoiseFilter &&
-	 Flag_HBHENoiseIsoFilter &&
-	 Flag_EcalDeadCellTriggerPrimitiveFilter &&
-	 Flag_BadPFMuonFilter &&
-	 //Flag_BadPFMuonDzFilter && // new in UL, but not in nAOD?
-	 //Flag_BadChargedCandidateFilter && // not recommended
-	 //Flag_globalTightHalo2016Filter && // obsolete?
-	 //Flag_CSCTightHaloFilter // obsolete?
-	 (is16 || Flag_ecalBadCalibFilter) && //new in UL, not for UL16
-	 //(isMC || Flag_eeBadScFilter) // data only
-	 Flag_eeBadScFilter // MC added 7 July 2021
-	 ));
-      //) || isRun3; // pass_filt
       
       bool pass_ngam = (nGam>=1);
       bool pass_njet = (nJets>=1);
