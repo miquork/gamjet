@@ -26,6 +26,7 @@ Local analysis:
 
 Extra plotting
 - root -l -b -q drawPhotonJetVsPtVsIOV.C
+- root -l -b -q minitools/drawResponseVsRun.C
 
 
 TIMING estimates, one at a time
@@ -45,6 +46,8 @@ TIMING estimates, one at a time
 CHANGELOG (latest first):
 ----------------------------
 To-do later: add MET filters back (pass_filt). Find corrupt data at eta,gamma=0
+
+v29 - Remove 2022[EE]P8 and 2022[EE]QCD from is22v10 patch.
 
 v28 - Add prgamorigqcd[2]. Move METfilters earlier befor trigger plots (try to clean 700 GeV bump out in 2022FG). Update all but 22G (23B) to 22Sep2023-NanoV12.
 
