@@ -556,9 +556,7 @@ GamHistosFill::GamHistosFill(TTree *tree, int itype, string datasetname, string 
 	  ds=="2022G" || ds=="2022P8" || ds=="2022QCD" || ds=="2022EEP8" ||
 	  ds=="2022EEQCD");
   //is22v10 = (ds=="2022F" || ds=="2022G" ||
-  is22v10 = (ds=="2022G" ||
-	     ds=="2022P8" || ds=="2022QCD" ||
-	     ds=="2022EEP8" || ds=="2022EEQCD");
+  is22v10 = (ds=="2022G");
   is23 = (ds=="2023B" || ds=="2023Cv123" || ds=="2023Cv4" || ds=="2023D" ||
 	  ds=="2023P8" || ds=="2023QCD");
   isQCD = (ds=="2016QCD" || ds=="2016QCDAPV" || ds=="2017QCD" ||
