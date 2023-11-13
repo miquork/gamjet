@@ -35,10 +35,17 @@ void recurseGamHistosFile(TDirectory *gamdir, TDirectory *qcddir,
 
 void GamHistosMix() {
 
+  /*
   GamHistosMixEra("2016APV","v20");
   GamHistosMixEra("2016","v20");
   GamHistosMixEra("2017","v20");
   GamHistosMixEra("2018","v20");
+  */
+
+  // v27->v29
+  GamHistosMixEra("2022","v29");
+  GamHistosMixEra("2022EE","v29");
+  GamHistosMixEra("Run3","v29");
 }
 
 TF1 *_f1p(0);
@@ -48,14 +55,16 @@ void GamHistosMixEra(string sepoch, string sver) {
   //const char *epoch = "2018";
   //const char *ver = "v19";
   const char *epoch = sepoch.c_str();
+  string sqepoch = (sepoch=="2022EE"||sepoch=="Run3" ? "2022" : sepoch);//patch
+  const char *qepoch = sqepoch.c_str();
   const char *ver = sver.c_str();
-  TFile *fout = new TFile(Form("files/GamHistosMix_mc_%sP8QCD_%s.root",
+  TFile *fout = new TFile(Form("rootfiles/GamHistosMix_mc_%sP8QCD_%s.root",
 			       epoch,ver),"RECREATE");
-  TFile *fgam = new TFile(Form("files/GamHistosFill_mc_%sP8_%s.root",
+  TFile *fgam = new TFile(Form("rootfiles/GamHistosFill_mc_%sP8_%s.root",
 			       epoch,ver),"READ");
   assert(fgam && !fgam->IsZombie());
-  TFile *fqcd = new TFile(Form("files/GamHistosFill_mc_%sQCD_%s.root",
-			       epoch,ver),"READ");
+  TFile *fqcd = new TFile(Form("rootfiles/GamHistosFill_mc_%sQCD_%s.root",
+			       qepoch,ver),"READ");
   assert(fqcd && !fqcd->IsZombie());
 
   cout << "Calling GamHistosMix("<<epoch<<","<<ver<<");" << endl;
@@ -68,9 +77,16 @@ void GamHistosMixEra(string sepoch, string sver) {
   //assert(_f1p==0);
   // Hand-crafted "fit" to 2016+2018 control/pfakeqcd2x
   // processed through drawPurityEstimates.C
-  if (!_f1p) _f1p = new TF1("f1p","[0]+[1]*exp(-[2]*x)+[3]*x",15,3500);
-  //_f1p->SetParameters(7e-5,0.008,0.1,4e-8);
-  _f1p->SetParameters(0.1737, 0.9318, 0.01506, 0); // chi2/NDF=3.4/19
+  //if (!_f1p) _f1p = new TF1("f1p","[0]+[1]*exp(-[2]*x)+[3]*x",15,3500);
+  ////_f1p->SetParameters(7e-5,0.008,0.1,4e-8);
+  //_f1p->SetParameters(0.1737, 0.9318, 0.01506, 0); // chi2/NDF=3.4/19
+
+  // 2022 variant of manual "fit" of control/pfakeqcd2 through
+  // drawPurityEstimates
+  if (!_f1p) _f1p = new TF1("f1p","min([p0]+[p1]/x+[p2]/(x*x)+[p3]/(x*x*x),1.)",15,3500);
+  //_f1p->SetParameters(0.02505, 9.455, -214.3, 3.88e+04); // chi2/NDF=8.0/19
+  // Redo fit for pT>50 GeV that seems reliable for photon+jet xsec
+  _f1p->SetParameters(0.01305, 4.573, -59.35, 2.299e+04); // chi2/NDF=2.2/14
 
   // From drawPurityEstimates.C:drawGluonResponse()
   if (!_f1qcd) _f1qcd = new TF1("f1qcd","[p0]+[p1]*pow(x,[p2])",15,1650);

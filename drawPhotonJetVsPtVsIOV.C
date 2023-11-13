@@ -5,11 +5,13 @@
 #include "TProfile.h"
 #include "TLine.h"
 
-#include "tdrstyle_mod15.C"
+#include "tdrstyle_mod22.C"
 
 bool addMPFu2n = true;
 bool addG1toMPF = false;//true;
 bool addG12toMPF = false;
+string id = "v29";
+bool drawFullIOVList = false;//true;
 
 // Forward declaration of call
 void drawPhotonJetVsPtVsIOVs(string so, string var, string name,
@@ -27,7 +29,8 @@ void drawPhotonJetVsPtVsIOV() {
   //drawPhotonJetVsPtVsIOVs("control/pphoj","Leakage","Leakage",0.,0.125,-0.005,0.03);//0.5,2.5); // before leakage cut
   //drawPhotonJetVsPtVsIOVs("control/pphoj","Leakage","Leakage",0.005,0.020,-0.0024,0.004);// after leakage cut
   //drawPhotonJetVsPtVsIOVs("control/pphoj","Leakage","Leakage",0.00,0.025,-0.004,0.004);// before gain1
-  //drawPhotonJetVsPtVsIOVs("control/pphoj0","Leakage0","Leakage0",0.,0.025,-0.004,0.004);// after gain1
+  drawPhotonJetVsPtVsIOVs("control/pphoj0","Leakage0","Leakage0",0.,0.025,-0.004,0.004);// after gain1, Run2 style
+  //drawPhotonJetVsPtVsIOVs("control/pphoj0","Leakage0","Leakage0",0.,0.15,-0.07,0.07);// Run3
   //drawPhotonJetVsPtVsIOVs("control/pcorrvspt","Correction","Correction",0.99,1.01,-0.001,0.001);//0.5,2.5);
   //drawPhotonJetVsPtVsIOVs("control/phoevspt","H/E","HoE",0.,0.01,0.7,1.6);
   //drawPhotonJetVsPtVsIOVs("control/pr9vspt","R9","R9",0.83,1.03,0.9,1.14);
@@ -37,8 +40,8 @@ void drawPhotonJetVsPtVsIOV() {
   //drawPhotonJetVsPtVsIOVs("control/pgain12vspt","Gain12","Gain12",0.,1.2,0.5,1.5);
 
   //drawPhotonJetVsPtVsIOVs("resp_MPFchs_%s_a100_eta00_13","MPF","MPF",0.88,1.23,0.88,1.08);
-  drawPhotonJetVsPtVsIOVs("resp_MPFchs_%s_a100_eta00_13","MPF","MPF",0.90,1.15,0.89,1.09);//1.06);
-  //drawPhotonJetVsPtVsIOVs("resp_DBchs_%s_a100_eta00_13","DB","DB",0.75,1.20,0.80,1.10);
+  drawPhotonJetVsPtVsIOVs("resp_MPFchs_%s_a100_eta00_13","MPF","MPF",0.90,1.15,0.89,1.09);//1.06); // Run3
+  drawPhotonJetVsPtVsIOVs("resp_DBchs_%s_a100_eta00_13","DB","DB",0.75,1.20,0.89,1.09);//0.80,1.10); // Run3
   //drawPhotonJetVsPtVsIOVs("resp_DBchs_%s_a100_eta00_13","DB","DB",0.75,1.20,0.89,1.09);
   
   //drawPhotonJetVsPtVsIOVs("resp_MPFchs_%s_a100_eta00_13","MPF","MPF",0.94,1.08,0.95,1.03);
@@ -56,15 +59,35 @@ void drawPhotonJetVsPtVsIOVs(string so, string var, string name,
   //string mcs[] = {"2016APVP8","2016P8","2017P8","2018P8","Run2P8"};
   //string iovs[] = {"2016BCDEF","2016FGH","2017BCDEF","2018ABCD"};
   //string mcs[] = {"2016APVP8","2016P8","2017P8","2018P8"};
-  string iovs[] = {"2018ABCD","Run3",
-		   //"2022C","2022D","2022E","2022F","2022G",
-		   "2022CDE","2022FG",
-		   "2023Cv123","2023Cv4"};
-  string mcs[] = {"2018P8","2022XP8",
-		  "2022P8","2022EEP8",
-		  "2022P8","2022P8"};
-  const int niov = sizeof(iovs)/sizeof(iovs[0]);
-  const int nmc = sizeof(mcs)/sizeof(mcs[0]);
+  string iovs_long[] = {
+    "2022C","2022D","2022E","2022F","2022G",
+    "2023Cv123","2023Cv4","2023D"
+  };
+  string iovs_short[] = {
+    "2018ABCD","Run3",
+    "2022CD","2022E","2022FG", //hadd
+    "2023Cv123","2023Cv4D", //hadd
+  };
+
+  string mcs_long[] = {
+    "2022P8","2022P8","2022EEP8","2022EEP8","2022EEP8", //orig
+    "2022P8","2022P8","2022P8"
+  };
+  string mcs_short[] = {
+    "2018P8","Run3P8",
+    "2022P8","2022EEP8","2022EEP8", //hadd
+    "2022P8","2022P8"
+  };
+  const int niov_long = sizeof(iovs_long)/sizeof(iovs_long[0]);
+  const int nmc_long = sizeof(mcs_long)/sizeof(mcs_long[0]);
+  const int niov_short = sizeof(iovs_short)/sizeof(iovs_short[0]);
+  const int nmc_short = sizeof(mcs_short)/sizeof(mcs_short[0]);
+
+  string *iovs = (drawFullIOVList ? &iovs_long[0] : &iovs_short[0]);
+  string *mcs = (drawFullIOVList ? &mcs_long[0] : &mcs_short[0]);
+  const int niov = (drawFullIOVList ? niov_long : niov_short);
+  const int nmc = (drawFullIOVList ? nmc_long : nmc_short);
+
   assert(niov==nmc);
   
   map<string,int> mcolor;
@@ -74,25 +97,46 @@ void drawPhotonJetVsPtVsIOVs(string so, string var, string name,
   mcolor["2018ABCD"] = kGray+2;//kRed;
   mcolor["Run2"] = kBlack;
   //
-  mcolor["2022C"] = kBlue;
-  mcolor["2022D"] = kCyan+1;
+  mcolor["2022C"] = kGreen+2;//kBlue;
+  mcolor["2022D"] = kGreen+3;//kCyan+1;
   mcolor["2022E"] = kCyan+2;
-  mcolor["2022CDE"] = kBlue;
+  mcolor["2022CD"] = kGreen+2;//kBlue;
+  mcolor["2022CDE"] = kGreen+2;//kBlue;
   mcolor["2022F"] = kRed;
-  mcolor["2022G"] = kOrange+2;
+  mcolor["2022G"] = kRed+1;//kOrange+2;
   mcolor["2022FG"] = kRed;
-  mcolor["2023Cv123"] = kYellow+2;
-  mcolor["2023Cv4"] = kGreen+2;
+  mcolor["2023Cv123"] = kOrange+1;//kYellow+2;
+  mcolor["2023Cv4"] = kBlue;//kGreen+2;
+  mcolor["2023D"] = kMagenta+2;
+  mcolor["2023Cv4D"] = kBlue;//kGreen+2;
   mcolor["Run3"] = kBlack;
 
+  map<string,int> mmarker;
+  mmarker["2022C"] = kFullSquare;
+  mmarker["2022D"] = kOpenSquare;
+  mmarker["2022E"] = kOpenSquare;
+  mmarker["2022CD"] = kFullSquare;
+  mmarker["2022CDE"] = kFullSquare;
+  mmarker["2022F"] = kFullTriangleUp;
+  mmarker["2022G"] = kOpenTriangleUp;
+  mmarker["2022FG"] = kFullTriangleUp;
+  mmarker["2023Cv123"] = kFullDiamond;//kFullCircle;
+  mmarker["2023BCv123"] = kFullDiamond;//kFullCircle;
+  mmarker["2023Cv4"] = kFullTriangleDown;//kFullDiamond;
+  mmarker["2023D"] = kOpenTriangleDown;//kOpenDiamond;
+  mmarker["2023Cv4D"] = kFullTriangleDown;//kFullDiamond;
+  mmarker["Run3"] = kFullSquare;
+  
   const char *cvar = var.c_str();
   const char *cname = name.c_str();
 
   TH1D *h = tdrHist("h",cvar,y1,y2);
   TH1D *h2 = tdrHist("h2","Data/MC",z1,z2);
   //lumi_13TeV = "Run2 v16";
-  lumi_13TeV = "Run3 v21";
-  TCanvas *c1 = tdrDiCanvas(Form("c1_%s",cname),h,h2,4,11);
+  //lumi_13TeV = "Run3 v21";
+  lumi_13TeV = "Run2"; // 4=13 TeV
+  if (id!="") lumi_136TeV = Form("Run3 %s",id.c_str()); // 8=13.6 TeV
+  TCanvas *c1 = tdrDiCanvas(Form("c1_%s",cname),h,h2,8,11);
 
 
   c1->cd(1);
@@ -111,22 +155,30 @@ void drawPhotonJetVsPtVsIOVs(string so, string var, string name,
   l->DrawLine(h->GetXaxis()->GetXmin(),0,h->GetXaxis()->GetXmax(),0);
 
   for (int i = 0; i != niov; ++i) {
-  
-    const char *ciov = iovs[i].c_str();
+
+    string iov = iovs[i];
+    const char *ciov = iov.c_str();
     const char *cmc = mcs[i].c_str();
+    const char *cid = id.c_str();
 
     TFile *fd(0), *fm(0);
-    if (iovs[i]=="2018ABCD")
+    if (iovs[i]=="2018ABCD") {
     //fd = new TFile(Form("files/GamHistosFill_data_%s_v16.root",ciov));
       fd = new TFile(Form("files/GamHistosFill_data_%s_v20.root",ciov));
-    else
-      fd = new TFile(Form("files/GamHistosFill_data_%s_v21.root",ciov));
+    }
+    else {
+      //fd = new TFile(Form("files/GamHistosFill_data_%s_v21.root",ciov));
+      fd = new TFile(Form("rootfiles/GamHistosFill_data_%s_%s.root",ciov,cid));
+    }
     assert(fd && !fd->IsZombie());
-    if (iovs[i]=="2018ABCD")
+    if (iovs[i]=="2018ABCD") {
       //fm = new TFile(Form("files/GamHistosFill_mc_%s_v16.root",cmc));      
       fm = new TFile(Form("files/GamHistosFill_mc_%s_v20.root",cmc));
-    else
-      fm = new TFile(Form("files/GamHistosFill_mc_%s_v21.root",cmc));
+    }
+    else {
+      //fm = new TFile(Form("files/GamHistosFill_mc_%s_v21.root",cmc));
+      fm = new TFile(Form("rootfiles/GamHistosFill_mc_%s_%s.root",cmc,cid));
+    }
     assert(fm && !fm->IsZombie());
 
     curdir->cd();
@@ -176,15 +228,21 @@ void drawPhotonJetVsPtVsIOVs(string so, string var, string name,
     
     c1->cd(1);
     gPad->SetLogx();
-    tdrDraw(hm,"H",kNone,mcolor[ciov],kSolid,-1,kNone);
-    tdrDraw(hd,"Pz",kFullCircle,mcolor[ciov]);
+    tdrDraw(hm,"H",kNone,(mcolor[iov] ? mcolor[iov] : kBlack),kSolid,-1,kNone);
+    tdrDraw(hd,"Pz",(mmarker[iov] ? mmarker[iov] : kFullCircle),
+	    (mcolor[iov] ? mcolor[iov] : kBlack));
     
     leg->AddEntry(hd,ciov,"PLE");
 
     c1->cd(2);
     gPad->SetLogx();
-    tdrDraw(hr,"Pz",kFullCircle,mcolor[ciov]);
+    tdrDraw(hr,"Pz",(mmarker[iov] ? mmarker[iov] : kFullCircle),
+	    (mcolor[iov] ? mcolor[iov] : kBlack));
   } // for iov
 
-  c1->SaveAs(Form("pdf/drawPhotonJetVsPtVsIOVs_%s.pdf",name.c_str()));
+  if (id!="")
+      c1->SaveAs(Form("pdf/drawPhotonJetVsPtVsIOVs_%s_%s.pdf",
+		      name.c_str(),id.c_str()));
+  else
+    c1->SaveAs(Form("pdf/drawPhotonJetVsPtVsIOVs_%s.pdf",name.c_str()));
 } // void drawPhotonJetVsPtVsIOVs

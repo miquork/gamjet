@@ -47,6 +47,9 @@ CHANGELOG (latest first):
 ----------------------------
 To-do later: add MET filters back (pass_filt). Find corrupt data at eta,gamma=0
 
+v30 - To do: add vs pTave, vspTjet for minitools/drawGamjet.C to compare with Z+jet and multijet. Maybe in Gamjet folder (similar to Gamjet2, but |eta|<1.3 only)
+
+v29b - Remove 2022G from is22v10 patch.
 v29 - Remove 2022[EE]P8 and 2022[EE]QCD from is22v10 patch.
 
 v28 - Add prgamorigqcd[2]. Move METfilters earlier befor trigger plots (try to clean 700 GeV bump out in 2022FG). Update all but 22G (23B) to 22Sep2023-NanoV12.

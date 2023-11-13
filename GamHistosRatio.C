@@ -45,7 +45,8 @@ void replacePt(TGraphErrors *g, TH1 *h) {
 }
 
 void GamHistosRatios(string ver, string iov);
-void GamHistosRatio(string ver = "v21") {
+// v27->v29
+void GamHistosRatio(string ver = "v29") {
   //GamHistosRatios(ver,"2016BCDEF");
   //GamHistosRatios(ver,"2016FGH");
   //GamHistosRatios(ver,"2017BCDEF");
@@ -61,7 +62,16 @@ void GamHistosRatio(string ver = "v21") {
   //GamHistosRatios(ver,"2022FG");
   //GamHistosRatios(ver,"2023Cv123");
   //GamHistosRatios(ver,"2023Cv4");
+
+  GamHistosRatios(ver,"2022CD");
+  GamHistosRatios(ver,"2022E");
+  GamHistosRatios(ver,"2022FG");
+  GamHistosRatios(ver,"2023Cv123");
+  //GamHistosRatios(ver,"2023Cv4");
+  //GamHistosRatios(ver,"2023D");
+  GamHistosRatios(ver,"2023Cv4D");
   GamHistosRatios(ver,"Run3");
+  
 }
 
 void GamHistosRatios(string ver, string iov) {
@@ -129,43 +139,59 @@ void GamHistosRatios(string ver, string iov) {
 		   "RECREATE");//ps=="" ? "RECREATE" : "UPDATE");
   }
   //
-  if (iov=="2022C" || iov=="2022D" || iov=="2022CDE") {
+  if (iov=="2022C" || iov=="2022D" || iov=="2022CD" || iov=="2022CDE") {
 
     // Merge files, if not already done (delete combination file to redo)
+    // Now updated into addAllIOVs.py
+    /*
+    if (iov=="2022CD")    
+      gSystem->Exec(Form("hadd files/GamHistosFill_data_2022CD_%s.root "
+			 "files/GamHistosFill_data_2022C_%s.root "
+			 "files/GamHistosFill_data_2022D_%s.root",
+			 cv, cv,cv));
     if (iov=="2022CDE")    
       gSystem->Exec(Form("hadd files/GamHistosFill_data_2022CDE_%s.root "
 			 "files/GamHistosFill_data_2022C_%s.root "
 			 "files/GamHistosFill_data_2022D_%s.root "
 			 "files/GamHistosFill_data_2022E_%s.root",
 			 cv, cv,cv,cv));
+    */
 
-    fd = new TFile(Form("files/GamHistosFill_data_%s_%s.root",ci,cv),"READ");
+    fd = new TFile(Form("rootfiles/GamHistosFill_data_%s_%s.root",ci,cv),"READ");
     //fm = new TFile(Form("files/GamHistosMix_mc_2018P8QCD_%s.root",cv),"READ");
-    fm = new TFile(Form("files/GamHistosFill_mc_2022P8_%s.root",cv),"READ");
+    //fm = new TFile(Form("rootfiles/GamHistosFill_mc_2022P8_%s.root",cv),"READ");
     //fr = new TFile(Form("files/GamHistosRatio_%s_P8QCD_%s.root",ci,cv),
-    fr = new TFile(Form("files/GamHistosRatio_%s_P8_%s.root",ci,cv),"RECREATE");
+    //fr = new TFile(Form("rootfiles/GamHistosRatio_%s_P8_%s.root",ci,cv),"RECREATE");
+    fm = new TFile(Form("rootfiles/GamHistosMix_mc_2022P8QCD_%s.root",cv),"READ");
+    fr = new TFile(Form("rootfiles/GamHistosRatio_%s_P8QCD_%s.root",ci,cv),"RECREATE");
   }
   if (iov=="2022E" || iov=="2022F" || iov=="2022G" || iov=="2022FG") {
 
     // Merge files, if not already done (delete combination file to redo)
+    /*
     if (iov=="2022FG")    
       gSystem->Exec(Form("hadd files/GamHistosFill_data_2022FG_%s.root "
 			 "files/GamHistosFill_data_2022F_%s.root "
 			 "files/GamHistosFill_data_2022G_%s.root",
 			 cv, cv,cv));
-    
-    fd = new TFile(Form("files/GamHistosFill_data_%s_%s.root",ci,cv),"READ");
-    fm = new TFile(Form("files/GamHistosFill_mc_2022EEP8_%s.root",cv),"READ");
-    fr = new TFile(Form("files/GamHistosRatio_%s_P8_%s.root",ci,cv),"RECREATE");
+    */
+    fd = new TFile(Form("rootfiles/GamHistosFill_data_%s_%s.root",ci,cv),"READ");
+    //fm = new TFile(Form("rootfiles/GamHistosFill_mc_2022EEP8_%s.root",cv),"READ");
+    //fr = new TFile(Form("rootfiles/GamHistosRatio_%s_P8_%s.root",ci,cv),"RECREATE");
+    fm = new TFile(Form("rootfiles/GamHistosMix_mc_2022EEP8QCD_%s.root",cv),"READ");
+    fr = new TFile(Form("rootfiles/GamHistosRatio_%s_P8QCD_%s.root",ci,cv),"RECREATE");
   }
-  if (iov=="2023Cv123" || iov=="2023Cv4") {
-    fd = new TFile(Form("files/GamHistosFill_data_%s_%s.root",ci,cv),"READ");
-    fm = new TFile(Form("files/GamHistosFill_mc_2022P8_%s.root",cv),"READ");
-    fr = new TFile(Form("files/GamHistosRatio_%s_P8_%s.root",ci,cv),"RECREATE");
+  if (iov=="2023Cv123" || iov=="2023Cv4" || iov=="2023Cv4D") {
+    fd = new TFile(Form("rootfiles/GamHistosFill_data_%s_%s.root",ci,cv),"READ");
+    //fm = new TFile(Form("rootfiles/GamHistosFill_mc_2022P8_%s.root",cv),"READ");
+    //fr = new TFile(Form("rootfiles/GamHistosRatio_%s_P8_%s.root",ci,cv),"RECREATE");
+    fm = new TFile(Form("rootfiles/GamHistosMix_mc_2022P8QCD_%s.root",cv),"READ");
+    fr = new TFile(Form("rootfiles/GamHistosRatio_%s_P8QCD_%s.root",ci,cv),"RECREATE");
   }
   if (iov=="Run3") {
 
     // Merge files, if not already done (delete combination file to redo)
+    /*
     gSystem->Exec(Form("hadd files/GamHistosFill_data_Run3_%s.root "
 		       "files/GamHistosFill_data_2022C_%s.root "
 		       "files/GamHistosFill_data_2022D_%s.root "
@@ -179,10 +205,14 @@ void GamHistosRatios(string ver, string iov) {
 		       "files/GamHistosFill_mc_2022EEP8_%s.root "
 		       "files/GamHistosFill_mc_2022P8_%s.root",
 		       cv, cv,cv));
+    */
 
-    fd = new TFile(Form("files/GamHistosFill_data_%s_%s.root",ci,cv),"READ");
-    fm = new TFile(Form("files/GamHistosFill_mc_2022XP8_%s.root",cv),"READ");
-    fr = new TFile(Form("files/GamHistosRatio_%s_P8_%s.root",ci,cv),"RECREATE");
+    fd = new TFile(Form("rootfiles/GamHistosFill_data_%s_%s.root",ci,cv),"READ");
+    //fm = new TFile(Form("files/GamHistosFill_mc_2022XP8_%s.root",cv),"READ");
+    //fm = new TFile(Form("rootfiles/GamHistosFill_mc_Run3P8_%s.root",cv),"READ");
+    //fr = new TFile(Form("rootfiles/GamHistosRatio_%s_P8_%s.root",ci,cv),"RECREATE");
+    fm = new TFile(Form("rootfiles/GamHistosMix_mc_Run3P8QCD_%s.root",cv),"READ");
+    fr = new TFile(Form("rootfiles/GamHistosRatio_%s_P8QCD_%s.root",ci,cv),"RECREATE");
   }
   
   assert(fd && !fd->IsZombie());
@@ -201,7 +231,7 @@ void GamHistosRatios(string ver, string iov) {
   TObject *obj;
   TKey *key;
   
-  bool debug = true;
+  bool debug = false;//true;
   while ( (key = dynamic_cast<TKey*>(itkey.Next())) ) {
     if (debug) cout << key->GetName() << endl << flush;
     obj = key->ReadObj(); assert(obj);
@@ -261,7 +291,8 @@ void GamHistosRatios(string ver, string iov) {
       char c[256];
       int a, y1, y2;
       if (debug) cout << "mcname: " << mcname << endl << flush;
-      sscanf(mcname.Data(),"resp_%[PtGamBalDBMPFpfR1nuchsRho]_MC_a%d_eta%d_%d",
+      //sscanf(mcname.Data(),"resp_%[PtGamBalDBMPFpfR1nuchsRho]_MC_a%d_eta%d_%d",
+      sscanf(mcname.Data(),"resp_%[PtGamBalDBMPFpfR1nuchsRhoDeltaJES]_MC_a%d_eta%d_%d",
 	     c,&a,&y1,&y2);
       if (debug) cout << "c: " << c << endl << flush;
       TString mcptname = mcname;

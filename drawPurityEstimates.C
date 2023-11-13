@@ -12,16 +12,23 @@
 
 // Replace fakerate histogram by fit of the same over multiple years
 bool replaceFakeByFit = true;
+bool doRebin = false;
+bool doPerGeV = true;
 
-void drawEMJetScale();
-void drawGluonFraction();
-void drawGluonResponse();
+void drawEMJetScale(string era, string version);
+void drawGluonFraction(string era, string version);
+void drawGluonResponse(string era, string version);
 
-void drawPurityEstimates() {
+// v27->v29
+void drawPurityEstimates(string era="2022CD", string version="v29") {
   
   setTDRStyle();
   TDirectory *curdir = gDirectory;
+  const char *cera = era.c_str();
+  const char *cv = version.c_str();
 
+  string eramc = "2022";//(era=="2022FG" ? "2022EE" : "2022");
+  const char *ceramc = eramc.c_str();
   // Open files
   /*
   TFile *fg = new TFile("files/GamHistosFill_mc_2018P8_v19.root","READ");
@@ -31,48 +38,80 @@ void drawPurityEstimates() {
   TFile *fd = new TFile("files/GamHistosFill_data_2018ABCD_v19.root","READ");
   assert(fd && !fd->IsZombie());
   */
+  /*
   TFile *fg = new TFile("files/GamHistosFill_mc_2017P8_v19.root","READ");
   assert(fg && !fg->IsZombie());
   TFile *fq = new TFile("files/GamHistosFill_mc_2017QCD_v19d.root","READ");
   assert(fq && !fq->IsZombie());
   TFile *fd = new TFile("files/GamHistosFill_data_2017BCDEF_v19.root","READ");
   assert(fd && !fd->IsZombie());
-
+  */
+  TFile *fg = new TFile(Form("rootfiles/GamHistosFill_mc_%sP8_%s.root",
+			     ceramc,cv),"READ");
+  assert(fg && !fg->IsZombie());
+  TFile *fq = new TFile(Form("rootfiles/GamHistosFill_mc_%sQCD_%s.root",
+			     ceramc,cv),"READ");
+  assert(fq && !fq->IsZombie());
+  TFile *fd = new TFile(Form("rootfiles/GamHistosFill_data_%s_%s.root",
+			     cera,cv),"READ");
+  assert(fd && !fd->IsZombie());
+  
   // Read in pT spectra with full event selection and for photon only
   TH1D *hrefbins = (TH1D*)fg->Get("control/hgam"); assert(hrefbins);
   const Double_t *xbins = hrefbins->GetXaxis()->GetXbins()->GetArray();
   const int nxbins = hrefbins->GetNbinsX();
   //TH1D *hg0 = (TH1D*)fg->Get("control/hgam"); assert(hg0);
-  TH1D *hg0 = (TH1D*)fg->Get("control/hgamtrig"); assert(hg0);
-  hg0 = (TH1D*)hg0->Rebin(nxbins,"hg0",xbins);
-  TH1D *hg = (TH1D*)fg->Get("resp_MPFchs_MC_a100_eta00_13_RawNEvents_data_vs_pt"); assert(hg);
+  //TH1D *hg0 = (TH1D*)fg->Get("control/hgamtrig"); assert(hg0); // 2017
+  TH1D *hg0 = (TH1D*)fg->Get("control/hgamtrg"); assert(hg0); // 2022
+  if (doRebin) hg0 = (TH1D*)hg0->Rebin(nxbins,"hg0",xbins);
+  if (doPerGeV) hg0->Scale(1,"width");
+  //TH1D *hg = (TH1D*)fg->Get("resp_MPFchs_MC_a100_eta00_13_RawNEvents_data_vs_pt"); assert(hg); // 2017
+  TH1D *hg = (TH1D*)fg->Get("resp_MPFchs_MC_a100_eta00_13_Xsec_data_vs_pt"); assert(hg); // 2022
+  if (doPerGeV) hg->Scale(1,"width");
   //TH1D *hq0 = (TH1D*)fq->Get("control/hgam"); assert(hq0);
-  TH1D *hq0 = (TH1D*)fq->Get("control/hgamtrig"); assert(hq0);
-  hq0 = (TH1D*)hq0->Rebin(nxbins,"hq0",xbins);
-  TH1D *hq = (TH1D*)fq->Get("resp_MPFchs_MC_a100_eta00_13_RawNEvents_data_vs_pt"); assert(hq);
+  //TH1D *hq0 = (TH1D*)fq->Get("control/hgamtrig"); assert(hq0); // 2017
+  TH1D *hq0 = (TH1D*)fq->Get("control/hgamtrg"); assert(hq0); // 2022
+  if (doRebin) hq0 = (TH1D*)hq0->Rebin(nxbins,"hq0",xbins);
+  if (doPerGeV) hq0->Scale(1,"width");
+  //TH1D *hq = (TH1D*)fq->Get("resp_MPFchs_MC_a100_eta00_13_RawNEvents_data_vs_pt"); assert(hq); // 2017
+  TH1D *hq = (TH1D*)fq->Get("resp_MPFchs_MC_a100_eta00_13_Xsec_data_vs_pt"); assert(hq); // 2022
+  if (doPerGeV) hq->Scale(1,"width");
   //TH1D *hdt0 = (TH1D*)fd->Get("control/hgam"); assert(hdt0);
-  TH1D *hdt0 = (TH1D*)fd->Get("control/hgamtrig"); assert(hdt0);
-  hdt0 = (TH1D*)hdt0->Rebin(nxbins,"hdt0",xbins);
+  //TH1D *hdt0 = (TH1D*)fd->Get("control/hgamtrig"); assert(hdt0); // 2017
+  TH1D *hdt0 = (TH1D*)fd->Get("control/hgamtrg"); assert(hdt0); // 2022
+  if (doRebin) hdt0 = (TH1D*)hdt0->Rebin(nxbins,"hdt0",xbins);
+  if (doPerGeV) hdt0->Scale(1,"width");
   TH1D *hdt = (TH1D*)fd->Get("resp_MPFchs_DATA_a100_eta00_13_RawNEvents_data_vs_pt"); assert(hdt);
+  if (doPerGeV) hdt->Scale(1,"width");
 
   // Read in fake rates
   TProfile *pfq = (TProfile*)fq->Get("control/pfakeqcd2"); assert(pfq);
   TH1D *hfq0 = pfq->ProjectionX("hfq0");
   TH1D *hfq = pfq->ProjectionX("hfq");
 
+
+  /*
   // Hand-crafted "fit" to 2016+2018 control/pfakeqcd2
   TF1 *f1p = new TF1("f1p","[0]+[1]*exp(-[2]*x)+[3]*x",15,3500);
   f1p->SetParameters(7e-5,0.008,0.1,4e-8);
+  */
+  // Hand-crafted "fit" to 2022QCD control/pfakeqcd2
+  // Some odd spikes at 100 and 150 GeV mess up midrange
+  TF1 *f1p0 = new TF1("f1p0","[0]+[1]/x+[2]/(x*x)+[3]/(x*x*x)",15,3500);
+  f1p0->SetParameters(2.2e-5,0.8e-3,0.08,5.5);
+  //
   if (replaceFakeByFit) {
     for (int i = 1; i != hfq->GetNbinsX()+1; ++i) {
       double pt = hfq->GetBinCenter(i);
-      hfq->SetBinContent(i, f1p->Eval(pt));
-      hfq0->SetBinContent(i, f1p->Eval(pt));
+      hfq->SetBinContent(i, f1p0->Eval(pt));
+      hfq0->SetBinContent(i, f1p0->Eval(pt));
     }
   }
   
   curdir->cd();
 
+  /*
+  // 2017,2018
   // Cross sections from McM:
   // https://cms-pdmv.cern.ch/mcm/requests?page=0&shown=2148532224
 
@@ -102,7 +141,9 @@ void drawPurityEstimates() {
   // Add x2 for both leading jets (now only one randomly as photon)
   hq0->Scale(2.);
   hq->Scale(2.);
-
+  */
+  // 2022: using MadGraph samples that are already normalized with genWeight
+  
   // Enter integrated luminosities per pT bin by hand
   TH1D *hlum17 = (TH1D*)hdt->Clone("hlum17"); hlum17->Reset();
   for (int i = 1; i != hlum17->GetNbinsX()+1; ++i) {
@@ -119,14 +160,53 @@ void drawPurityEstimates() {
   }
   hlum17->Scale(1e3); // fb-1 -> pb-1
 
+  TH1D *hlum22 = (TH1D*)hdt->Clone("hlum22"); hlum22->Reset();
+  for (int i = 1; i != hlum22->GetNbinsX()+1; ++i) {
+    double pt = hlum22->GetBinCenter(i);
+    // https://indico.cern.ch/event/1339886/contributions/5640525/attachments/2741370/4768535/23-10-26_News_PPD.pdf?#page=10 (and 11)
+    double lum22cde = 6.3+3.3+6.1; // 22CDE
+    double lum22cd = 6.3+3.3; // 22CD
+    double lum22e = 6.1; // 22E
+    double lum22fg = 18.4+3.2; // 22FG
+    // From Sami
+    // 2023Cv123 7143 x2 pb-1
+    // 2023Cv4 9918 x2 pb-1
+    // 2023D1 2023D2  7854 x2 pb-1 1672 x2 pb-1
+    double lum23c123 = 7.1; // PPD 23c: 17.0
+    double lum23cv4 = 9.9;  // PPD 23c: 17.0
+    double lum23d = 7.85+1.67;//9.5;
+    double lum(0);
+    if (era=="2022CD") lum = lum22cd;
+    if (era=="2022E") lum = lum22e;
+    if (era=="2022FG") lum = lum22fg;
+    if (era=="2023Cv123") lum = lum23c123;
+    if (era=="2023Cv4D") lum = lum23cv4+lum23d;
+    // Rough numbers for 2022FG
+    if      (pt>=230) hlum22->SetBinContent(i, lum); // HLT_Photon200
+    else if (pt>110)  hlum22->SetBinContent(i, 0.94*lum); // HLT_Photon110EB*
+    else if (pt>90)  hlum22->SetBinContent(i, 0.0278*lum);  // HLT_Photon90*
+    else if (pt>75)   hlum22->SetBinContent(i, 0.0136*lum);  // HLT_Photon75*
+    else if (pt>50)   hlum22->SetBinContent(i, 0.0031*lum);  // HLT_Photon50*
+    else if (pt>30)   hlum22->SetBinContent(i, 0.0057*lum);  // HLT_Photon30EB*
+    else if (pt>20)   hlum22->SetBinContent(i, 0.00003*lum);  // HLT_Photon20*
+    hlum22->SetBinError(i, 0);
+  }
+  hlum22->Scale(1e3); // fb-1 -> pb-1
+
   // Data has 59.9 fb-1
   //double lumi = 59.9e3; // 2018
   //double lumi = 41.477735690e3; // 2017
   //hdt0->Scale(1./lumi);
   //hdt->Scale(1./lumi);
-  hdt0->Divide(hlum17);
-  hdt->Divide(hlum17);
 
+  //hdt0->Divide(hlum17); // 2017
+  //hdt->Divide(hlum17); // 2017
+
+  hdt0->Divide(hlum22); // 2022
+  hdt->Divide(hlum22); // 2022
+
+  /*
+  // 2017,2018
   // Cross sections apparently without genWeight? Account for that as well
   // So basically divide by sum of weights instead of number of events
   double wq = 0.012730690; // files-qcd-15to7000.root
@@ -135,13 +215,14 @@ void drawPurityEstimates() {
   double wg = 0.0045190600; // files-pt-15to6000.root
   hg0->Scale(1./wg);
   hg->Scale(1./wg);
-
+  */
   // Estimate fake photon cross section
   // NB: QCD=4660 times higher xsec, 1654 with x wg/wq
   // (alphas=0.1185/alpha=1/137)^2 = 263.6. Still x6 different? gg vs qg?
   hfq0->Multiply(hq0);
   hfq->Multiply(hq);
 
+  
   TH1D *hr0 = (TH1D*)hq0->Clone("hr0");
   hr0->Divide(hg0);
   hr0->Scale(1e-4);
@@ -169,10 +250,14 @@ void drawPurityEstimates() {
   hmr->Divide(hdt);
 
   TH1D *hu = tdrHist("hu","Cross section (pb/bin)",0.9e-5,1.1e11);//2e-7,2e8);
+  if (doPerGeV) {
+    hu->SetYTitle("Cross section pb/GeV");
+    hu->GetYaxis()->SetRangeUser(1.1e-7,0.9e10);
+  }
   //TH1D *hd = tdrHist("hd","Ratio (10^{4})",1e-1,5);
   TH1D *hd = tdrHist("hd","Ratio",0,2);
   //lumi_13TeV = "UL2018";
-  lumi_13TeV = "UL2017";
+  lumi_13TeV = Form("%s, %s",cera,cv);//"2022CD";//"UL2017";
   TCanvas *c1 = tdrDiCanvas("c1",hu,hd,4,11);
 
   c1->cd(1);
@@ -213,7 +298,7 @@ void drawPurityEstimates() {
   gPad->SetLogx();
 
   TLine *l = new TLine();
-  l->SetLineStyle(kDashed);
+  l->SetLineStyle(kSolid);//kDashed);
   l->DrawLine(15,1,3500,1);
   l->SetLineStyle(kDotted);
   l->DrawLine(15,1.2,3500,1.2);
@@ -239,15 +324,24 @@ void drawPurityEstimates() {
   legd->AddEntry(hgr0,"#gamma sel. only","L");
   legd->AddEntry(hmr0,"#gamma sel. only","L");
 
-  f1p->SetRange(20.,3500.);
-  //f1p->SetParameters(0.2,0.008,0.1,4e-8);
-  f1p->SetParameters(0.1737, 0.9318, 0.01506, 0); // chi2/NDF=3.4/19, 2018
-  f1p->FixParameter(3,0.);
+  // Redefine fit function from f1p0
+  //TF1 *f1p = new TF1("f1p","min([0]+[1]/x+[2]/(x*x)+[3]/(x*x*x),1.)",15,2000);
+  TF1 *f1p = new TF1("f1p","min([0]+[1]/x+[2]/(x*x)+[3]/(x*x*x),1.)",50,2000);
+  f1p->SetParameters(2.2e-5,0.8e-3,0.08,5.5);
+
+  //f1p->SetRange(20.,3500.);
+  // //f1p->SetParameters(0.2,0.008,0.1,4e-8);
+  //f1p->SetParameters(0.1737, 0.9318, 0.01506, 0); // chi2/NDF=3.4/19, 2018
+  //f1p->FixParameter(3,0.);
   //hfr->Fit(f1p,"R"); // 2018
-  hfr->Fit(f1p,"RW"); // 2017
+  //hfr->Fit(f1p,"RW"); // 2017
+  hfr->Fit(f1p,"R"); // 2022
+  f1p->SetRange(15,2000);
 
   f1p->SetLineColor(kGreen+1);
   f1p->Draw("SAME");
+  cout << Form("  TF1 *f1p = new TF1(\"f1p\",\"%s\",15,3500);",
+	       f1p->GetExpFormula().Data()) << endl;
   cout << "  f1p->SetParameters(";
   for (int i = 0; i != f1p->GetNpar(); ++i) {
     cout << Form("%s%1.4g",i==0 ? "" : ", ",f1p->GetParameter(i));
@@ -261,7 +355,7 @@ void drawPurityEstimates() {
   TF1 *_f1p = new TF1("_f1p","[0]+[1]*exp(-[2]*x)+[3]*x",15,3500);
   //_f1p->SetParameters(7e-5,0.008,0.1,4e-8);
   _f1p->SetParameters(0.1737, 0.9318, 0.01506, 0); // chi2/NDF=3.4/19
-  _f1p->SetLineColor(kBlack);
+  _f1p->SetLineColor(kGray);//kBlack);
   _f1p->SetLineStyle(kDotted);
   _f1p->Draw("SAME");
 
@@ -269,30 +363,36 @@ void drawPurityEstimates() {
   TLatex *tex = new TLatex();
   tex->SetNDC();
   tex->SetTextSize(0.025);
-  tex->DrawLatex(0.20,0.07,"NB1: No MC trigger (HoverELoose) at p_{T}<60 GeV");
-  tex->DrawLatex(0.20,0.04,"NB2: #hat{p}_{T}>15 GeV biases MC at p_{T}<50 GeV");
+  //tex->DrawLatex(0.20,0.07,"NB1: No MC trigger (HoverELoose) at p_{T}<60 GeV");
+  //tex->DrawLatex(0.20,0.04,"NB2: #hat{p}_{T}>15 GeV biases MC at p_{T}<50 GeV");
+  tex->DrawLatex(0.20,0.04,"NB: H_{T}>40 GeV biases MC at p_{T}<50 GeV");
   l->SetLineStyle(kDotted);
 
   c1->cd(1);
-  l->DrawLine(60,10,60,1e8);
+  if (!doPerGeV) l->DrawLine(60,10,60,1e8);
   c1->cd(2);
-  l->DrawLine(60,0.2,60,1.4);
+  if (!doPerGeV) l->DrawLine(60,0.2,60,1.4);
 
-  c1->SaveAs("pdf/drawPurityEstimates.pdf");
+  //c1->SaveAs("pdf/drawPurityEstimates.pdf");
+  c1->SaveAs(Form("pdf/drawPurityEstimates_%s_%s.pdf",cera,cv));
 
-  drawEMJetScale();
-  drawGluonFraction();
-  drawGluonResponse();
+  drawEMJetScale(eramc, version);
+  drawGluonFraction(eramc, version);
+  drawGluonResponse(eramc, version);
 } // drawPurityEstimates
 
 // Draw EM jet scale estimate from MC
-void drawEMJetScale() {
+void drawEMJetScale(string era, string version) {
 
   setTDRStyle();
   TDirectory *curdir = gDirectory;
+  const char *cera = era.c_str();
+  const char *cv = version.c_str();
 
   // Open files
-  TFile *fq = new TFile("files/GamHistosFill_mc_2018QCD_v19d.root","READ");
+  //TFile *fq = new TFile("files/GamHistosFill_mc_2018QCD_v19d.root","READ");
+  TFile *fq = new TFile(Form("rootfiles/GamHistosFill_mc_%sQCD_%s.root",
+			     cera,cv),"READ");
   assert(fq && !fq->IsZombie());
 
   curdir->cd();
@@ -307,38 +407,45 @@ void drawEMJetScale() {
   tdrDraw(pr1,"Pz",kOpenSquare);
   tdrDraw(pr2,"Pz",kFullSquare);
 
-  TF1 *f1 = new TF1("f1","[0]+[1]/x",20,3500);
+  TF1 *f1 = new TF1("f1","[0]+[1]/x",30,1500);//20,3500);
   pr1->Fit(f1,"RN");
   f1->SetLineColor(kBlack);
   f1->SetLineStyle(kDashed);
   f1->DrawClone("SAME");
-  f1->FixParameter(1,0);
-  pr1->Fit(f1,"RN");
-  f1->Draw("SAME");
+  //f1->FixParameter(1,0);
+  //pr1->Fit(f1,"RN");
+  //f1->Draw("SAME");
 
-  TF1 *f2 = new TF1("f2","[0]+[1]/x",20,3500);
+  TF1 *f2 = new TF1("f2","[0]+[1]/x",30,1500);//20,3500);
   pr2->Fit(f2,"RN");
   f2->SetLineColor(kBlack);
   f2->SetLineStyle(kSolid);
   f2->DrawClone("SAME");
-  f2->FixParameter(1,0);
-  pr2->Fit(f2,"RN");
-  f2->Draw("SAME");
+  //f2->FixParameter(1,0);
+  //pr2->Fit(f2,"RN");
+  //f2->Draw("SAME");
   
-  c1->SaveAs("pdf/drawPurityEstimates_drawEMJetScale.pdf");
+  //c1->SaveAs("pdf/drawPurityEstimates_drawEMJetScale.pdf");
+  c1->SaveAs(Form("pdf/drawPurityEstimates_drawEMJetScale_%s.pdf",cera));
 } // drawEMJetScale
 
 
-void drawGluonFraction() {
+void drawGluonFraction(string era, string version) {
 
   setTDRStyle();
   TDirectory *curdir = gDirectory;
-
+  const char *cera = era.c_str();
+  const char *cv = version.c_str();
+  
   // Open files
   //TFile *fg = new TFile("files/GamHistosFill_mc_2018P8_v19.root","READ");
-  TFile *fg = new TFile("files/GamHistosFill_mc_2018P8_v19e.root","READ");
+  //TFile *fg = new TFile("files/GamHistosFill_mc_2018P8_v19e.root","READ");
+  TFile *fg = new TFile(Form("rootfiles/GamHistosFill_mc_%sP8_%s.root",
+			     cera,cv),"READ");
   //TFile *fq = new TFile("files/GamHistosFill_mc_2018QCD_v19d.root","READ");
-  TFile *fq = new TFile("files/GamHistosFill_mc_2018QCD_v19e.root","READ");
+  //TFile *fq = new TFile("files/GamHistosFill_mc_2018QCD_v19e.root","READ");
+  TFile *fq = new TFile(Form("rootfiles/GamHistosFill_mc_%sQCD_%s.root",
+			     cera,cv),"READ");
   assert(fq && !fq->IsZombie());
 
   curdir->cd();
@@ -473,18 +580,23 @@ void drawGluonFraction() {
 		 cf, f1g->GetChisquare(), f1g->GetNDF()) << endl;
   } // for iflv in nflv
 
-  c1->SaveAs("pdf/drawPurityEstimates_drawGluonFraction.pdf");
+  //c1->SaveAs("pdf/drawPurityEstimates_drawGluonFraction.pdf");
+  c1->SaveAs(Form("pdf/drawPurityEstimates_drawGluonFraction_%s.pdf",cera));
 } // void drawGluonFraction
 
 
 // Estimate impact of gJES in data on EM+jet background wrt Photon+jet
-void drawGluonResponse() {
+void drawGluonResponse(string era, string version) {
 
   setTDRStyle();
   TDirectory *curdir = gDirectory;
-
+  const char *cera = era.c_str();
+  const char *cv = version.c_str();
+  
   // Open files
-  TFile *fq = new TFile("files/GamHistosFill_mc_2018QCD_v19d.root","READ");
+  //TFile *fq = new TFile("files/GamHistosFill_mc_2018QCD_v19d.root","READ");
+  TFile *fq = new TFile(Form("rootfiles/GamHistosFill_mc_%sQCD_%s.root",
+			     cera,cv),"READ");
   assert(fq && !fq->IsZombie());
 
   curdir->cd();
@@ -516,7 +628,7 @@ void drawGluonResponse() {
   gPad->SetLogx();
 
   TLine *l = new TLine();
-  l->SetLineStyle(kDashed);
+  l->SetLineStyle(kSolid);//kDashed);
   l->DrawLine(15,1,3500,1);
   
   tdrDraw(hg0,"HIST",kNone,kRed,kSolid,-1,kNone);
@@ -536,4 +648,6 @@ void drawGluonResponse() {
   cout << Form("  f1qcd->SetParameters(%1.5g, %1.5g, %1.5g);",
 	       f1->GetParameter(0), f1->GetParameter(1),
 	       f1->GetParameter(2)) << endl;
+
+  c1->SaveAs(Form("pdf/drawPurityEstimates_drawGluonResponse_%s.pdf",cera));
 } // drawGluonResponse

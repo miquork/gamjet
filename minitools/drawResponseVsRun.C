@@ -21,8 +21,8 @@ void drawResponseVsRun() {
   setTDRStyle();
   TDirectory *curdir = gDirectory;
 
-  // Open input files
-  TFile *f = new TFile("rootfiles/GamHistosFill_data_Run3_v26.root","READ");
+  // Open input files, v26->v29
+  TFile *f = new TFile("rootfiles/GamHistosFill_data_Run3_v29.root","READ");
   assert(f && !f->IsZombie());
 
   f->cd("control");
@@ -47,7 +47,7 @@ void drawResponseVsRun() {
   // Setup canvas
   //TH1D *h = tdrHist("h","Response",0.8,1.2,"Run",355300,371300);
   TH1D *h = tdrHist("h","Response",0.92,1.08,"Run",355300,371300);
-  lumi_136TeV = "Photon+jet, Run 3, v26";
+  lumi_136TeV = "Photon+jet, Run 3, v29";//v26";
   extraText = "Private";
   TCanvas *c1 = tdrCanvas("c1",h,8,11);
   TLine *l = new TLine();
