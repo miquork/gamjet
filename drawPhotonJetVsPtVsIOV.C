@@ -66,7 +66,8 @@ void drawPhotonJetVsPtVsIOVs(string so, string var, string name,
   string iovs_short[] = {
     "2018ABCD","Run3",
     "2022CD","2022E","2022FG", //hadd
-    "2023Cv123","2023Cv4D", //hadd
+    //"2023Cv123","2023Cv4D", //hadd
+    "2023Cv123","2023Cv4","2023D" //hadd
   };
 
   string mcs_long[] = {
@@ -76,7 +77,8 @@ void drawPhotonJetVsPtVsIOVs(string so, string var, string name,
   string mcs_short[] = {
     "2018P8","Run3P8",
     "2022P8","2022EEP8","2022EEP8", //hadd
-    "2022P8","2022P8"
+    //"2022P8","2022P8"
+    "2022P8","2022P8","2022P8"
   };
   const int niov_long = sizeof(iovs_long)/sizeof(iovs_long[0]);
   const int nmc_long = sizeof(mcs_long)/sizeof(mcs_long[0]);
@@ -107,7 +109,7 @@ void drawPhotonJetVsPtVsIOVs(string so, string var, string name,
   mcolor["2022FG"] = kRed;
   mcolor["2023Cv123"] = kOrange+1;//kYellow+2;
   mcolor["2023Cv4"] = kBlue;//kGreen+2;
-  mcolor["2023D"] = kMagenta+2;
+  mcolor["2023D"] = kMagenta;//+2;
   mcolor["2023Cv4D"] = kBlue;//kGreen+2;
   mcolor["Run3"] = kBlack;
 
