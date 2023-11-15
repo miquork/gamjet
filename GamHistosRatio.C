@@ -45,6 +45,7 @@ void replacePt(TGraphErrors *g, TH1 *h) {
 }
 
 void GamHistosRatios(string ver, string iov);
+
 // v27->v29
 void GamHistosRatio(string ver = "v29") {
   //GamHistosRatios(ver,"2016BCDEF");
@@ -67,8 +68,8 @@ void GamHistosRatio(string ver = "v29") {
   GamHistosRatios(ver,"2022E");
   GamHistosRatios(ver,"2022FG");
   GamHistosRatios(ver,"2023Cv123");
-  //GamHistosRatios(ver,"2023Cv4");
-  //GamHistosRatios(ver,"2023D");
+  GamHistosRatios(ver,"2023Cv4");
+  GamHistosRatios(ver,"2023D");
   GamHistosRatios(ver,"2023Cv4D");
   GamHistosRatios(ver,"Run3");
   
@@ -181,7 +182,8 @@ void GamHistosRatios(string ver, string iov) {
     fm = new TFile(Form("rootfiles/GamHistosMix_mc_2022EEP8QCD_%s.root",cv),"READ");
     fr = new TFile(Form("rootfiles/GamHistosRatio_%s_P8QCD_%s.root",ci,cv),"RECREATE");
   }
-  if (iov=="2023Cv123" || iov=="2023Cv4" || iov=="2023Cv4D") {
+  if (iov=="2023Cv123" || iov=="2023Cv4" || iov=="2023Cv4D" ||
+      iov=="2023D") {
     fd = new TFile(Form("rootfiles/GamHistosFill_data_%s_%s.root",ci,cv),"READ");
     //fm = new TFile(Form("rootfiles/GamHistosFill_mc_2022P8_%s.root",cv),"READ");
     //fr = new TFile(Form("rootfiles/GamHistosRatio_%s_P8_%s.root",ci,cv),"RECREATE");

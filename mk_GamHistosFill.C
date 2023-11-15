@@ -84,6 +84,7 @@ void mk_GamHistosFill(string dataset = "X", string version = "vX") {
   //gSystem->Exec("rm *.pcm");	
 
   string path = gSystem->pwd();
+  cout << "Current path: " << path << endl << flush;
   /*
   gSystem->AddIncludePath(Form("-I%s",path.c_str()));
   gSystem->AddIncludePath(Form("-I%s/CondFormats/JetMETObjects/interface",path.c_str()));
@@ -111,6 +112,7 @@ void mk_GamHistosFill(string dataset = "X", string version = "vX") {
   // Automatically figure out where we are running the job
   bool runGPU = (path=="/media/storage/gamjet");
   bool runLocal = (path=="/Users/voutila/Dropbox/Cern/gamjet" ||
+		   path=="/Users/voutila/Library/CloudStorage/Dropbox/Cern/gamjet" ||
 		   path=="/Users/manvouti/Dropbox/Cern/gamjet");
   if (!runLocal) assert(runGPU);
 

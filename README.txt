@@ -47,7 +47,7 @@ CHANGELOG (latest first):
 ----------------------------
 To-do later: add MET filters back (pass_filt). Find corrupt data at eta,gamma=0
 
-v30 - To do: add vs pTave, vspTjet for minitools/drawGamjet.C to compare with Z+jet and multijet. Maybe in Gamjet folder (similar to Gamjet2, but |eta|<1.3 only)
+v30 - Add new L2L3Res for 22Sep2023. Add doGamjet with vs pTave, pTjet. Fix if(pass) to doGamjet2. Add pr30chf etc. for PFcomp vs run. Add pass_filt to more trigger plots.
 
 v29b - Remove 2022G from is22v10 patch.
 v29 - Remove 2022[EE]P8 and 2022[EE]QCD from is22v10 patch.
