@@ -51,7 +51,7 @@ public :
 
 // Fixed size dimensions of array or collections stored in the TTree if any.
    // nCorrT1MetJet, nFatJet, nJet, nSoftActivityJet, nSubJet
-   static const int nJetMax = 100;
+   static const int nJetMax = 200;
    // nPhoton, nFsrPhoton, nGenIsolatedPhoton
    static const int nPhotonMax = 200;//100;//20;
    // nElectron, nGenDressedLepton
@@ -141,7 +141,8 @@ public :
    Int_t           Photon_cutBasedBitmap[nPhotonMax];   // EXTRA
   //Int_t           Photon_cutBased_Fall17V1Bitmap[nPhotonMax];   //[nPhoton]
    Int_t           Photon_electronIdx[nPhotonMax];   //[nPhoton]
-   Int_t           Photon_jetIdx[nPhotonMax];   //[nPhoton]
+  //Int_t           Photon_jetIdx[nPhotonMax];   //[nPhoton] // NanoV10,V11
+   Short_t           Photon_jetIdx[nPhotonMax];   //[nPhoton] // NanoV12
   //Int_t           Photon_pdgId[nPhotonMax];   //[nPhoton]
    Int_t           Photon_vidNestedWPBitmap[nPhotonMax];   //[nPhoton]
    Bool_t          Photon_electronVeto[nPhotonMax];   //[nPhoton]
@@ -278,7 +279,8 @@ public :
    Float_t         GenJet_mass[nGenJetMax];   //[nGenJet]
    Float_t         GenJet_phi[nGenJetMax];   //[nGenJet]
    Float_t         GenJet_pt[nGenJetMax];   //[nGenJet]
-   Int_t           GenJet_partonFlavour[nGenJetMax];   //[nGenJet]
+   //Int_t           GenJet_partonFlavour[nGenJetMax]; //[nGenJet] // NanoV10,11
+   Short_t         GenJet_partonFlavour[nGenJetMax]; //[nGenJet] // NanoV12
 
    UInt_t          nGenIsolatedPhoton;
    Float_t         GenIsolatedPhoton_pt[nPhotonMax];
@@ -556,7 +558,7 @@ GamHistosFill::GamHistosFill(TTree *tree, int itype, string datasetname, string 
 	  ds=="2022G" || ds=="2022P8" || ds=="2022QCD" || ds=="2022EEP8" ||
 	  ds=="2022EEQCD");
   //is22v10 = (ds=="2022F" || ds=="2022G" ||
-  is22v10 = (ds=="2022G");
+  is22v10 = false;//(ds=="2022G");
   is23 = (ds=="2023B" || ds=="2023Cv123" || ds=="2023Cv4" || ds=="2023D" ||
 	  ds=="2023P8" || ds=="2023QCD");
   isQCD = (ds=="2016QCD" || ds=="2016QCDAPV" || ds=="2017QCD" ||

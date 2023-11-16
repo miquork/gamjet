@@ -23,6 +23,9 @@ bool doGamjet = true;
 bool doGamjet2 = true;
 bool smearJets = false;
 
+// Error counters
+int cntErrDR(0);
+
 // Classes to structure sets of histograms and profiles
 struct BasicHistos {
   TH1D *hn;
@@ -464,7 +467,7 @@ void GamHistosFill::Loop()
   if (ds=="2022P8" || ds=="2022QCD") {
     jec = getFJC("", "Summer22Run3_V1_MC_L2Relative_AK4PUPPI","");
   }
-  if (ds=="2022EEP8" || ds=="2023QCD") {
+  if (ds=="2022EEP8" || ds=="2022EEQCD") {
     jec = getFJC("", "Summer22EEVetoRun3_V1_MC_L2Relative_AK4PUPPI", "");
   }
   if (dataset=="Summer23") {
@@ -1707,8 +1710,9 @@ void GamHistosFill::Loop()
     }
    
     // Photon-jet: uncorrected jet minus (uncorr.) photon minus L1RC
-    if (iGam!=-1 && Photon_jetIdx[iGam]!=-1 &&
-	Photon_jetIdx[iGam]<(int)nJet) { // 2023B: 65536
+    if (iGam!=-1 && Photon_jetIdx[iGam]!=-1) {
+      assert(Photon_jetIdx[iGam]>=-1);
+      assert(Photon_jetIdx[iGam]<nJet);
       int idx = Photon_jetIdx[iGam];
       if (!(idx<(int)nJet)) {
 	cout << "idx = " << idx << " nJet = " << nJet << endl << flush;
@@ -1720,11 +1724,17 @@ void GamHistosFill::Loop()
 	//phoj.Pt() >= rawgam.Pt()) { // not always true in Run3 (esp. 2022C)
 	// 2022 data is missing proper Puppi photon protection for jets
 	// (but MET ok?)
-	double r22 = max(0.15,min(1.0,(rawgam.Pt()-20.)/180.));
-	phoj -= (is22v10 ? r22*rawgam : rawgam);
+	//double r22 = max(0.15,min(1.0,(rawgam.Pt()-20.)/180.));
+	//phoj -= (is22v10 ? r22*rawgam : rawgam);
+	phoj -= rawgam; // NanoV12
       }
-      else
+      else {
+	if (cntErrDR<5) {
+	cout << "entry " << jentry << ", rawgam.DeltaR(phoj) = "
+	     << rawgam.DeltaR(phoj) << endl << flush;
+	}
 	phoj.SetPtEtaPhiM(0,0,0,0);
+      }
       phoj0 = phoj;
 
       // Calculate L1RC correction

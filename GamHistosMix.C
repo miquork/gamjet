@@ -42,10 +42,10 @@ void GamHistosMix() {
   GamHistosMixEra("2018","v20");
   */
 
-  // v27->v29
-  GamHistosMixEra("2022","v29");
-  GamHistosMixEra("2022EE","v29");
-  GamHistosMixEra("Run3","v29");
+  // v27->v29->v30
+  GamHistosMixEra("2022","v30");
+  GamHistosMixEra("2022EE","v30");
+  GamHistosMixEra("Run3","v30");
 }
 
 TF1 *_f1p(0);
@@ -140,9 +140,13 @@ void recurseGamHistosFile(TDirectory *gamdir, TDirectory *qcddir,
       if (loclvl>=0) loclvl++;
 
       //if (loclvl==1) 
-      cout << endl << "Entering: " << gamdir2->GetName() << endl;
-
-      recurseGamHistosFile(gamdir2, qcddir2, outdir2, loclvl);
+      if ((string(gamdir2->GetName())!="runs" &&
+	   string(gamdir2->GetName())!="Gamjet")) { // patch v30
+	cout << endl << "Entering: " << gamdir2->GetName() << endl;
+	recurseGamHistosFile(gamdir2, qcddir2, outdir2, loclvl);
+      }
+      else
+	cout << endl << "Skip 'runs' and 'Gamjet' for v30" << endl;
     } // inherits from TDirectory  
     else if (obj->InheritsFrom("TH1")) { // Combine histograms
 

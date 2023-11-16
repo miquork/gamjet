@@ -22,7 +22,7 @@ MC_list_of_lists = [
     ['Run3P8','2022P8','2022EEP8']
     ]
 
-version = 'v29'
+version = 'v30'
 
 os.system("ls rootfiles/GamHistosFill_data_*_"+version+".root")
 for IOV_list in IOV_list_of_lists:

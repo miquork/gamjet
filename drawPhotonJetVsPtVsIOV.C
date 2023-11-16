@@ -10,7 +10,7 @@
 bool addMPFu2n = true;
 bool addG1toMPF = false;//true;
 bool addG12toMPF = false;
-string id = "v29";
+string id = "v30";
 bool drawFullIOVList = false;//true;
 
 // Forward declaration of call
@@ -43,6 +43,8 @@ void drawPhotonJetVsPtVsIOV() {
   drawPhotonJetVsPtVsIOVs("resp_MPFchs_%s_a100_eta00_13","MPF","MPF",0.90,1.15,0.89,1.09);//1.06); // Run3
   drawPhotonJetVsPtVsIOVs("resp_DBchs_%s_a100_eta00_13","DB","DB",0.75,1.20,0.89,1.09);//0.80,1.10); // Run3
   //drawPhotonJetVsPtVsIOVs("resp_DBchs_%s_a100_eta00_13","DB","DB",0.75,1.20,0.89,1.09);
+
+  drawPhotonJetVsPtVsIOVs("resp_RES_%s_a100_eta00_13","RES","Residual JES",0.8,1.1,-0.1,0.1);
   
   //drawPhotonJetVsPtVsIOVs("resp_MPFchs_%s_a100_eta00_13","MPF","MPF",0.94,1.08,0.95,1.03);
   //drawPhotonJetVsPtVsIOVs("resp_MPFR1chs_%s_a100_eta00_13","MPF1","MPF1",0.8,1.10,0.95,1.05);

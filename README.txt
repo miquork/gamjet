@@ -21,7 +21,7 @@ Local analysis:
 - rsync -rutP files from Hefaistos
 [  - rename GamHistosFill_mc_2016*APV to mc_2016APV* (automatize later)]
 - python addAllIOVs.py
-[- root -l -b GamHistosMix.C+g]
+- root -l -b GamHistosMix.C+g
 - root -l -b GamHistosRatio.C+g
 
 Extra plotting
@@ -47,6 +47,9 @@ CHANGELOG (latest first):
 ----------------------------
 To-do later: add MET filters back (pass_filt). Find corrupt data at eta,gamma=0
 
+v31 - Increase Jet vector size from 100 to 200 just in case. Fix Int_t to Short_t for Photon_jetIdx and GenJet_partonFlavour in NanoV12.
+
+v30b - Fix mistyped jec switch for 2022EEQCD.
 v30 - Add new L2L3Res for 22Sep2023. Add doGamjet with vs pTave, pTjet. Fix if(pass) to doGamjet2. Add pr30chf etc. for PFcomp vs run. Add pass_filt to more trigger plots.
 
 v29b - Remove 2022G from is22v10 patch.
