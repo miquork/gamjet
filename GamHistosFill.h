@@ -81,7 +81,8 @@ public :
    Float_t         ChsMET_pt;
    Float_t         ChsMET_sumEt;
 
-   UInt_t          nJet;
+  //UInt_t          nJet; // NanoV11,10
+   Int_t          nJet; // NanoV12
    Float_t         Jet_area[nJetMax];   //[nJet]
    Float_t         Jet_btagDeepB[nJetMax];   //[nJet]
    Float_t         Jet_btagDeepC[nJetMax];   //[nJet]
@@ -115,7 +116,8 @@ public :
    Int_t           Jet_nMuons[nJetMax];   //[nJet]
   //Int_t           Jet_puId[nJetMax];   //[nJet]
 
-   Int_t           Jet_genJetIdx[nJetMax];   //[nJet]
+  //Int_t           Jet_genJetIdx[nJetMax];   //[nJet] // NanoV11,10
+   Short_t           Jet_genJetIdx[nJetMax];   //[nJet] // NanoV12
 
    Float_t         MET_phi;
    Float_t         MET_pt;
@@ -123,7 +125,8 @@ public :
    Float_t         MET_sumEt;
    //Float_t         MET_sumPtUnclustered;
 
-   UInt_t          nPhoton;
+   //UInt_t          nPhoton; // NanoV11,10
+   Int_t          nPhoton; // NanoV12
    Float_t         Photon_energyErr[nPhotonMax];   //[nPhoton]
    Float_t         Photon_eta[nPhotonMax];   //[nPhoton]
    Float_t         Photon_hoe[nPhotonMax];   //[nPhoton]
@@ -167,7 +170,8 @@ public :
    //Float_t         fixedGridRhoFastjetCentralChargedPileUp;
    //Float_t         fixedGridRhoFastjetCentralNeutral;
 
-   UInt_t          nTrigObj;
+   //UInt_t          nTrigObj; // NanoV11,10
+   Int_t          nTrigObj; // NanoV12
    Float_t         TrigObj_pt[nTrigObjMax];   //[nTrigObj]
    Float_t         TrigObj_eta[nTrigObjMax];   //[nTrigObj]
    Float_t         TrigObj_phi[nTrigObjMax];   //[nTrigObj]
@@ -274,7 +278,8 @@ public :
    Bool_t          HLT_Photon60_HoverELoose;
 
    // Extras for MC
-   UInt_t          nGenJet;
+   //UInt_t          nGenJet; // NanoV11,10
+   Int_t          nGenJet; // NanoV12
    Float_t         GenJet_eta[nGenJetMax];   //[nGenJet]
    Float_t         GenJet_mass[nGenJetMax];   //[nGenJet]
    Float_t         GenJet_phi[nGenJetMax];   //[nGenJet]
@@ -292,7 +297,8 @@ public :
   
    Float_t         genWeight;
    Float_t         Pileup_nTrueInt;
-   UInt_t          nPSWeight;
+  //UInt_t          nPSWeight; // NanoV11,10
+   Int_t           nPSWeight; // NanoV12
    Float_t         PSWeight[nPSWeightMax];   //[nPSWeight]
 
    // List of branches

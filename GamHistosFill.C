@@ -1668,7 +1668,7 @@ void GamHistosFill::Loop()
     }
 
     // Select tight photons and photon matching gen photon
-    for (unsigned int i = 0; i != nPhoton; ++i) {
+    for (int i = 0; i != nPhoton; ++i) {
 
       if (isRun3) Photon_mass[i] = 0;
       gami.SetPtEtaPhiM(Photon_pt[i],  Photon_eta[i],
@@ -1714,9 +1714,9 @@ void GamHistosFill::Loop()
       assert(Photon_jetIdx[iGam]>=-1);
       assert(Photon_jetIdx[iGam]<nJet);
       int idx = Photon_jetIdx[iGam];
-      if (!(idx<(int)nJet)) {
+      if (!(idx<nJet)) {
 	cout << "idx = " << idx << " nJet = " << nJet << endl << flush;
-	assert(idx<(int)nJet);
+	assert(idx<nJet);
       }
       phoj.SetPtEtaPhiM(Jet_pt[idx], Jet_eta[idx], Jet_phi[idx], Jet_mass[idx]);
       phoj *= (1-Jet_rawFactor[idx]);
@@ -1776,7 +1776,7 @@ void GamHistosFill::Loop()
       iFox = (jentry%2); // "random" selection from two leading jets
       // Jet_genJetIdx would be great, but only there for UL18 nAOD? Maybe there
       int k = Jet_genJetIdx[iFox];
-      if (k>=0 && k<(int)nGenJet) {
+      if (k>=0 && k<nGenJet) {
 	gam.SetPtEtaPhiM(GenJet_pt[k], GenJet_eta[k], GenJet_phi[k],
 			 GenJet_mass[k]);
 	// NB: should remove UE clustered into gam. In Minsuk's rho_ZB_new.pdf
@@ -1985,7 +1985,7 @@ void GamHistosFill::Loop()
     rawjets.SetPtEtaPhiM(0,0,0,0);
     rcjets.SetPtEtaPhiM(0,0,0,0);
     rcoffsets.SetPtEtaPhiM(0,0,0,0);
-    for (unsigned int i = 0; i != nJet; ++i) {
+    for (int i = 0; i != nJet; ++i) {
       
       // Redo JEC on the fly (should be no previous use of corrected jets)
       if (jec!=0) {
@@ -2016,8 +2016,8 @@ void GamHistosFill::Loop()
       }
       
       // Check that jet is not photon and pTcorr>15 GeV
-      if (Jet_pt[i]>15 && (iGam==-1 || (int)i != Photon_jetIdx[iGam]) &&
-	  (!isQCD || (int)i != iFox)) {
+      if (Jet_pt[i]>15 && (iGam==-1 || i != Photon_jetIdx[iGam]) &&
+	  (!isQCD || i != iFox)) {
 	
 	//++nJets;
 	jeti.SetPtEtaPhiM(Jet_pt[i], Jet_eta[i], Jet_phi[i], Jet_mass[i]);
@@ -2064,7 +2064,7 @@ void GamHistosFill::Loop()
     genjet.SetPtEtaPhiM(0,0,0,0);
     genjet2.SetPtEtaPhiM(0,0,0,0);
     if (isMC) {
-      for (UInt_t i = 0; i != nGenJet; ++i) {
+      for (Int_t i = 0; i != nGenJet; ++i) {
 	geni.SetPtEtaPhiM(GenJet_pt[i],GenJet_eta[i],GenJet_phi[i],
 			  GenJet_mass[i]);
 	if (iJet!=-1 && geni.DeltaR(jet)<0.4 && iGenJet==-1) {
@@ -2654,7 +2654,7 @@ void GamHistosFill::Loop()
       // Specific event selection for alpha and eta bins
       for (unsigned int ialpha = 0; ialpha != alphas.size(); ++ialpha) {
 	for (unsigned int ieta = 0; ieta != etas.size(); ++ieta) { 
-	for (unsigned int ips = 0; ips != nPSWeight+1; ++ips) { 
+	for (int ips = 0; ips != nPSWeight+1; ++ips) { 
 
 	  double alpha = alphas[ialpha];
 	  double ymin = etas[ieta].first;
