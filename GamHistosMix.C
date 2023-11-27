@@ -42,10 +42,10 @@ void GamHistosMix() {
   GamHistosMixEra("2018","v20");
   */
 
-  // v27->v29->v30
-  GamHistosMixEra("2022","v30");
-  GamHistosMixEra("2022EE","v30");
-  GamHistosMixEra("Run3","v30");
+  // v27->v29->v30->v31
+  GamHistosMixEra("2022","v32");
+  GamHistosMixEra("2022EE","v32");
+  GamHistosMixEra("Run3","v32");
 }
 
 TF1 *_f1p(0);

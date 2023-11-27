@@ -48,7 +48,8 @@ public :
    string          dataset;
    string          version;
    string          _filename; // file name for debugging purposes
-
+   static const bool debugFiles = true;
+  
 // Fixed size dimensions of array or collections stored in the TTree if any.
    // nCorrT1MetJet, nFatJet, nJet, nSoftActivityJet, nSubJet
    static const int nJetMax = 200;
@@ -997,6 +998,8 @@ Bool_t GamHistosFill::Notify()
 
   if (fChain && fChain->GetCurrentFile()) {
     _filename = fChain->GetCurrentFile()->GetName();
+    if (debugFiles)
+      cout << endl << "Opened file: " << _filename << endl << flush;
   }
 
    return kTRUE;

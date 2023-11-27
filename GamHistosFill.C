@@ -238,7 +238,7 @@ void GamHistosFill::Loop()
     if (isMC) fChain->SetBranchStatus("Pileup_nTrueInt");
     fChain->SetBranchStatus("run",1);
     if (!isMC) fChain->SetBranchStatus("luminosityBlock",1);
-    //if (!isMC) fChain->SetBranchStatus("event",1);
+    if (!isMC && debugFiles) fChain->SetBranchStatus("event",1);
 
     if (isRun3) {
       // Same cut as for dijet sample
@@ -445,23 +445,28 @@ void GamHistosFill::Loop()
   //2022
   if (ds=="2022C") {
     jec = getFJC("", "Summer22Run3_V1_MC_L2Relative_AK4PUPPI",
-		 "Run22CD-22Sep2023_DATA_L2L3Residual_AK4PFPuppi");
+		 //"Run22CD-22Sep2023_DATA_L2L3Residual_AK4PFPuppi");
+		 "Summer22-22Sep2023_Run2022CD_V3_DATA_L2L3Residual_AK4PFPuppi");
   }
   if (ds=="2022D") {
     jec = getFJC("", "Summer22Run3_V1_MC_L2Relative_AK4PUPPI",
-		 "Run22CD-22Sep2023_DATA_L2L3Residual_AK4PFPuppi");
+		 //"Run22CD-22Sep2023_DATA_L2L3Residual_AK4PFPuppi");
+		 "Summer22-22Sep2023_Run2022CD_V3_DATA_L2L3Residual_AK4PFPuppi");
   }
   if (ds=="2022E") {
     jec = getFJC("", "Summer22EEVetoRun3_V1_MC_L2Relative_AK4PUPPI",
-		 "Run22E-22Sep2023_DATA_L2L3Residual_AK4PFPuppi");
+		 //"Run22E-22Sep2023_DATA_L2L3Residual_AK4PFPuppi");
+		 "Summer22EE-22Sep2023_Run2022E_V3_DATA_L2L3Residual_AK4PFPuppi");		 
   }
   if (ds=="2022F") {
     jec = getFJC("", "Summer22EEVetoRun3_V1_MC_L2Relative_AK4PUPPI",
-		 "Run22F-Prompt_DATA_L2L3Residual_AK4PFPuppi");
+		 //"Run22F-Prompt_DATA_L2L3Residual_AK4PFPuppi");
+		 "Summer22EEPrompt22_Run2022F_V3_DATA_L2L3Residual_AK4PFPuppi");
   }
   if (ds=="2022G") {
     jec = getFJC("", "Summer22EEVetoRun3_V1_MC_L2Relative_AK4PUPPI",
-		 "Run22G-Prompt_DATA_L2L3Residual_AK4PFPuppi");
+		 //"Run22G-Prompt_DATA_L2L3Residual_AK4PFPuppi");
+		 "Summer22EEPrompt22_Run2022G_V3_DATA_L2L3Residual_AK4PFPuppi");
   }
   //22/23 MC
   if (ds=="2022P8" || ds=="2022QCD") {
@@ -477,15 +482,18 @@ void GamHistosFill::Loop()
   //2023
   if (ds=="2023B" || ds=="2023Cv123") {
     jec = getFJC("", "Summer22Run3_V1_MC_L2Relative_AK4PUPPI",
-		 "Run23C123-Prompt_DATA_L2L3Residual_AK4PFPuppi");
+		 //"Run23C123-Prompt_DATA_L2L3Residual_AK4PFPuppi");
+		 "Summer22Prompt23_Run2023Cv123_V3_DATA_L2L3Residual_AK4PFPUPPI");
   }
   if (ds=="2023Cv4") {
     jec = getFJC("", "Summer22Run3_V1_MC_L2Relative_AK4PUPPI",
-		 "Run23C4-Prompt_DATA_L2L3Residual_AK4PFPuppi");
+		 //"Run23C4-Prompt_DATA_L2L3Residual_AK4PFPuppi");
+		 "Summer22Prompt23_Run2023Cv4_V3_DATA_L2L3Residual_AK4PFPUPPI");
   }
   if (ds=="2023D") {
     jec = getFJC("", "Summer22Run3_V1_MC_L2Relative_AK4PUPPI",
-		 "Run23D-Prompt_DATA_L2L3Residual_AK4PFPuppi");
+		 //"Run23D-Prompt_DATA_L2L3Residual_AK4PFPuppi");
+		 "Summer22Prompt23_Run2023D_V3_DATA_L2L3Residual_AK4PFPUPPI");
   }
   assert(jec);
   
@@ -1711,12 +1719,15 @@ void GamHistosFill::Loop()
    
     // Photon-jet: uncorrected jet minus (uncorr.) photon minus L1RC
     if (iGam!=-1 && Photon_jetIdx[iGam]!=-1) {
-      assert(Photon_jetIdx[iGam]>=-1);
-      assert(Photon_jetIdx[iGam]<nJet);
+      //assert(Photon_jetIdx[iGam]>=-1);
+      //assert(Photon_jetIdx[iGam]<nJet);
       int idx = Photon_jetIdx[iGam];
-      if (!(idx<nJet)) {
-	cout << "idx = " << idx << " nJet = " << nJet << endl << flush;
-	assert(idx<nJet);
+      if (!(idx<nJet && idx>=0)) {
+	cout << endl << "idx = " << idx << " nJet = " << nJet << endl << flush;
+	cout << "Skip event " << event << " in LS " << luminosityBlock
+	     << " in  run " << run << " in File: " << _filename << endl;
+	continue;
+	//assert(idx<nJet);
       }
       phoj.SetPtEtaPhiM(Jet_pt[idx], Jet_eta[idx], Jet_phi[idx], Jet_mass[idx]);
       phoj *= (1-Jet_rawFactor[idx]);
@@ -1729,11 +1740,18 @@ void GamHistosFill::Loop()
 	phoj -= rawgam; // NanoV12
       }
       else {
-	if (cntErrDR<5) {
-	cout << "entry " << jentry << ", rawgam.DeltaR(phoj) = "
-	     << rawgam.DeltaR(phoj) << endl << flush;
+	if (cntErrDR<10) {
+	  cout << endl << "entry " << jentry << ", rawgam.DeltaR(phoj) = "
+	       << rawgam.DeltaR(phoj) << endl << flush;
+	  cout << "Skip event " << event << " in LS " << luminosityBlock
+	       << " in  run " << run << " in File: " << _filename << endl;
+	  ++cntErrDR;
+	  if (cntErrDR==10) {
+	    cout << "Stop reporting rawgam.DeltaR, silently skip." << endl;
+	  }
 	}
 	phoj.SetPtEtaPhiM(0,0,0,0);
+	continue;
       }
       phoj0 = phoj;
 

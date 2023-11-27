@@ -27,6 +27,7 @@ Local analysis:
 Extra plotting
 - root -l -b -q drawPhotonJetVsPtVsIOV.C
 - root -l -b -q minitools/drawResponseVsRun.C
+- root -l -b -q minitools/drawL2Res.C+g\(\"batchRun\"\)
 
 
 TIMING estimates, one at a time
@@ -45,8 +46,14 @@ TIMING estimates, one at a time
 
 CHANGELOG (latest first):
 ----------------------------
-To-do later: add MET filters back (pass_filt). Find corrupt data at eta,gamma=0
+To-do later: 
+- update h2r9vspt r9 binning. Check if r9 cut makes sense at pT>230 GeV for Photon200 trigger, and if efficiency drops too much
 
+
+v32b: rerun QCD adter filtering more bad files.
+v32: Update to 2022Sep2023 JEC V3. Add debugFiles to catch bad files.
+
+v31b - Add debugFiles printout to catch bad files better. Replace photon idx assert with error printout and continue. Add printout for photon dR also. 
 v31 - Increase Jet vector size from 100 to 200 just in case. Fix Int_t to Short_t for Photon_jetIdx and GenJet_partonFlavour in NanoV12.
 
 v30b - Fix mistyped jec switch for 2022EEQCD.
