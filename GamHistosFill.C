@@ -334,7 +334,7 @@ void GamHistosFill::Loop()
     fChain->SetBranchStatus("Jet_neEmEF",1);
     fChain->SetBranchStatus("Jet_chEmEF",1);
     fChain->SetBranchStatus("Jet_muEF",1);
-    if (!isRun3) fChain->SetBranchStatus("Jet_chFPV0EF",1);
+    //if (!isRun3) fChain->SetBranchStatus("Jet_chFPV0EF",1);
 
     if (isMC) fChain->SetBranchStatus("Jet_genJetIdx",1);
     
@@ -2600,8 +2600,8 @@ void GamHistosFill::Loop()
 	  pnef->Fill(ptgam, Jet_neEmEF[iJet], w);
 	  pcef->Fill(ptgam, Jet_chEmEF[iJet], w);
 	  pmuf->Fill(ptgam, Jet_muEF[iJet], w);
-	  if (isRun3) Jet_chFPV0EF[iJet] = 0;
-	  ppuf->Fill(ptgam, Jet_chFPV0EF[iJet], w);
+	  //if (isRun3) Jet_chFPV0EF[iJet] = 0;
+	  //ppuf->Fill(ptgam, Jet_chFPV0EF[iJet], w);
 	  
 	  // 2D composition and response
 	  if (ptgam>230) {
@@ -2614,7 +2614,7 @@ void GamHistosFill::Loop()
 	    p2nef->Fill(eta, phi, Jet_neEmEF[iJet], w);
 	    p2cef->Fill(eta, phi, Jet_chEmEF[iJet], w);
 	    p2muf->Fill(eta, phi, Jet_muEF[iJet], w);
-	    p2puf->Fill(eta, phi, Jet_chFPV0EF[iJet], w);
+	    //p2puf->Fill(eta, phi, Jet_chFPV0EF[iJet], w);
 	  }
 
 	  if (isMC) {
