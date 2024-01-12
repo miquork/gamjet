@@ -113,7 +113,8 @@ void mk_GamHistosFill(string dataset = "X", string version = "vX") {
   bool runGPU = (path=="/media/storage/gamjet");
   bool runLocal = (path=="/Users/voutila/Dropbox/Cern/gamjet" ||
 		   path=="/Users/voutila/Library/CloudStorage/Dropbox/Cern/gamjet" ||
-		   path=="/Users/manvouti/Dropbox/Cern/gamjet");
+		   path=="/Users/manvouti/Dropbox/Cern/gamjet" ||
+		   path=="/home/bschilli/Cern/gamjet");
   if (!runLocal) assert(runGPU);
 
   if (runGPU) cout << "Running on Hefaistos (runGPU)" << endl;
