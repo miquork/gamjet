@@ -25,9 +25,10 @@ Local analysis:
 - root -l -b GamHistosRatio.C+g
 
 Extra plotting
-- root -l -b -q drawPhotonJetVsPtVsIOV.C
-- root -l -b -q minitools/drawResponseVsRun.C
-- root -l -b -q minitools/drawL2Res.C+g\(\"batchRun\"\)
+- root -l -b -q drawPhotonJetVsPtVsIOV.C                  [time stability]
+- root -l -b -q minitools/drawResponseVsRun.C             [time stability]
+- root -l -b -q minitools/drawL2Res.C+g\(\"batchRun\"\)   [L2Res analysis]
+- root -l -b -q mk_drawPurityEstimates.C                  [QCD bkg checks]
 
 
 TIMING estimates, one at a time
@@ -49,8 +50,12 @@ CHANGELOG (latest first):
 To-do later: 
 - update h2r9vspt r9 binning. Check if r9 cut makes sense at pT>230 GeV for Photon200 trigger, and if efficiency drops too much
 
+v34: Add is24 flag. Add new 2024 photon triggers, input files, DCSOnly JSON. Add pr50* for monitoring per run, extend run range by 10k.
 
-v32b: rerun QCD adter filtering more bad files.
+v33: Int_t->UChar_t for Jet_jetId (NanoV12; previous jetID messed up?). Int_t -> UChar_t for Photon_cutBased (NanoV12; previous photonID messed up?). Clean up unused variables and check types. To-do: add bx vs run map for later use
+- 2022F,G to 19Dec2023 file list
+
+v32b: rerun QCD after filtering more bad files.
 v32: Update to 2022Sep2023 JEC V3. Add debugFiles to catch bad files.
 
 v31b - Add debugFiles printout to catch bad files better. Replace photon idx assert with error printout and continue. Add printout for photon dR also. 

@@ -42,6 +42,7 @@ public :
    bool            is22;
    bool            is22v10;
    bool            is23;
+   bool            is24;
    bool            isRun2, isRun3;
    bool            isQCD;
    bool            isMG;
@@ -230,6 +231,15 @@ public :
    //Bool_t          HLT_Photon500;
    //Bool_t          HLT_Photon600;
 
+   // Triggers and branches from 24
+   //Bool_t          HLT_Photon50EB_TightID_TightIso_PFJet30;
+   Bool_t          HLT_Photon50EB_TightID_TightIso;
+   Bool_t          HLT_Photon55EB_TightID_TightIso;
+   Bool_t          HLT_Photon75EB_TightID_TightIso;
+   Bool_t          HLT_Photon90EB_TightID_TightIso;
+   //Bool_t          HLT_Photon110EB_TightID_TightIso;
+   //Bool_t          HLT_Photon110EB_TightID_TightIso_PFJet30;
+  
    // Triggers and branches from 22-23
    Bool_t          HLT_Photon100EBHE10;
    Bool_t          HLT_Photon30EB_TightID_TightIso;
@@ -471,9 +481,19 @@ public :
    //TBranch        *b_HLT_Photon500;   //!
    //TBranch        *b_HLT_Photon600;   //!
 
-  // Triggers (and branches) from 22-23
+   // Triggers (and branches) from 24
+   TBranch        *b_HLT_Photon50EB_TightID_TightIso_PFJet30;   //!
+   TBranch        *b_HLT_Photon50EB_TightID_TightIso;   //!
+   TBranch        *b_HLT_Photon55EB_TightID_TightIso;   //!
+   TBranch        *b_HLT_Photon75EB_TightID_TightIso;   //!
+   TBranch        *b_HLT_Photon90EB_TightID_TightIso;   //!
+  //TBranch        *b_HLT_Photon110EB_TightID_TightIso;   //!
+  //TBranch        *b_HLT_Photon110EB_TightID_TightIso_PFJet30;   //!
+  
+   // Triggers (and branches) from 22-23
    TBranch        *b_HLT_Photon100EBHE10;
    TBranch        *b_HLT_Photon30EB_TightID_TightIso;
+
   
    // Triggers (and branches) from 2018
    TBranch        *b_Photon_eCorr;
@@ -540,12 +560,17 @@ GamHistosFill::GamHistosFill(TTree *tree, int itype, string datasetname, string 
   is22v10 = false;//(ds=="2022G");
   is23 = (ds=="2023B" || ds=="2023Cv123" || ds=="2023Cv4" || ds=="2023D" ||
 	  ds=="2023P8" || ds=="2023QCD");
+  is24 = (ds=="2024B" ||
+	  ds=="2024P8" || ds=="2024QCD");
   isQCD = (ds=="2016QCD" || ds=="2016QCDAPV" || ds=="2017QCD" ||
-	   ds=="2018QCD" || ds=="2022QCD" || ds=="2022EEQCD");
-  isMG = (ds=="2022P8" || ds=="2022EEP8" || ds=="2022QCD" || ds=="2022EEQCD");
-  isRun3 = (is22 || is23);
+	   ds=="2018QCD" || ds=="2022QCD" || ds=="2022EEQCD" ||
+	   ds=="2023QCD" || ds=="2023BPixQCD");
+  isMG = (ds=="2022P8" || ds=="2022EEP8" || ds=="2022QCD" || ds=="2022EEQCD" ||
+	  ds=="2023P8" || ds=="2023BPixP8" ||
+	  ds=="2023QCD" || ds=="2023BPixQCD");
+  isRun3 = (is22 || is23 || is24);
   isRun2 = (is16  || is17 || is18);
-  assert(is16 || is17 || is18 || is22 || is23);
+  assert(is16 || is17 || is18 || is22 || is23 || is24);
   
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
@@ -626,11 +651,11 @@ void GamHistosFill::Init(TTree *tree)
 
    fChain->SetBranchAddress("nJet", &nJet, &b_nJet);
    fChain->SetBranchAddress("Jet_area", Jet_area, &b_Jet_area);
-   if (!(is22 || is23)) fChain->SetBranchAddress("Jet_btagDeepB", Jet_btagDeepB, &b_Jet_btagDeepB);
-   if (!(is22 || is23)) fChain->SetBranchAddress("Jet_btagDeepC", Jet_btagDeepC, &b_Jet_btagDeepC);
+   if (!(is22 || is23 || is24)) fChain->SetBranchAddress("Jet_btagDeepB", Jet_btagDeepB, &b_Jet_btagDeepB);
+   if (!(is22 || is23 | is24)) fChain->SetBranchAddress("Jet_btagDeepC", Jet_btagDeepC, &b_Jet_btagDeepC);
    //fChain->SetBranchAddress("Jet_btagDeepCvB", Jet_btagDeepCvB, &b_Jet_btagDeepCvB);
    //fChain->SetBranchAddress("Jet_btagDeepCvL", Jet_btagDeepCvL, &b_Jet_btagDeepCvL);
-   if (is22 || is23) {
+   if (is22 || is23 || is24) {
      fChain->SetBranchAddress("Jet_btagDeepFlavB", Jet_btagDeepFlavB, &b_Jet_btagDeepFlavB);
      //fChain->SetBranchAddress("Jet_btagDeepFlavC", Jet_btagDeepFlavC, &b_Jet_btagDeepFlavC);
      fChain->SetBranchAddress("Jet_btagDeepFlavCvB", Jet_btagDeepFlavCvB, &b_Jet_btagDeepFlavCvB);
@@ -652,7 +677,7 @@ void GamHistosFill::Init(TTree *tree)
    fChain->SetBranchAddress("Jet_phi", Jet_phi, &b_Jet_phi);
    fChain->SetBranchAddress("Jet_pt", Jet_pt, &b_Jet_pt);
    //fChain->SetBranchAddress("Jet_puIdDisc", Jet_puIdDisc, &b_Jet_puIdDisc);
-   if (!(is22 || is23)) fChain->SetBranchAddress("Jet_qgl", Jet_qgl, &b_Jet_qgl);
+   if (!(is22 || is23 || is24)) fChain->SetBranchAddress("Jet_qgl", Jet_qgl, &b_Jet_qgl);
    fChain->SetBranchAddress("Jet_rawFactor", Jet_rawFactor, &b_Jet_rawFactor);
    fChain->SetBranchAddress("Jet_jetId", Jet_jetId, &b_Jet_jetId);
    //fChain->SetBranchAddress("Jet_nConstituents", Jet_nConstituents, &b_Jet_nConstituents);
@@ -671,14 +696,14 @@ void GamHistosFill::Init(TTree *tree)
 
    fChain->SetBranchAddress("nPhoton", &nPhoton, &b_nPhoton);
    //if (!is16)
-   if (!(is16 || is22 || is23)) 
+   if (!(is16 || is22 || is23 || is24)) 
      fChain->SetBranchAddress("Photon_eCorr", Photon_eCorr, &b_Photon_eCorr);
    else
      b_Photon_eCorr = 0;
    fChain->SetBranchAddress("Photon_energyErr", Photon_energyErr, &b_Photon_energyErr);
    fChain->SetBranchAddress("Photon_eta", Photon_eta, &b_Photon_eta);
    fChain->SetBranchAddress("Photon_hoe", Photon_hoe, &b_Photon_hoe);
-   if (!(is22 || is23)) fChain->SetBranchAddress("Photon_mass", Photon_mass, &b_Photon_mass);
+   if (!(is22 || is23 || is24)) fChain->SetBranchAddress("Photon_mass", Photon_mass, &b_Photon_mass);
    //fChain->SetBranchAddress("Photon_mvaID", Photon_mvaID, &b_Photon_mvaID);
    //fChain->SetBranchAddress("Photon_mvaID_Fall17V1p1", Photon_mvaID_Fall17V1p1, &b_Photon_mvaID_Fall17V1p1);
    //fChain->SetBranchAddress("Photon_pfRelIso03_all", Photon_pfRelIso03_all, &b_Photon_pfRelIso03_all);
@@ -791,7 +816,7 @@ void GamHistosFill::Init(TTree *tree)
      fChain->SetBranchAddress("GenJet_pt", GenJet_pt, &b_GenJet_pt);
      fChain->SetBranchAddress("GenJet_partonFlavour", GenJet_partonFlavour, &b_GenJet_partonFlavour);
 
-     if (is22 || is23)
+     if (is22 || is23 || is24)
        fChain->SetBranchAddress("LHE_HT", &LHE_HT, &b_LHE_HT);
 
      if (!isQCD) {
@@ -838,6 +863,11 @@ void GamHistosFill::Init(TTree *tree)
 
    b_HLT_Photon165_HE10 = 0;
 
+   b_HLT_Photon50EB_TightID_TightIso = 0;
+   b_HLT_Photon55EB_TightID_TightIso = 0;
+   b_HLT_Photon75EB_TightID_TightIso = 0;
+   b_HLT_Photon90EB_TightID_TightIso = 0;
+      
    b_HLT_Photon100EB_TightID_TightIso = 0;
    b_HLT_Photon110EB_TightID_TightIso = 0;
    b_HLT_Photon120EB_TightID_TightIso = 0;
@@ -901,7 +931,7 @@ void GamHistosFill::Init(TTree *tree)
 
    } // is16
 
-   if (is17 || is18 || is22 || is23) {
+   if (is17 || is18 || is22 || is23 || is24) {
 
    // also in 2016
    fChain->SetBranchAddress("HLT_Photon300_NoHE", &HLT_Photon300_NoHE, &b_HLT_Photon300_NoHE);
@@ -929,7 +959,7 @@ void GamHistosFill::Init(TTree *tree)
    fChain->SetBranchAddress("HLT_Photon20_HoverELoose", &HLT_Photon20_HoverELoose, &b_HLT_Photon20_HoverELoose);
    fChain->SetBranchAddress("HLT_Photon30_HoverELoose", &HLT_Photon30_HoverELoose, &b_HLT_Photon30_HoverELoose);
 
-   } // is17 || is18 || is22 || is23
+   } // is17 || is18 || is22 || is23 || is24
    if (is17 && !isMC) {
 
      fChain->SetBranchAddress("HLT_Photon40_HoverELoose", &HLT_Photon40_HoverELoose, &b_HLT_Photon40_HoverELoose);
@@ -948,7 +978,7 @@ void GamHistosFill::Init(TTree *tree)
    fChain->SetBranchAddress("HLT_Photon120EB_TightID_TightIso", &HLT_Photon120EB_TightID_TightIso, &b_HLT_Photon120EB_TightID_TightIso);
 
    } // is18
-   if (is22 || is23) {
+   if (is22 || is23 || is24) {
 
      //fChain->SetBranchAddress("HLT_Photon20", &HLT_Photon20, &b_HLT_Photon20);
    
@@ -956,7 +986,17 @@ void GamHistosFill::Init(TTree *tree)
    fChain->SetBranchAddress("HLT_Photon100EBHE10", &HLT_Photon100EBHE10, &b_HLT_Photon100EBHE10);
    fChain->SetBranchAddress("HLT_Photon110EB_TightID_TightIso", &HLT_Photon110EB_TightID_TightIso, &b_HLT_Photon110EB_TightID_TightIso);
 
-   } // is22 is23
+   } // is22 is23 is24
+   if (is24) {
+ //fChain->SetBranchAddress("HLT_Photon50EB_TightID_TightIso_PFJet30", &HLT_Photon50EB_TightID_TightIso_PFJet30, &b_HLT_Photon50EB_TightID_TightIso_PFJet30);
+   fChain->SetBranchAddress("HLT_Photon50EB_TightID_TightIso", &HLT_Photon50EB_TightID_TightIso, &b_HLT_Photon50EB_TightID_TightIso);
+   fChain->SetBranchAddress("HLT_Photon55EB_TightID_TightIso", &HLT_Photon55EB_TightID_TightIso, &b_HLT_Photon55EB_TightID_TightIso);
+   fChain->SetBranchAddress("HLT_Photon75EB_TightID_TightIso", &HLT_Photon75EB_TightID_TightIso, &b_HLT_Photon75EB_TightID_TightIso);
+   fChain->SetBranchAddress("HLT_Photon90EB_TightID_TightIso", &HLT_Photon90EB_TightID_TightIso, &b_HLT_Photon90EB_TightID_TightIso);
+ //fChain->SetBranchAddress("HLT_Photon110EB_TightID_TightIso", &HLT_Photon110EB_TightID_TightIso, &b_HLT_Photon110EB_TightID_TightIso);
+ //fChain->SetBranchAddress("HLT_Photon110EB_TightID_TightIso_PFJet30", &HLT_Photon110EB_TightID_TightIso_PFJet30, &b_HLT_Photon110EB_TightID_TightIso_PFJet30);
+   } // is24
+   
    Notify();
 }
 

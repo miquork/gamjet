@@ -66,17 +66,18 @@ void mk_GamHistosFill(string dataset = "X", string version = "vX") {
 		  dataset=="2022C"  || dataset=="2022D" || dataset=="2022E" ||
 		  dataset=="2022F"  || dataset=="2022G" ||
 		  dataset=="2023B" || dataset=="2023Cv123" ||
-		  dataset=="2023Cv4" || dataset=="2023D");
+		  dataset=="2023Cv4" || dataset=="2023D" ||
+		  dataset=="2024B");
   bool addMC = (dataset=="2016P8" || dataset=="2017P8" || dataset=="2018P8" ||
 		dataset=="2016APVP8" ||
 		dataset=="2022P8" || //dataset=="2022QCD" ||
 		dataset=="2022EEP8" || //dataset=="2022EEQCD" ||
-		dataset=="2023P8");// || dataset=="2023QCD");
+		dataset=="2023P8" || dataset=="2023BPixP8");
 
   bool addQCD = (dataset=="2016QCD" || dataset=="2016APVQCD" || 
 		 dataset=="2017QCD" || dataset=="2018QCD" ||
 		 dataset=="2022QCD" || dataset=="2022EEQCD" ||
-		 dataset=="2023QCD");
+		 dataset=="2023QCD" || dataset=="2023BPixQCD");
 
   //cout << "Clean old shared objects and link files" << endl << flush;
   //gSystem->Exec("rm *.d");
