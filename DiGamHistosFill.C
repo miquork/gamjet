@@ -16,7 +16,7 @@ using namespace std;
 
 #include "parsePileUpJSON.C"
 
-bool _gh_debug2 = true;
+bool _gh_debug2 = false;//true;
 //bool _gh_debug2100 = false;
 
 //bool doGamjet = true;
@@ -95,6 +95,7 @@ class digamHistos {
  public:
 
   TH1D *hmgg, *hmgg_13, *hmgg_200, *hmgg1, *hmgg1_13, *hmgg1_200;
+  TH1D *hmgg1_Eta13_deltaEta13, *hmgg1_Eta13_deltaR20;
 };
 
 /*
@@ -330,6 +331,7 @@ void DiGamHistosFill::Loop()
       fChain->SetBranchStatus("Photon_cutBasedBitmap",1);
     else
       fChain->SetBranchStatus("Photon_cutBased",1);
+    fChain->SetBranchStatus("Photon_pixelSeed",1); // 2024-12-11
     fChain->SetBranchStatus("Photon_jetIdx",1);
 
     fChain->SetBranchStatus("Photon_seedGain",1);
@@ -1332,6 +1334,10 @@ void DiGamHistosFill::Loop()
     h->hmgg1 = new TH1D("hmgg1",";m_{#gamma#gamma} (GeV)",vx.size()-1,&vx[0]);
     h->hmgg1_13 = new TH1D("hmgg1_13",";m_{#gamma#gamma} (GeV)",vx.size()-1,&vx[0]);
     h->hmgg1_200 = new TH1D("hmgg1_200",";m_{#gamma#gamma} (GeV)",vx.size()-1,&vx[0]);
+
+    // DeltaR, deltaEta variants
+    h->hmgg1_Eta13_deltaEta13 = new TH1D("hmgg1_Eta13_deltaEta13",";m_{#gamma#gamma} (GeV)",vx.size()-1,&vx[0]);
+    h->hmgg1_Eta13_deltaR20 = new TH1D("hmgg1_Eta13_deltaR20",";m_{#gamma#gamma} (GeV)",vx.size()-1,&vx[0]);
   }
     
   fout->cd();
@@ -1758,7 +1764,7 @@ void DiGamHistosFill::Loop()
       // Leading tight photon(s)
       // R9>0.94 to avoid bias wrt R9Id90 triggers and from photon conversions
       if (Photon_pt[i]>15 && Photon_cutBased[i]==3 && Photon_hoe[i]<0.02148 &&
-	  Photon_r9[i]>0.94) {
+	  Photon_r9[i]>0.94 && Photon_pixelSeed[i]==0) {
 	++nGam;
 	if (iGam==-1) {
 	  iGam = i;
@@ -2913,7 +2919,9 @@ void DiGamHistosFill::Loop()
 
 	if (pass_basic) {
 	  double mgg = (gam+gam2).M();
-
+	  double deltaEta = (gam.Eta()-gam2.Eta());
+	  double deltaR = gam.DeltaR(gam2);
+	  
 	  if (pass_gameta) {
 	    h->hmgg->Fill(mgg, w);
 	    h->hmgg1->Fill(mgg, w);
@@ -2926,6 +2934,10 @@ void DiGamHistosFill::Loop()
 	  if (fabs(gam.Eta())<1.3 && fabs(gam2.Eta())<1.3) {
 	    h->hmgg_13->Fill(mgg, w);
 	    h->hmgg1_13->Fill(mgg, w);
+
+	    if (fabs(deltaEta)<1.3) h->hmgg1_Eta13_deltaEta13->Fill(mgg, w);
+	    if (deltaR<2.0) h->hmgg1_Eta13_deltaR20->Fill(mgg, w); 
+
 	  }
 	}
       } // doDiGam

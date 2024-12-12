@@ -120,14 +120,17 @@ void mk_DiGamHistosFill(string dataset = "X", string version = "vX") {
 		   path=="/Users/voutila/Library/CloudStorage/Dropbox/Cern/gamjet" ||
 		   path=="/Users/manvouti/Dropbox/Cern/gamjet" ||
 		   path=="/home/bschilli/Cern/gamjet");
-  if (!runLocal) assert(runGPU);
+  bool runLxPlus = (path=="/afs/cern.ch/user/v/voutila/scratch0/gamjet");
+  if (!runLocal)  assert(runGPU || runLxPlus);
+  if (!runGPU)    assert(runLocal || runLxPlus);
+  if (!runLxPlus) assert(runLocal || runGPU);
 
   if (runGPU) cout << "Running on Hefaistos (runGPU)" << endl;
-  if (runLocal) cout << "Running on iMac (runLocal)" << endl;
+  if (runLocal) cout << "Running on iMac or MacBook (runLocal)" << endl;
+  if (runLxPlus) cout << "Running on lxplus+eos (runLxPlus)" << endl;
   
   if (addData) {
-    ifstream fin(runLocal ? Form("input_files/dataFiles_local_%s.txt",dataset.c_str()) : 
-		 Form("input_files/dataFiles_Run%s.txt",dataset.c_str()), ios::in);
+    ifstream fin(runLocal ? Form("input_files/dataFiles_local_%s.txt",dataset.c_str()) : (runLxPlus ? Form("input_files/dataFiles_eos_Run%s.txt",dataset.c_str()) : Form("input_files/dataFiles_Run%s.txt",dataset.c_str())), ios::in);
     string filename;
     cout << "Chaining data files:" << endl << flush;
     int nFiles(0), nFilesMax(4000);//827);//9999);
@@ -142,8 +145,7 @@ void mk_DiGamHistosFill(string dataset = "X", string version = "vX") {
   }
   
   if (addMC) {
-    ifstream fin(runLocal ? Form("input_files/mcFiles_local_%s.txt",dataset.c_str()) :
-		 Form("input_files/mcFiles_%s.txt",dataset.c_str()), ios::in);
+    ifstream fin(runLocal ? Form("input_files/mcFiles_local_%s.txt",dataset.c_str()) : (runLxPlus ? "" : Form("input_files/mcFiles_%s.txt",dataset.c_str())), ios::in);
     string filename;
     cout << "Chaining MC files:" << endl << flush;
     int nFiles(0), nFilesMax(1437);//100);
@@ -158,8 +160,7 @@ void mk_DiGamHistosFill(string dataset = "X", string version = "vX") {
   }
 
   if (addQCD) {
-    ifstream fin(runLocal ? Form("input_files/mcFiles_local_%s.txt",dataset.c_str()) :
-		 Form("input_files/mcFiles_%s.txt",dataset.c_str()), ios::in);
+    ifstream fin(runLocal ? Form("input_files/mcFiles_local_%s.txt",dataset.c_str()) : (runLxPlus ? "" : Form("input_files/mcFiles_%s.txt",dataset.c_str())), ios::in);
     string filename;
     cout << "Chaining QCD MC files:" << endl << flush;
     int nFiles(0), nFilesMax(5097);

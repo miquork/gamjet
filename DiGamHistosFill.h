@@ -53,9 +53,9 @@ public :
   
 // Fixed size dimensions of array or collections stored in the TTree if any.
    // nCorrT1MetJet, nFatJet, nJet, nSoftActivityJet, nSubJet
-   static const int nJetMax = 200;
+  static const int nJetMax = 300;//200;
    // nPhoton, nFsrPhoton, nGenIsolatedPhoton
-   static const int nPhotonMax = 200;//100;//20;
+  static const int nPhotonMax = 300;//200;//100;//20;
    // nElectron, nGenDressedLepton
    static const int nElectronMax = 10;
    static const int nTauMax = 10;
@@ -135,6 +135,7 @@ public :
    //Int_t           Photon_jetIdx[nPhotonMax];   // NanoV10,V11
    Short_t         Photon_jetIdx[nPhotonMax];     // NanoV12
 
+   Bool_t          Photon_pixelSeed[nPhotonMax];
    UChar_t         Photon_seedGain[nPhotonMax];
    Float_t         Photon_r9[nPhotonMax];
    Float_t         Photon_eCorr[nPhotonMax];
@@ -730,7 +731,7 @@ void DiGamHistosFill::Init(TTree *tree)
    //fChain->SetBranchAddress("Photon_isScEtaEE", Photon_isScEtaEE, &b_Photon_isScEtaEE);
    //fChain->SetBranchAddress("Photon_mvaID_WP80", Photon_mvaID_WP80, &b_Photon_mvaID_WP80);
    //fChain->SetBranchAddress("Photon_mvaID_WP90", Photon_mvaID_WP90, &b_Photon_mvaID_WP90);
-   //fChain->SetBranchAddress("Photon_pixelSeed", Photon_pixelSeed, &b_Photon_pixelSeed);
+   fChain->SetBranchAddress("Photon_pixelSeed", Photon_pixelSeed, &b_Photon_pixelSeed);
    fChain->SetBranchAddress("Photon_seedGain", Photon_seedGain, &b_Photon_seedGain);
 
    //fChain->SetBranchAddress("RawMET_phi", &RawMET_phi, &b_RawMET_phi);
