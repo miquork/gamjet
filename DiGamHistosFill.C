@@ -2913,7 +2913,9 @@ void DiGamHistosFill::Loop()
 	}
       } // doGamjet2
       */
-  
+
+      if (
+      
       if (doDiGam) {
 	digamHistos *h = hgg;
 

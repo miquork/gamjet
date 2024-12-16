@@ -13,5 +13,6 @@
 
   // For Gamjet code (v6.26.06)
   gROOT->ProcessLine(".L GamHistosFill.C+g");
+  gROOT->ProcessLine(".L DiGamHistosFill.C+g");
 
 }

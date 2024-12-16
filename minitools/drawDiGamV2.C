@@ -13,7 +13,9 @@ void drawDiGamV2() {
   setTDRStyle();
   TDirectory *curdir = gDirectory;
 
-  TFile *f = new TFile("rootfiles/DiGamHistosFill_data_2024FG.root","READ");
+  TFile *f = new TFile("rootfiles/DiGamHistosFill_data_2024F_v0.root","READ");
+  
+  //TFile *f = new TFile("rootfiles/DiGamHistosFill_data_2024FG.root","READ");
   //TFile *f = new TFile("rootfiles/DiGamHistosFill_data_2024F_vX.root","READ");
   //TFile *f = new TFile("rootfiles/DiGamHistosFill_data_2024G_vX.root","READ");
   assert(f && !f->IsZombie());
@@ -22,16 +24,18 @@ void drawDiGamV2() {
   //2024G:  40.399886502      | 37.772631997 
   //double lumi = (27.757+37.773)*1000; // 2024F+G, 1/fb->1/pb
   //double lumi = 37.773*1000; // 2024G, 1/fb->1/pb
-  //double lumi = 27.757*1000; // 2024F, 1/fb->1/pba
-  double lumi = (27.757+37.773)*1000; // 2024F+G, 1/fb->1/pb
+  double lumi = 27.757*1000; // 2024F, 1/fb->1/pba
+  //double lumi = (27.757+37.773)*1000; // 2024F+G, 1/fb->1/pb
 
-  TH1D *hmgg = (TH1D*)f->Get("DiGam/hmgg1_13"); assert(hmgg);
+  //TH1D *hmgg = (TH1D*)f->Get("DiGam/hmgg1_13"); assert(hmgg); // DEFAULT
+  //TH1D *hmgg = (TH1D*)f->Get("DiGam/hmgg1_Eta13_deltaR20"); assert(hmgg);
+  TH1D *hmgg = (TH1D*)f->Get("DiGam/hmgg1_Eta13_deltaEta13"); assert(hmgg);
   //TH1D *hmgg = (TH1D*)f->Get("DiGam/hmgg1"); assert(hmgg);
   TH1D *hmggn = (TH1D*)hmgg->Clone("hmggn");
   hmggn->Rebin(2.);
   hmggn->Scale(1./lumi,"width");
 
-  double xmin = 85;//70;//91.2;//100.;//140;//110;//120;
+  double xmin = 200;//85;//70;//91.2;//100.;//140;//110;//120;
   double xmax = 2000;//1100;//2000;
   //TF1 *f1 = new TF1("f1","[0]*pow(x,[1]+[2]*log(x))",120,2000);
   //TF1 *f1 = new TF1("f1","[0]*pow(x,[1]+[2]*log(0.01*x))",120,2000);
@@ -64,7 +68,7 @@ void drawDiGamV2() {
 		    f1->GetParameter(3),f1->GetParameter(4),f1->GetParameter(5),
 		    f1->GetParameter(6),f1->GetParameter(7),f1->GetParameter(8),
 		    0.,m_eta_t-E_b); // max 11 params
-  //for (int i = 0; i != 9; ++i) f2->FixParameter(i,f1->GetParameter(i));
+  for (int i = 0; i != 9; ++i) f2->FixParameter(i,f1->GetParameter(i));
   f2->SetParameter(11,width_eta_t);
   f2->SetParameter(12,1e-6);
   //f2->SetParameter(13,0.98);
